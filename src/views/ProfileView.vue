@@ -1,40 +1,40 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
+  <div class="max-w-4xl mx-auto px-4 py-8 space-y-8 font-mono">
     <!-- Profile Card -->
-    <div class="rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-xl space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-800">
+    <div class="rounded-none bg-white border-4 border-black p-6 sm:p-8 shadow-brutal-xl space-y-6 text-black">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b-2 border-black">
         <div class="flex items-center space-x-4">
           <img
             :src="avatarUrl"
-            class="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-emerald-500 shadow-md"
+            class="w-16 h-16 rounded-none bg-slate-100 border-3 border-black shadow-brutal-sm"
             alt="avatar"
           />
           <div>
             <div class="flex items-center space-x-2">
-              <h2 class="text-xl font-black text-white">{{ authStore.profile?.nickname }}</h2>
-              <span v-if="authStore.isAdmin" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-800">
+              <h2 class="text-2xl font-black text-black uppercase">{{ authStore.profile?.nickname }}</h2>
+              <span v-if="authStore.isAdmin" class="px-2 py-0.5 rounded-none text-xs font-black bg-[#ff9500] text-black border border-black shadow-brutal-sm">
                 管理员
               </span>
             </div>
-            <p class="text-xs text-slate-400 font-mono mt-1">{{ authStore.profile?.email }}</p>
+            <p class="text-xs text-black font-bold mt-1">{{ authStore.profile?.email }}</p>
           </div>
         </div>
 
-        <!-- Chips Pill & Sign Out -->
+        <!-- Chips Box & Sign Out -->
         <div class="flex items-center space-x-3">
-          <div class="px-4 py-2 rounded-2xl bg-slate-950 border border-slate-800 flex items-center space-x-2">
-            <CoinIcon customClass="w-5 h-5" />
+          <div class="px-5 py-2.5 rounded-none bg-[#ffff00] border-3 border-black shadow-brutal flex items-center space-x-3">
+            <CoinIcon customClass="w-6 h-6" />
             <div>
-              <div class="text-[10px] text-slate-400 font-semibold uppercase">当前持有</div>
-              <div class="text-base font-black font-mono text-amber-300">{{ formattedChips }}</div>
+              <div class="text-[10px] text-black font-black uppercase">当前持有筹码</div>
+              <div class="text-xl font-black text-black">{{ formattedChips }}</div>
             </div>
           </div>
 
           <button
             @click="handleSignOut"
-            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-rose-950/80 hover:text-rose-400 hover:border-rose-800 text-xs font-bold text-slate-300 border border-slate-700 transition-all flex items-center gap-1.5"
+            class="brutal-btn-pink px-4 py-3 text-xs"
           >
-            <LogOut class="w-3.5 h-3.5" />
+            <LogOut class="w-3.5 h-3.5 mr-1" />
             <span>退出登录</span>
           </button>
         </div>
@@ -43,17 +43,17 @@
       <!-- Edit Nickname Form -->
       <form @submit.prevent="handleSaveProfile" class="flex flex-col sm:flex-row items-end gap-3">
         <div class="w-full sm:w-72">
-          <label class="block text-xs font-semibold text-slate-400 mb-1">修改昵称</label>
+          <label class="block text-xs font-black text-black uppercase mb-1">修改昵称</label>
           <input
             v-model="editNickname"
             type="text"
             required
-            class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+            class="brutal-input w-full px-3.5 py-2 text-xs font-bold"
           />
         </div>
         <button
           type="submit"
-          class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow"
+          class="brutal-btn-lime px-5 py-2 text-xs font-black"
         >
           保存修改
         </button>
@@ -61,43 +61,43 @@
     </div>
 
     <!-- Chip Transactions History -->
-    <div class="rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-4">
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
-          <CreditCard class="w-4 h-4 text-emerald-400" />
+    <div class="rounded-none bg-white border-4 border-black p-6 shadow-brutal-lg space-y-4 text-black">
+      <div class="flex items-center justify-between border-b-2 border-black pb-3">
+        <h3 class="text-base font-black text-black uppercase flex items-center gap-2">
+          <CreditCard class="w-5 h-5 text-black" />
           <span>筹码流水明细</span>
         </h3>
         <button
           @click="() => walletStore.fetchTransactions()"
-          class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1"
+          class="brutal-btn-white px-3 py-1 text-xs"
         >
-          <RotateCw class="w-3 h-3" />
+          <RotateCw class="w-3 h-3 mr-1" />
           <span>刷新流水</span>
         </button>
       </div>
 
-      <div class="divide-y divide-slate-800 max-h-96 overflow-y-auto">
-        <div v-if="walletStore.transactions.length === 0" class="py-8 text-center text-slate-500 text-xs">
+      <div class="divide-y-2 divide-black max-h-96 overflow-y-auto pr-1">
+        <div v-if="walletStore.transactions.length === 0" class="py-8 text-center text-black font-bold text-xs">
           暂无筹码流水记录
         </div>
         <div
           v-for="tx in walletStore.transactions"
           :key="tx.id"
-          class="py-3 flex items-center justify-between hover:bg-slate-800/30 transition-colors"
+          class="py-3.5 flex items-center justify-between hover:bg-[#ffffea] transition-colors"
         >
           <div>
-            <div class="text-xs font-semibold text-slate-200">{{ tx.note || getTypeName(tx.type) }}</div>
+            <div class="text-xs font-black text-black">{{ tx.note || getTypeName(tx.type) }}</div>
             <div class="text-[10px] text-slate-500 font-mono mt-0.5">{{ tx.created_at || '刚刚' }}</div>
           </div>
           <div class="text-right">
             <div
               class="text-xs font-mono font-black flex items-center justify-end gap-1"
-              :class="tx.amount >= 0 ? 'text-emerald-400' : 'text-rose-400'"
+              :class="tx.amount >= 0 ? 'text-[#059669]' : 'text-[#ff006e]'"
             >
               <span>{{ tx.amount >= 0 ? '+' : '' }}{{ tx.amount }}</span>
-              <CoinIcon customClass="w-3 h-3" />
+              <CoinIcon customClass="w-3.5 h-3.5" />
             </div>
-            <div class="text-[10px] text-slate-400 font-mono">余额: {{ tx.balance_after }}</div>
+            <div class="text-[10px] text-black font-bold">余额: {{ tx.balance_after }}</div>
           </div>
         </div>
       </div>

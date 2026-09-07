@@ -1,19 +1,19 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 py-8 space-y-6">
+  <div class="max-w-5xl mx-auto px-4 py-8 space-y-6 font-mono">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 border-black pb-4">
       <div>
-        <h1 class="text-2xl font-extrabold text-white flex items-center gap-2">
-          <History class="w-6 h-6 text-emerald-400" />
+        <h1 class="text-3xl font-black text-black uppercase flex items-center gap-2">
+          <History class="w-8 h-8 text-black" />
           <span>对局战绩历史</span>
         </h1>
-        <p class="text-xs text-slate-400 mt-1">查看您在各游戏中的下注明细与盈亏记录</p>
+        <p class="text-xs text-black font-bold mt-1">查看您在各游戏中的下注明细与盈亏记录</p>
       </div>
 
       <!-- Filter by Game -->
       <select
         v-model="selectedGameFilter"
-        class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-semibold"
+        class="brutal-input text-xs py-2 px-3 font-black"
       >
         <option value="all">全部玩法</option>
         <option value="zhajinhua">炸金花</option>
@@ -25,59 +25,59 @@
     </div>
 
     <!-- Summary Stats Bar -->
-    <div class="grid grid-cols-3 gap-4">
-      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-        <div class="text-xs text-slate-400">累计局数</div>
-        <div class="text-xl font-black font-mono text-slate-100 mt-1">{{ filteredRecords.length }}</div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="p-5 rounded-none bg-white border-4 border-black shadow-brutal text-center">
+        <div class="text-xs text-black font-black uppercase">累计局数</div>
+        <div class="text-2xl font-black text-black mt-1">{{ filteredRecords.length }} 局</div>
       </div>
-      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-        <div class="text-xs text-slate-400">总胜率</div>
-        <div class="text-xl font-black font-mono text-emerald-400 mt-1">{{ winRate }}%</div>
+      <div class="p-5 rounded-none bg-white border-4 border-black shadow-brutal text-center">
+        <div class="text-xs text-black font-black uppercase">总胜率</div>
+        <div class="text-2xl font-black text-black mt-1">{{ winRate }}%</div>
       </div>
-      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-        <div class="text-xs text-slate-400">净盈亏汇总</div>
-        <div class="text-xl font-black font-mono mt-1 flex items-center justify-center gap-1" :class="totalNetProfit >= 0 ? 'text-amber-300' : 'text-rose-400'">
+      <div class="p-5 rounded-none bg-white border-4 border-black shadow-brutal text-center">
+        <div class="text-xs text-black font-black uppercase">净盈亏汇总</div>
+        <div class="text-2xl font-black mt-1 flex items-center justify-center gap-1" :class="totalNetProfit >= 0 ? 'text-[#059669]' : 'text-[#ff006e]'">
           <span>{{ totalNetProfit >= 0 ? '+' : '' }}{{ totalNetProfit }}</span>
-          <CoinIcon customClass="w-4 h-4" />
+          <CoinIcon customClass="w-5 h-5" />
         </div>
       </div>
     </div>
 
     <!-- Records Table -->
-    <div class="rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden shadow-xl">
-      <div v-if="filteredRecords.length === 0" class="py-16 text-center text-slate-500 text-sm">
+    <div class="rounded-none bg-white border-4 border-black shadow-brutal-lg overflow-hidden">
+      <div v-if="filteredRecords.length === 0" class="py-16 text-center text-black font-bold text-sm">
         暂无对局战绩，快去游戏大厅挑战一局吧！
       </div>
 
-      <div v-else class="divide-y divide-slate-800">
+      <div v-else class="divide-y-2 divide-black">
         <div
           v-for="rec in filteredRecords"
           :key="rec.id"
-          class="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-800/40 transition-colors"
+          class="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#ffffea] transition-colors"
         >
           <div class="flex items-center space-x-3">
-            <span class="px-2.5 py-1 rounded-lg text-xs font-bold" :class="getGameTagClass(rec.game_type)">
+            <span class="px-2.5 py-1 rounded-none text-xs font-black uppercase border border-black shadow-brutal-sm" :class="getGameTagClass(rec.game_type)">
               {{ getGameName(rec.game_type) }}
             </span>
-            <div class="text-xs text-slate-400">
+            <div class="text-xs text-slate-600 font-bold">
               {{ formatDate(rec.created_at) }}
             </div>
           </div>
 
-          <div class="flex items-center space-x-6 text-xs font-mono">
-            <div class="text-slate-400 flex items-center gap-1">
+          <div class="flex items-center space-x-6 text-xs">
+            <div class="text-black font-bold flex items-center gap-1">
               <span>下注:</span>
-              <span class="text-slate-200 font-bold">{{ rec.bet_amount }}</span>
+              <span class="text-black font-black">{{ rec.bet_amount }}</span>
               <CoinIcon customClass="w-3.5 h-3.5" />
             </div>
-            <div class="text-slate-400 flex items-center gap-1">
+            <div class="text-black font-bold flex items-center gap-1">
               <span>派彩:</span>
-              <span class="text-slate-200 font-bold">{{ rec.payout }}</span>
+              <span class="text-black font-black">{{ rec.payout }}</span>
               <CoinIcon customClass="w-3.5 h-3.5" />
             </div>
             <div
-              class="font-black text-sm px-3 py-1 rounded-full flex items-center gap-1"
-              :class="rec.net_profit > 0 ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : rec.net_profit < 0 ? 'bg-rose-950 text-rose-400 border border-rose-800' : 'bg-slate-800 text-slate-300'"
+              class="font-black text-sm px-3 py-1 rounded-none border-2 border-black shadow-brutal-sm flex items-center gap-1"
+              :class="rec.net_profit > 0 ? 'bg-[#ccff00] text-black' : rec.net_profit < 0 ? 'bg-[#ff006e] text-white' : 'bg-slate-200 text-black'"
             >
               <span>{{ rec.net_profit >= 0 ? '+' : '' }}{{ rec.net_profit }}</span>
               <CoinIcon customClass="w-3.5 h-3.5" />
@@ -132,12 +132,12 @@ function getGameName(type: string): string {
 
 function getGameTagClass(type: string): string {
   switch (type) {
-    case 'zhajinhua': return 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-    case 'blackjack': return 'bg-amber-950 text-amber-400 border border-amber-800'
-    case 'texas': return 'bg-indigo-950 text-indigo-400 border border-indigo-800'
-    case 'sicbo': return 'bg-rose-950 text-rose-400 border border-rose-800'
-    case 'marksix': return 'bg-sky-950 text-sky-400 border border-sky-800'
-    default: return 'bg-slate-800 text-slate-300'
+    case 'zhajinhua': return 'bg-[#ccff00] text-black'
+    case 'blackjack': return 'bg-[#ffff00] text-black'
+    case 'texas': return 'bg-[#00d9ff] text-black'
+    case 'sicbo': return 'bg-[#ff006e] text-white'
+    case 'marksix': return 'bg-[#ff9500] text-black'
+    default: return 'bg-white text-black'
   }
 }
 

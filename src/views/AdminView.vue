@@ -1,18 +1,18 @@
 <template>
-  <div class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+  <div class="max-w-6xl mx-auto px-4 py-8 space-y-8 font-mono">
     <!-- Non-admin protection alert -->
-    <div v-if="!authStore.isAdmin" class="rounded-3xl bg-rose-950/80 border border-rose-800 p-8 text-center space-y-4">
-      <div class="w-16 h-16 rounded-full bg-rose-900/40 border border-rose-700/60 text-rose-400 mx-auto flex items-center justify-center">
-        <ShieldX class="w-8 h-8" />
+    <div v-if="!authStore.isAdmin" class="rounded-none bg-white border-4 border-black p-8 text-center space-y-4 shadow-brutal-xl text-black">
+      <div class="w-16 h-16 rounded-none bg-[#ff006e] border-3 border-black text-white mx-auto flex items-center justify-center shadow-brutal">
+        <ShieldX class="w-9 h-9" />
       </div>
-      <h2 class="text-2xl font-black text-rose-300">无权访问管理后台</h2>
-      <p class="text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
+      <h2 class="text-3xl font-black text-black uppercase">无权访问管理后台</h2>
+      <p class="text-xs sm:text-sm text-black max-w-lg mx-auto leading-relaxed font-bold">
         当前账号未设置管理员权限。如需成为管理员，请在 Supabase SQL Editor 中执行如下命令：
       </p>
-      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-amber-300 max-w-md mx-auto overflow-x-auto">
+      <div class="p-3 rounded-none bg-[#ffffea] border-2 border-black font-mono text-xs text-black font-black max-w-md mx-auto overflow-x-auto shadow-brutal-sm">
         update public.profiles set is_admin = true where email = '{{ authStore.user?.email || '你的邮箱' }}';
       </div>
-      <router-link to="/" class="inline-block px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all">
+      <router-link to="/" class="brutal-btn-lime px-6 py-2.5 text-xs inline-block">
         返回大厅首页
       </router-link>
     </div>
@@ -20,16 +20,16 @@
     <!-- Admin Panel -->
     <div v-else class="space-y-6">
       <!-- Admin Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 border-black pb-4">
         <div>
-          <h1 class="text-2xl font-extrabold text-white flex items-center gap-2">
-            <Shield class="w-7 h-7 text-amber-400" />
+          <h1 class="text-3xl font-black text-black uppercase flex items-center gap-2">
+            <Shield class="w-8 h-8 text-black" />
             <span>系统管理控制台</span>
-            <span class="px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800 text-xs font-bold">
+            <span class="px-2.5 py-0.5 rounded-none bg-[#ff9500] text-black border-2 border-black text-xs font-black shadow-brutal-sm">
               SUPER ADMIN
             </span>
           </h1>
-          <p class="text-xs text-slate-400 mt-1">支持全服玩家资产调账、赠送筹码与账户管理</p>
+          <p class="text-xs text-black font-bold mt-1">支持全服玩家资产调账、赠送筹码与账户管理</p>
         </div>
 
         <!-- Search Input -->
@@ -38,72 +38,72 @@
             v-model="searchQuery"
             type="text"
             placeholder="搜索玩家昵称或邮箱..."
-            class="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+            class="brutal-input w-full px-3.5 py-2 text-xs"
           />
         </div>
       </div>
 
       <!-- Quick Metrics Summary -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-          <div class="text-xs text-slate-400 font-semibold">注册玩家总数</div>
-          <div class="text-2xl font-black font-mono text-slate-100 mt-1">{{ playersList.length }} 位</div>
+        <div class="p-5 rounded-none bg-white border-4 border-black shadow-brutal">
+          <div class="text-xs text-black font-black uppercase">注册玩家总数</div>
+          <div class="text-2xl font-black text-black mt-1">{{ playersList.length }} 位</div>
         </div>
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-          <div class="text-xs text-slate-400 font-semibold">全服流通虚拟币</div>
-          <div class="text-2xl font-black font-mono text-amber-400 mt-1 flex items-center gap-1.5">
+        <div class="p-5 rounded-none bg-white border-4 border-black shadow-brutal">
+          <div class="text-xs text-black font-black uppercase">全服流通虚拟币</div>
+          <div class="text-2xl font-black text-black mt-1 flex items-center gap-1.5">
             <CoinIcon customClass="w-6 h-6" />
             <span>{{ totalCirculatingChips }}</span>
           </div>
         </div>
-        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-          <div class="text-xs text-slate-400 font-semibold">管理操作模式</div>
-          <div class="text-base font-bold text-emerald-400 mt-2 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <div class="p-5 rounded-none bg-white border-4 border-black shadow-brutal">
+          <div class="text-xs text-black font-black uppercase">管理操作模式</div>
+          <div class="text-base font-black text-[#059669] mt-2 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-none bg-[#059669] border border-black"></span>
             <span>数据库原子 RPC 事务</span>
           </div>
         </div>
       </div>
 
       <!-- Players Management Table -->
-      <div class="rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden shadow-xl">
-        <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">玩家档案与资产列表</span>
+      <div class="rounded-none bg-white border-4 border-black overflow-hidden shadow-brutal-lg">
+        <div class="px-6 py-4 border-b-2 border-black bg-[#f4f4f0] flex items-center justify-between">
+          <span class="text-xs font-black text-black uppercase tracking-wider">玩家档案与资产列表</span>
           <button
             @click="fetchPlayers"
-            class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1.5"
+            class="brutal-btn-lime px-3 py-1 text-xs"
           >
-            <RotateCw class="w-3.5 h-3.5" />
+            <RotateCw class="w-3.5 h-3.5 mr-1" />
             <span>刷新列表</span>
           </button>
         </div>
 
-        <div class="divide-y divide-slate-800">
+        <div class="divide-y-2 divide-black">
           <div
             v-for="p in filteredPlayers"
             :key="p.id"
-            class="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-800/40 transition-colors"
+            class="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#ffffea] transition-colors"
           >
             <div class="flex items-center space-x-3.5">
               <img
                 :src="p.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + p.id"
-                class="w-10 h-10 rounded-full border border-slate-700 bg-slate-800"
+                class="w-10 h-10 rounded-none border-2 border-black bg-slate-100 shadow-brutal-sm"
               />
               <div>
                 <div class="flex items-center space-x-2">
-                  <span class="text-sm font-bold text-slate-200">{{ p.nickname }}</span>
-                  <span v-if="p.is_admin" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-800">
+                  <span class="text-sm font-black text-black">{{ p.nickname }}</span>
+                  <span v-if="p.is_admin" class="px-1.5 py-0.5 rounded-none text-[10px] font-black bg-[#ff9500] text-black border border-black shadow-brutal-sm">
                     管理员
                   </span>
                 </div>
-                <div class="text-xs text-slate-400 font-mono mt-0.5">{{ p.email }}</div>
+                <div class="text-xs text-slate-600 font-bold mt-0.5">{{ p.email }}</div>
               </div>
             </div>
 
             <div class="flex items-center space-x-4 sm:space-x-6 justify-between sm:justify-end">
               <div class="text-right">
-                <div class="text-[10px] text-slate-400 font-semibold">当前筹码</div>
-                <div class="text-sm font-black font-mono text-amber-300 flex items-center justify-end gap-1">
+                <div class="text-[10px] text-black font-black uppercase">当前筹码</div>
+                <div class="text-sm font-black text-black flex items-center justify-end gap-1">
                   <CoinIcon customClass="w-3.5 h-3.5" />
                   <span>{{ formatChips(p.chips) }}</span>
                 </div>
@@ -111,9 +111,9 @@
 
               <button
                 @click="openGrantModal(p)"
-                class="px-4 py-2 rounded-xl bg-amber-600/90 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow transition-all flex items-center space-x-1.5"
+                class="brutal-btn-orange px-4 py-2 text-xs"
               >
-                <Gift class="w-3.5 h-3.5" />
+                <Gift class="w-3.5 h-3.5 mr-1.5" />
                 <span>赠送/调整筹码</span>
               </button>
             </div>
@@ -125,14 +125,14 @@
     <!-- Grant Chips Modal -->
     <Modal v-model="showGrantModal" title="后台赠送 / 调整筹码">
       <div v-if="selectedTarget" class="space-y-4">
-        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center space-x-3">
+        <div class="p-3.5 rounded-none bg-[#ffffea] border-2 border-black flex items-center space-x-3 shadow-brutal-sm">
           <img
             :src="selectedTarget.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + selectedTarget.id"
-            class="w-8 h-8 rounded-full"
+            class="w-8 h-8 rounded-none border border-black bg-white"
           />
           <div>
-            <div class="text-xs font-bold text-slate-200">{{ selectedTarget.nickname }} ({{ selectedTarget.email }})</div>
-            <div class="text-xs text-amber-400 font-mono font-bold flex items-center gap-1">
+            <div class="text-xs font-black text-black">{{ selectedTarget.nickname }} ({{ selectedTarget.email }})</div>
+            <div class="text-xs text-black font-black flex items-center gap-1 mt-0.5">
               <span>现存余额: {{ formatChips(selectedTarget.chips) }}</span>
               <CoinIcon customClass="w-3.5 h-3.5" />
             </div>
@@ -140,12 +140,12 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">调整额度 (正数为赠送，负数为划扣)</label>
+          <label class="block text-xs font-black text-black uppercase mb-1">调整额度 (正数为赠送，负数为划扣)</label>
           <input
             v-model.number="grantAmount"
             type="number"
             step="1000"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm font-mono text-amber-300 font-black focus:outline-none focus:border-amber-500"
+            class="brutal-input w-full px-3.5 py-2.5 text-sm font-black"
           />
         </div>
 
@@ -156,19 +156,19 @@
             :key="amt"
             type="button"
             @click="grantAmount = amt"
-            class="px-3 py-1 rounded-lg text-xs font-mono font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all"
+            class="brutal-btn-white px-3 py-1 text-xs font-mono font-bold"
           >
             +{{ amt / 1000 }}k
           </button>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">赠送事由 / 备注说明</label>
+          <label class="block text-xs font-black text-black uppercase mb-1">赠送事由 / 备注说明</label>
           <input
             v-model="grantReason"
             type="text"
             placeholder="例如: VIP玩家专享体验金"
-            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+            class="brutal-input w-full px-3.5 py-2 text-xs"
           />
         </div>
       </div>
@@ -177,9 +177,9 @@
         <button
           @click="submitGrant"
           :disabled="isSubmitting || grantAmount === 0"
-          class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+          class="brutal-btn-lime w-full py-2.5 text-sm"
         >
-          <Gift class="w-4 h-4" />
+          <Gift class="w-4 h-4 mr-1.5" />
           <span>{{ isSubmitting ? '正在写入数据库...' : '确认调账并记录流水' }}</span>
         </button>
       </template>

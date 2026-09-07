@@ -3,8 +3,8 @@
     <div
       v-for="(val, idx) in dice"
       :key="idx"
-      class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-white to-slate-100 border-2 border-slate-300 shadow-xl flex items-center justify-center transform transition-transform duration-300"
-      :class="rolling ? 'animate-bounce' : 'hover:scale-105'"
+      class="w-14 h-14 sm:w-16 sm:h-16 rounded-none bg-white border-3 sm:border-4 border-black shadow-brutal flex items-center justify-center transform transition-transform duration-150"
+      :class="rolling ? 'animate-bounce' : 'hover:-translate-x-0.5 hover:-translate-y-0.5'"
     >
       <!-- Dots Grid for 1-6 -->
       <div class="w-10 h-10 sm:w-12 sm:h-12 relative">

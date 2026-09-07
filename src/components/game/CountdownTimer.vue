@@ -1,14 +1,14 @@
 <template>
   <div class="relative flex items-center justify-center">
     <div
-      class="px-3 py-1 rounded-full text-xs font-mono font-bold flex items-center space-x-1.5 border"
+      class="px-3.5 py-1 rounded-none text-xs font-mono font-black flex items-center space-x-2 border-2 border-black shadow-brutal-sm"
       :class="[
         seconds <= 5
-          ? 'bg-rose-950/80 text-rose-400 border-rose-700 animate-pulse'
-          : 'bg-slate-900/80 text-amber-400 border-slate-700'
+          ? 'bg-[#ff006e] text-white animate-bounce'
+          : 'bg-[#ffff00] text-black'
       ]"
     >
-      <span class="w-1.5 h-1.5 rounded-full" :class="seconds <= 5 ? 'bg-rose-500' : 'bg-amber-500'"></span>
+      <span class="w-2 h-2 rounded-none" :class="seconds <= 5 ? 'bg-white' : 'bg-black'"></span>
       <span>倒计时: {{ seconds }}s</span>
     </div>
   </div>

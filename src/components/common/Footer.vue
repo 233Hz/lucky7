@@ -1,21 +1,19 @@
 <template>
-  <footer class="border-t border-slate-800/60 bg-slate-950 py-8 text-slate-500 text-xs text-center mt-auto">
-    <div class="max-w-7xl mx-auto px-4 space-y-2">
-      <div class="flex items-center justify-center space-x-4">
-        <span class="inline-flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+  <footer class="border-t-4 border-black bg-black text-white py-8 text-xs text-center mt-auto font-mono">
+    <div class="max-w-7xl mx-auto px-4 space-y-3">
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#ccff00] text-black border-2 border-black font-black uppercase text-[11px] shadow-brutal-sm">
+          <span class="w-2 h-2 rounded-none bg-black"></span>
           <span>系统运行中 · 实时响应</span>
         </span>
-        <span>•</span>
-        <span>Supabase 数据库行驱动联机</span>
-        <span>•</span>
-        <span>响应式跨端架构</span>
+        <span class="text-[#00d9ff] font-bold">■ Supabase 行级联机</span>
+        <span class="text-[#ff9500] font-bold">■ 响应式跨端架构</span>
       </div>
-      <p class="text-slate-600">
+      <p class="text-slate-300 max-w-2xl mx-auto text-[11px] leading-relaxed">
         本平台仅供休闲竞技、算法模拟与编程技术交流演示使用。所有虚拟筹码不具备实际法定货币价值。
       </p>
-      <p class="text-slate-600 text-[11px]">
-        &copy; 2026 Lucky 7 Arcade. Built with Vite, Vue 3, TypeScript & Supabase.
+      <p class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+        &copy; 2026 LUCKY 7 ARCADE. NEO-BRUTALIST EDITION.
       </p>
     </div>
   </footer>

@@ -1,37 +1,37 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
     <!-- Top Welcome & Quick Balance Banner -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/60 border border-slate-800 p-6 sm:p-8 shadow-2xl">
+    <div class="relative rounded-none bg-[#ccff00] border-4 border-black p-6 sm:p-10 shadow-brutal-lg">
       <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div class="space-y-2 max-w-xl">
-          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-700/60 text-emerald-400 text-xs font-semibold">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span>Lucky 7 游戏大厅 · 现已开放 5 大热门玩法</span>
+        <div class="space-y-3 max-w-xl">
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-none bg-black text-[#ccff00] border-2 border-black text-xs font-black uppercase font-mono shadow-brutal-sm">
+            <span class="w-2 h-2 rounded-none bg-[#ccff00] animate-ping"></span>
+            <span>LUCKY 7 ARCADE · 现已开放 5 大热门玩法</span>
           </div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-            现代轻奢休闲竞技，<span class="bg-gradient-to-r from-emerald-400 to-amber-300 bg-clip-text text-transparent">全端自适应畅玩</span>
+          <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
+            硬派工业竞技，<span class="bg-black text-[#ccff00] px-2 py-0.5 inline-block -rotate-1">极致纯粹爽快</span>
           </h1>
-          <p class="text-sm text-slate-400 leading-relaxed">
-            涵盖炸金花、21点、德州扑克、猜大小与六合彩。支持 Supabase 数据库行驱动联机、智能 AI 陪练与全服排行榜。
+          <p class="text-xs sm:text-sm text-black font-mono font-bold leading-relaxed">
+            涵盖炸金花、21点、德州扑克、猜大小与六合彩。支持 Supabase 行级联机对决、智能 AI 陪练与全服财富排行榜。
           </p>
         </div>
 
         <!-- Quick Status & Action Card -->
-        <div class="w-full md:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-950/70 p-4 rounded-2xl border border-slate-800 backdrop-blur-md">
-          <div class="flex items-center space-x-3 pr-4 sm:border-r border-slate-800">
-            <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-              <CoinIcon customClass="w-6 h-6" />
+        <div class="w-full md:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-white p-5 rounded-none border-4 border-black shadow-brutal">
+          <div class="flex items-center space-x-3.5 pr-4 sm:border-r-2 border-black">
+            <div class="w-12 h-12 rounded-none bg-[#ffff00] border-2 border-black flex items-center justify-center shadow-brutal-sm">
+              <CoinIcon customClass="w-7 h-7" />
             </div>
             <div>
-              <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">我的筹码余额</div>
-              <div class="text-xl font-black font-mono text-amber-300">{{ formattedChips }}</div>
+              <div class="text-[10px] text-black font-black uppercase tracking-wider font-mono">我的筹码余额</div>
+              <div class="text-2xl font-black font-mono text-black">{{ formattedChips }}</div>
             </div>
           </div>
           <router-link
             to="/checkin"
-            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm text-center shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center space-x-1.5"
+            class="brutal-btn-pink px-5 py-3 text-xs sm:text-sm"
           >
-            <CalendarCheck class="w-4 h-4" />
+            <CalendarCheck class="w-4 h-4 mr-1.5" />
             <span>每日签到领币</span>
           </router-link>
         </div>
@@ -39,46 +39,46 @@
     </div>
 
     <!-- Games Grid Section -->
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
+    <div class="space-y-6">
+      <div class="flex items-center justify-between border-b-4 border-black pb-3">
         <div>
-          <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <Gamepad2 class="w-5 h-5 text-emerald-400" />
+          <h2 class="text-2xl font-black text-black uppercase flex items-center gap-2 font-mono">
+            <Gamepad2 class="w-6 h-6 text-black" />
             <span>热门游戏大厅</span>
-            <span class="text-xs font-mono font-normal text-slate-400">SELECT GAME</span>
+            <span class="text-xs font-mono font-bold px-2 py-0.5 bg-black text-[#ccff00]">SELECT GAME</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">选择心仪的经典游戏，即刻开始智勇对决</p>
+          <p class="text-xs text-black font-mono font-bold mt-1">选择经典游戏模式，开启硬派智勇对决</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- 1. 炸金花 -->
-        <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-emerald-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-emerald-900/20 hover:-translate-y-1">
+        <div class="group relative rounded-none bg-white border-4 border-black p-6 flex flex-col justify-between shadow-brutal-lg hover:shadow-brutal-xl hover:-translate-x-1 hover:-translate-y-1 transition-all duration-150">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-700/50 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+              <div class="w-12 h-12 rounded-none bg-[#ccff00] border-2 border-black flex items-center justify-center text-black shadow-brutal-sm">
                 <Layers class="w-6 h-6" />
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 text-[11px] font-bold">
+              <span class="px-2.5 py-1 rounded-none bg-black text-[#ccff00] border-2 border-black text-[11px] font-black uppercase font-mono shadow-brutal-sm">
                 三张比拼 · 心理博弈
               </span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-100 group-hover:text-emerald-400 transition-colors">
+            <h3 class="text-xl font-black text-black">
               炸金花 (Golden Flower)
             </h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            <p class="text-xs text-black font-mono mt-2 leading-relaxed font-medium">
               三张底牌见分晓！支持闷牌（暗注）、看牌翻倍、加注与激爽比牌PK。豹子通吃，235奇袭逆转。
             </p>
-            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono text-slate-500">
+            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-bold text-black bg-[#f4f4f0] p-2 border border-black">
               <span class="flex items-center gap-1">底注: 50 <CoinIcon customClass="w-3 h-3" /></span>
               <span>•</span>
               <span>单人AI / 联机开房</span>
             </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+          <div class="mt-6 pt-4 border-t-2 border-black">
             <router-link
               to="/game/zhajinhua"
-              class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs text-center shadow transition-all"
+              class="w-full py-3 rounded-none bg-[#ccff00] hover:bg-[#ffff00] text-black font-black text-xs uppercase border-3 border-black shadow-brutal transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none block text-center"
             >
               开始游戏
             </router-link>
@@ -86,32 +86,32 @@
         </div>
 
         <!-- 2. 21点 (Blackjack) -->
-        <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-amber-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-amber-900/20 hover:-translate-y-1">
+        <div class="group relative rounded-none bg-white border-4 border-black p-6 flex flex-col justify-between shadow-brutal-lg hover:shadow-brutal-xl hover:-translate-x-1 hover:-translate-y-1 transition-all duration-150">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-amber-950/80 border border-amber-700/50 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+              <div class="w-12 h-12 rounded-none bg-[#ffff00] border-2 border-black flex items-center justify-center text-black shadow-brutal-sm">
                 <Sparkles class="w-6 h-6" />
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800 text-[11px] font-bold">
+              <span class="px-2.5 py-1 rounded-none bg-black text-[#ffff00] border-2 border-black text-[11px] font-black uppercase font-mono shadow-brutal-sm">
                 3:2 天王赔率
               </span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-100 group-hover:text-amber-400 transition-colors">
+            <h3 class="text-xl font-black text-black">
               21点 (Blackjack)
             </h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            <p class="text-xs text-black font-mono mt-2 leading-relaxed font-medium">
               经典娱乐场黑杰克对决！包含要牌、停牌、双倍下注。软17庄家规则，算点智取庄家高额筹码。
             </p>
-            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono text-slate-500">
+            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-bold text-black bg-[#f4f4f0] p-2 border border-black">
               <span>自由下注</span>
               <span>•</span>
               <span>智能 Ace 点数计算</span>
             </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+          <div class="mt-6 pt-4 border-t-2 border-black">
             <router-link
               to="/game/blackjack"
-              class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs text-center shadow transition-all"
+              class="w-full py-3 rounded-none bg-[#ffff00] hover:bg-[#ccff00] text-black font-black text-xs uppercase border-3 border-black shadow-brutal transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none block text-center"
             >
               开始挑战
             </router-link>
@@ -119,32 +119,32 @@
         </div>
 
         <!-- 3. 德州扑克 (Texas Hold'em) -->
-        <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-indigo-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-indigo-900/20 hover:-translate-y-1">
+        <div class="group relative rounded-none bg-white border-4 border-black p-6 flex flex-col justify-between shadow-brutal-lg hover:shadow-brutal-xl hover:-translate-x-1 hover:-translate-y-1 transition-all duration-150">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-indigo-950/80 border border-indigo-700/50 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+              <div class="w-12 h-12 rounded-none bg-[#00d9ff] border-2 border-black flex items-center justify-center text-black shadow-brutal-sm">
                 <Crown class="w-6 h-6" />
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-indigo-950 text-indigo-400 border border-indigo-800 text-[11px] font-bold">
+              <span class="px-2.5 py-1 rounded-none bg-black text-[#00d9ff] border-2 border-black text-[11px] font-black uppercase font-mono shadow-brutal-sm">
                 7选5牌型评级
               </span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-100 group-hover:text-indigo-400 transition-colors">
+            <h3 class="text-xl font-black text-black">
               德州扑克 (Texas Hold'em)
             </h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            <p class="text-xs text-black font-mono mt-2 leading-relaxed font-medium">
               国际风靡的智力竞技！翻牌前、翻牌、转牌、河牌四轮下注，过牌、跟注、加注与全下(All-in)。
             </p>
-            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono text-slate-500">
+            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-bold text-black bg-[#f4f4f0] p-2 border border-black">
               <span class="flex items-center gap-1">盲注: 50/100 <CoinIcon customClass="w-3 h-3" /></span>
               <span>•</span>
-              <span>皇家同花顺至高牌</span>
+              <span>皇家同花顺</span>
             </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+          <div class="mt-6 pt-4 border-t-2 border-black">
             <router-link
               to="/game/texas"
-              class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs text-center shadow transition-all"
+              class="w-full py-3 rounded-none bg-[#00d9ff] hover:bg-[#ccff00] text-black font-black text-xs uppercase border-3 border-black shadow-brutal transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none block text-center"
             >
               入席对决
             </router-link>
@@ -152,32 +152,32 @@
         </div>
 
         <!-- 4. 猜大小 (Sic Bo) -->
-        <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-rose-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-rose-900/20 hover:-translate-y-1">
+        <div class="group relative rounded-none bg-white border-4 border-black p-6 flex flex-col justify-between shadow-brutal-lg hover:shadow-brutal-xl hover:-translate-x-1 hover:-translate-y-1 transition-all duration-150">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-rose-950/80 border border-rose-700/50 flex items-center justify-center text-rose-400 group-hover:scale-110 transition-transform">
+              <div class="w-12 h-12 rounded-none bg-[#ff006e] border-2 border-black flex items-center justify-center text-white shadow-brutal-sm">
                 <Dices class="w-6 h-6" />
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-rose-950 text-rose-400 border border-rose-800 text-[11px] font-bold">
+              <span class="px-2.5 py-1 rounded-none bg-black text-[#ff006e] border-2 border-black text-[11px] font-black uppercase font-mono shadow-brutal-sm">
                 最高 60 倍
               </span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-100 group-hover:text-rose-400 transition-colors">
+            <h3 class="text-xl font-black text-black">
               猜大小 · 骰宝 (Sic Bo)
             </h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            <p class="text-xs text-black font-mono mt-2 leading-relaxed font-medium">
               3颗骰子摇盅开奖！涵盖大、小、单、双、全围豹子(1:30)及 4-17 点高倍赔率，即开即算。
             </p>
-            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono text-slate-500">
+            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-bold text-black bg-[#f4f4f0] p-2 border border-black">
               <span>近期走势图</span>
               <span>•</span>
-              <span>物理骰盅摇动动效</span>
+              <span>物理骰盅动效</span>
             </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+          <div class="mt-6 pt-4 border-t-2 border-black">
             <router-link
               to="/game/sicbo"
-              class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs text-center shadow transition-all"
+              class="w-full py-3 rounded-none bg-[#ff006e] hover:bg-[#ff9500] text-white hover:text-black font-black text-xs uppercase border-3 border-black shadow-brutal transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none block text-center"
             >
               摇骰开盅
             </router-link>
@@ -185,32 +185,32 @@
         </div>
 
         <!-- 5. 猜点数六合彩 (Mark Six) -->
-        <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-sky-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-sky-900/20 hover:-translate-y-1">
+        <div class="group relative rounded-none bg-white border-4 border-black p-6 flex flex-col justify-between shadow-brutal-lg hover:shadow-brutal-xl hover:-translate-x-1 hover:-translate-y-1 transition-all duration-150">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-sky-950/80 border border-sky-700/50 flex items-center justify-center text-sky-400 group-hover:scale-110 transition-transform">
+              <div class="w-12 h-12 rounded-none bg-[#ff9500] border-2 border-black flex items-center justify-center text-black shadow-brutal-sm">
                 <Disc class="w-6 h-6" />
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-800 text-[11px] font-bold">
+              <span class="px-2.5 py-1 rounded-none bg-black text-[#ff9500] border-2 border-black text-[11px] font-black uppercase font-mono shadow-brutal-sm">
                 特码 47 倍
               </span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-100 group-hover:text-sky-400 transition-colors">
+            <h3 class="text-xl font-black text-black">
               猜点数六合彩 (Mark Six)
             </h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            <p class="text-xs text-black font-mono mt-2 leading-relaxed font-medium">
               1-49特码摇奖机滚球！支持特码直选、大小单双、红蓝绿三色波及十二生肖多维下注。
             </p>
-            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono text-slate-500">
+            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-bold text-black bg-[#f4f4f0] p-2 border border-black">
               <span>即开型滚球</span>
               <span>•</span>
               <span>历史特码统计</span>
             </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+          <div class="mt-6 pt-4 border-t-2 border-black">
             <router-link
               to="/game/marksix"
-              class="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs text-center shadow transition-all"
+              class="w-full py-3 rounded-none bg-[#ff9500] hover:bg-[#ffff00] text-black font-black text-xs uppercase border-3 border-black shadow-brutal transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none block text-center"
             >
               即刻开奖
             </router-link>
@@ -218,30 +218,30 @@
         </div>
 
         <!-- 6. 联机房间大厅入口 (Multiplayer Lobby) -->
-        <div class="group relative rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/40 border border-emerald-800/40 hover:border-emerald-500 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:-translate-y-1">
+        <div class="group relative rounded-none bg-[#fdfaf5] border-4 border-black p-6 flex flex-col justify-between shadow-brutal-lg hover:shadow-brutal-xl hover:-translate-x-1 hover:-translate-y-1 transition-all duration-150">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-emerald-900/60 border border-emerald-500/50 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+              <div class="w-12 h-12 rounded-none bg-black border-2 border-black flex items-center justify-center text-[#ccff00] shadow-brutal-sm">
                 <Globe class="w-6 h-6" />
               </div>
-              <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600 text-[11px] font-bold">
+              <span class="px-2.5 py-1 rounded-none bg-[#ccff00] text-black border-2 border-black text-[11px] font-black uppercase font-mono shadow-brutal-sm">
                 Supabase 联机
               </span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-100 group-hover:text-emerald-400 transition-colors">
+            <h3 class="text-xl font-black text-black">
               在线联机房间大厅
             </h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            <p class="text-xs text-black font-mono mt-2 leading-relaxed font-medium">
               全数据库行驱动（Database-driven）实时对战！创建房间、自定义底注、邀请好友实时落座同台较量。
             </p>
-            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono text-emerald-400">
-              <span>● Supabase Realtime 活跃</span>
+            <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-black text-black bg-[#ccff00] p-2 border border-black">
+              <span>■ Supabase Realtime 活跃</span>
             </div>
           </div>
-          <div class="mt-6 pt-4 border-t border-slate-800/80">
+          <div class="mt-6 pt-4 border-t-2 border-black">
             <button
               @click="openRoomLobby"
-              class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs text-center shadow transition-all"
+              class="w-full py-3 rounded-none bg-black hover:bg-[#ccff00] text-white hover:text-black font-black text-xs uppercase border-3 border-black shadow-brutal transition-all active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
             >
               浏览联机房间
             </button>
@@ -254,33 +254,33 @@
     <Modal v-model="showRoomModal" title="在线联机对战大厅">
       <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <span class="text-xs text-slate-400">选择房间即刻入座：</span>
+          <span class="text-xs text-black font-mono font-bold">选择房间即刻入座：</span>
           <button
             @click="showCreateModal = true"
-            class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1"
+            class="brutal-btn-lime px-3 py-1.5 text-xs"
           >
-            <Plus class="w-3.5 h-3.5" />
+            <Plus class="w-3.5 h-3.5 mr-1" />
             <span>创建新房间</span>
           </button>
         </div>
 
-        <div class="space-y-2 max-h-64 overflow-y-auto">
+        <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
           <div
             v-for="rm in roomStore.activeRooms"
             :key="rm.id"
-            class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between hover:border-slate-700 transition-colors"
+            class="p-4 rounded-none bg-white border-2 border-black shadow-brutal-sm flex items-center justify-between hover:bg-[#ffffeb] transition-colors"
           >
             <div>
-              <div class="text-sm font-bold text-slate-200">{{ rm.name }}</div>
-              <div class="text-xs text-slate-400 font-mono mt-0.5 flex items-center gap-1">
+              <div class="text-sm font-black text-black font-mono">{{ rm.name }}</div>
+              <div class="text-xs text-black font-mono font-bold mt-1 flex items-center gap-1.5">
                 <span>底注: {{ rm.min_bet }}</span>
-                <CoinIcon customClass="w-3 h-3" />
-                <span>· 人数上限: {{ rm.max_players }}</span>
+                <CoinIcon customClass="w-3.5 h-3.5" />
+                <span>· 上限: {{ rm.max_players }}人</span>
               </div>
             </div>
             <button
               @click="joinRoomAndEnter(rm)"
-              class="px-3.5 py-1.5 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs font-bold transition-all"
+              class="brutal-btn-cyan px-3.5 py-1.5 text-xs"
             >
               加入房间
             </button>
@@ -293,19 +293,19 @@
     <Modal v-model="showCreateModal" title="创建联机房间">
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">房间名称</label>
+          <label class="block text-xs font-black text-black uppercase mb-1 font-mono">房间名称</label>
           <input
             v-model="newRoomName"
             type="text"
             placeholder="例如: 谁与争锋好友桌"
-            class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+            class="brutal-input w-full text-sm py-2.5 px-3"
           />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">游戏玩法</label>
+          <label class="block text-xs font-black text-black uppercase mb-1 font-mono">游戏玩法</label>
           <select
             v-model="newRoomType"
-            class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-emerald-500"
+            class="brutal-input w-full text-sm py-2.5 px-3 font-mono font-bold"
           >
             <option value="zhajinhua">炸金花 (Golden Flower)</option>
             <option value="blackjack">21点 (Blackjack)</option>
@@ -315,7 +315,7 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
+          <label class="block text-xs font-black text-black uppercase mb-1 flex items-center gap-1 font-mono">
             <span>底注要求</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
           </label>
@@ -324,14 +324,14 @@
             type="number"
             min="10"
             step="10"
-            class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 font-mono"
+            class="brutal-input w-full text-sm py-2.5 px-3 font-mono font-bold"
           />
         </div>
       </div>
       <template #footer>
         <button
           @click="submitCreateRoom"
-          class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all"
+          class="brutal-btn-lime w-full py-2.5 text-sm"
         >
           立即创建并进入
         </button>

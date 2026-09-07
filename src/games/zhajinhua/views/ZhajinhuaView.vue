@@ -1,24 +1,24 @@
 <template>
   <div class="max-w-6xl mx-auto px-4 py-6">
     <!-- Header Controls -->
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-4 border-black">
       <div class="flex items-center space-x-3">
-        <router-link to="/" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold">
+        <router-link to="/" class="brutal-btn brutal-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5">
           <ArrowLeft class="w-4 h-4" />
           <span>返回大厅</span>
         </router-link>
         <div>
-          <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
-            <Layers class="w-5 h-5 text-emerald-400" />
+          <h1 class="text-xl sm:text-2xl font-black text-black flex items-center gap-2 tracking-tight">
+            <Layers class="w-6 h-6 text-black" />
             <span>炸金花 (Golden Flower)</span>
-            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300 font-medium">
-              单人练习 / 智能AI对战
+            <span class="brutal-badge bg-[#ccff00] text-black">
+              智能AI对战
             </span>
           </h1>
-          <p class="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+          <p class="text-xs font-mono font-bold text-black/70 flex items-center gap-1 mt-0.5">
             <span>底注: {{ minBet }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
-            <span class="ml-1 text-slate-500">| 闷牌 1 倍，看牌 2 倍</span>
+            <span class="ml-1 text-black">| 闷牌 1 倍，看牌 2 倍</span>
           </p>
         </div>
       </div>
@@ -27,9 +27,9 @@
         <button
           @click="startNewGame"
           :disabled="gameStatus === 'playing'"
-          class="px-5 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50 flex items-center gap-2"
+          class="brutal-btn brutal-btn-lime px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center justify-center gap-2"
         >
-          <Play v-if="gameStatus !== 'playing'" class="w-4 h-4" />
+          <Play v-if="gameStatus !== 'playing'" class="w-4 h-4 fill-black" />
           <RotateCw v-else class="w-4 h-4 animate-spin" />
           <span>{{ gameStatus === 'ended' || gameStatus === 'waiting' ? '开始新对局' : '对局进行中' }}</span>
         </button>
@@ -37,9 +37,9 @@
     </div>
 
     <!-- Table Surface -->
-    <div class="relative rounded-3xl bg-gradient-to-b from-emerald-950/70 via-slate-900 to-slate-950 border-2 border-emerald-800/40 p-6 min-h-[580px] flex flex-col justify-between shadow-2xl overflow-hidden">
+    <div class="relative rounded-none bg-white border-4 border-black p-6 min-h-[580px] flex flex-col justify-between shadow-brutal-xl overflow-hidden">
       <!-- Felt Ambient Pattern -->
-      <div class="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
 
       <!-- 1. Top Opponents Area (AI Players) -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 justify-items-center relative z-20 pt-2">
@@ -67,19 +67,19 @@
 
       <!-- 2. Middle Table Area: Pot & Round Badge -->
       <div class="my-6 flex flex-col items-center justify-center relative z-10">
-        <div class="px-6 py-3 rounded-2xl bg-slate-950/85 border border-emerald-600/50 backdrop-blur-md shadow-2xl flex items-center space-x-4">
-          <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center shadow-inner">
+        <div class="px-6 py-3 rounded-none bg-[#ffff00] border-3 border-black shadow-brutal flex items-center space-x-4">
+          <div class="w-10 h-10 rounded-none bg-black text-[#ffff00] border-2 border-black flex items-center justify-center shadow-sm">
             <CoinIcon customClass="w-6 h-6" />
           </div>
           <div>
-            <div class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">底池彩金 (POT)</div>
-            <div class="text-2xl font-black font-mono text-amber-300">{{ formattedPot }}</div>
+            <div class="text-[10px] text-black font-mono font-black uppercase tracking-widest">底池彩金 (POT)</div>
+            <div class="text-2xl font-black font-mono text-black">{{ formattedPot }}</div>
           </div>
         </div>
 
-        <div v-if="gameStatus === 'playing'" class="mt-2.5 text-xs font-mono text-emerald-400 font-semibold bg-emerald-950/80 px-4 py-1.5 rounded-full border border-emerald-700/60 flex items-center gap-1.5 shadow">
+        <div v-if="gameStatus === 'playing'" class="mt-2.5 text-xs font-mono text-black font-black bg-white px-4 py-1.5 rounded-none border-2 border-black shadow-brutal-sm flex items-center gap-1.5">
           <span>第 {{ currentRound }} 轮</span>
-          <span>·</span>
+          <span>|</span>
           <span>当前单注: {{ currentBetUnit }}</span>
           <CoinIcon customClass="w-3.5 h-3.5" />
         </div>
@@ -99,28 +99,28 @@
                 size="md"
               />
             </template>
-            <div v-else class="w-20 h-28 rounded-xl border-2 border-dashed border-slate-800 flex items-center justify-center text-slate-600 text-xs font-mono">
+            <div v-else class="w-20 h-28 rounded-none border-2 border-dashed border-black bg-[#f4f4f0] flex items-center justify-center text-black/50 text-xs font-mono font-bold">
               等待发牌
             </div>
           </div>
 
           <!-- Hero Hand Evaluation text -->
-          <div v-if="hero.seen && hero.cards.length === 3" class="px-3.5 py-1 rounded-full bg-slate-900 border border-emerald-500/60 text-emerald-300 font-bold text-xs shadow-lg">
+          <div v-if="hero.seen && hero.cards.length === 3" class="px-3.5 py-1 rounded-none bg-black text-[#ccff00] border border-black font-black font-mono text-xs shadow-brutal-sm">
             手牌: {{ heroHandEvaluation?.typeName }}
           </div>
         </div>
 
         <!-- Hero Seat summary -->
         <div class="flex items-center space-x-4 mb-4">
-          <div class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 shadow">
-            <img :src="hero.avatarUrl" class="w-6 h-6 rounded-full border border-slate-700" />
-            <span class="text-sm font-bold text-slate-200">{{ hero.nickname }}</span>
-            <div class="flex items-center space-x-1 ml-2 text-amber-400 font-mono font-black text-sm">
+          <div class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-none bg-white border-2 border-black shadow-brutal-sm">
+            <img :src="hero.avatarUrl" class="w-6 h-6 rounded-none border-2 border-black" />
+            <span class="text-sm font-black text-black">{{ hero.nickname }}</span>
+            <div class="flex items-center space-x-1 ml-2 text-black font-mono font-black text-sm">
               <CoinIcon customClass="w-4 h-4" />
               <span>{{ formattedHeroChips }}</span>
             </div>
           </div>
-          <div v-if="hero.currentBet > 0" class="text-xs font-mono text-amber-300 px-3 py-1 rounded-lg bg-amber-950/60 border border-amber-800 flex items-center gap-1">
+          <div v-if="hero.currentBet > 0" class="text-xs font-mono font-black text-black px-3 py-1 rounded-none bg-[#ffff00] border-2 border-black shadow-brutal-sm flex items-center gap-1">
             <span>本局下注: {{ hero.currentBet }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
           </div>
@@ -135,7 +135,7 @@
           <button
             v-if="!hero.seen"
             @click="handleHeroCheck"
-            class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5"
+            class="brutal-btn brutal-btn-cyan px-5 py-2.5 text-sm font-black flex items-center gap-1.5"
           >
             <Eye class="w-4 h-4" />
             <span>看牌</span>
@@ -144,7 +144,7 @@
           <!-- 弃牌 -->
           <button
             @click="handleHeroFold"
-            class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-rose-950/80 text-slate-300 hover:text-rose-300 border border-slate-700 text-sm font-bold transition-all flex items-center gap-1.5"
+            class="brutal-btn brutal-btn-white px-5 py-2.5 text-sm font-bold flex items-center gap-1.5"
           >
             <Flag class="w-4 h-4" />
             <span>弃牌</span>
@@ -154,7 +154,7 @@
           <button
             @click="handleHeroCall"
             :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost"
-            class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-40 flex items-center gap-1.5"
+            class="brutal-btn brutal-btn-lime px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <PlusCircle class="w-4 h-4" />
             <span>跟注 ({{ heroBetCost }})</span>
@@ -165,7 +165,7 @@
           <button
             @click="handleHeroRaise"
             :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost * 2"
-            class="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow-lg shadow-amber-600/30 transition-all disabled:opacity-40 flex items-center gap-1.5"
+            class="brutal-btn brutal-btn-orange px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <ArrowUpCircle class="w-4 h-4" />
             <span>加注 ({{ heroBetCost * 2 }})</span>
@@ -177,7 +177,7 @@
             v-if="currentRound >= 2 && activeAICount > 0"
             @click="handleHeroCompare"
             :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost * 2"
-            class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold shadow-lg shadow-rose-600/30 transition-all disabled:opacity-40 flex items-center gap-1.5"
+            class="brutal-btn brutal-btn-pink px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <Swords class="w-4 h-4" />
             <span>比牌 (PK)</span>
@@ -191,22 +191,22 @@
       <div class="text-center py-4 space-y-4">
         <div class="flex justify-center">
           <div
-            class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
-            :class="gameResult?.isWin ? 'bg-emerald-950/80 border border-emerald-500 text-emerald-400' : 'bg-rose-950/80 border border-rose-700 text-rose-400'"
+            class="w-16 h-16 rounded-none border-3 border-black flex items-center justify-center shadow-brutal"
+            :class="gameResult?.isWin ? 'bg-[#ccff00] text-black' : 'bg-[#ff006e] text-white'"
           >
             <Trophy v-if="gameResult?.isWin" class="w-9 h-9" />
             <Frown v-else class="w-9 h-9" />
           </div>
         </div>
-        <h2 class="text-2xl font-black" :class="gameResult?.isWin ? 'text-emerald-400' : 'text-rose-400'">
+        <h2 class="text-2xl font-black text-black">
           {{ gameResult?.isWin ? '恭喜获胜！' : '本局遗憾失利' }}
         </h2>
-        <p class="text-slate-300 text-sm">
-          获胜者: <span class="font-bold text-amber-400">{{ gameResult?.winnerName }}</span>
+        <p class="text-black font-bold text-sm">
+          获胜者: <span class="bg-[#ffff00] px-2 py-0.5 border border-black text-black font-black">{{ gameResult?.winnerName }}</span>
         </p>
-        <div class="px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm font-mono flex items-center justify-between">
-          <span class="text-slate-400">盈亏筹码:</span>
-          <span class="flex items-center gap-1" :class="gameResult?.netProfit && gameResult.netProfit >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'">
+        <div class="px-4 py-3 rounded-none bg-[#f4f4f0] border-2 border-black text-sm font-mono font-bold flex items-center justify-between shadow-brutal-sm">
+          <span class="text-black/70 uppercase">盈亏筹码:</span>
+          <span class="flex items-center gap-1 font-black" :class="gameResult?.netProfit && gameResult.netProfit >= 0 ? 'text-black bg-[#ccff00] px-2 py-0.5 border border-black' : 'text-white bg-[#ff006e] px-2 py-0.5 border border-black'">
             <span>{{ (gameResult?.netProfit ?? 0) >= 0 ? '+' : '' }}{{ gameResult?.netProfit }}</span>
             <CoinIcon customClass="w-4 h-4" />
           </span>
@@ -215,7 +215,7 @@
       <template #footer>
         <button
           @click="startNewGame"
-          class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow transition-all flex items-center justify-center gap-1.5"
+          class="brutal-btn brutal-btn-lime w-full py-2.5 text-sm font-black flex items-center justify-center gap-1.5"
         >
           <RotateCw class="w-4 h-4" />
           <span>再来一局</span>

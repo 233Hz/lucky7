@@ -2,26 +2,26 @@
   <div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
     <!-- Header -->
     <div class="text-center space-y-2">
-      <h1 class="text-3xl font-extrabold text-white flex items-center justify-center gap-2">
-        <CalendarCheck class="w-8 h-8 text-emerald-400" />
+      <h1 class="text-3xl sm:text-4xl font-black text-black uppercase font-mono flex items-center justify-center gap-2">
+        <CalendarCheck class="w-9 h-9 text-black" />
         <span>每日签到领好礼</span>
       </h1>
-      <p class="text-sm text-slate-400 flex items-center justify-center gap-1">
+      <p class="text-xs sm:text-sm text-black font-mono font-bold flex items-center justify-center gap-1">
         <span>连续签到天数越多，奖励越丰厚！最高可领 4,000</span>
-        <CoinIcon customClass="w-3.5 h-3.5" />
-        <span>奖励。</span>
+        <CoinIcon customClass="w-4 h-4" />
+        <span>虚拟筹码。</span>
       </p>
     </div>
 
-    <!-- Streak Status Pill -->
+    <!-- Streak Status Box -->
     <div class="flex items-center justify-center">
-      <div class="px-5 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 shadow flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-          <Flame class="w-5 h-5" />
+      <div class="px-6 py-3 rounded-none bg-white border-4 border-black shadow-brutal flex items-center space-x-4">
+        <div class="w-10 h-10 rounded-none bg-[#ff9500] text-black flex items-center justify-center border-2 border-black shadow-brutal-sm">
+          <Flame class="w-6 h-6" />
         </div>
-        <div class="text-left">
-          <div class="text-xs text-slate-400 font-semibold">当前连续签到</div>
-          <div class="text-lg font-black text-amber-400 font-mono">{{ walletStore.currentStreak }} 天</div>
+        <div class="text-left font-mono">
+          <div class="text-[10px] text-black font-black uppercase">当前连续签到</div>
+          <div class="text-2xl font-black text-black">{{ walletStore.currentStreak }} 天</div>
         </div>
       </div>
     </div>
@@ -31,31 +31,31 @@
       <div
         v-for="day in 7"
         :key="day"
-        class="relative rounded-2xl p-4 border flex flex-col items-center justify-between text-center transition-all select-none"
+        class="relative rounded-none p-4 border-3 border-black flex flex-col items-center justify-between text-center transition-all select-none font-mono"
         :class="[
-          day < currentStreakIndex
-            ? 'bg-slate-900/60 border-emerald-900/60 text-slate-400'
+          day < currentStreakIndex || (day === currentStreakIndex && walletStore.isCheckedInToday)
+            ? 'bg-[#ccff00] text-black shadow-brutal-sm'
             : day === currentStreakIndex
-            ? 'bg-gradient-to-b from-amber-950/60 to-slate-900 border-amber-500/80 shadow-lg shadow-amber-950/50 scale-105 z-10'
-            : 'bg-slate-900/80 border-slate-800 text-slate-300'
+            ? 'bg-[#ffff00] border-4 border-black shadow-brutal-hover -translate-y-1 scale-105 z-10 text-black'
+            : 'bg-white text-black shadow-brutal-sm'
         ]"
       >
         <!-- Checked stamp -->
         <div
           v-if="day < currentStreakIndex || (day === currentStreakIndex && walletStore.isCheckedInToday)"
-          class="absolute top-2 right-2 text-emerald-400"
+          class="absolute top-1.5 right-1.5 w-5 h-5 rounded-none bg-black text-[#ccff00] flex items-center justify-center border border-black shadow-brutal-sm"
         >
-          <Check class="w-4 h-4" />
+          <Check class="w-3.5 h-3.5 stroke-[3]" />
         </div>
 
-        <span class="text-xs font-bold text-slate-400">第 {{ day }} 天</span>
+        <span class="text-xs font-black uppercase">第 {{ day }} 天</span>
 
         <div class="my-3 flex items-center justify-center">
-          <Gift v-if="day === 7" class="w-7 h-7 text-amber-400 animate-bounce" />
-          <CoinIcon v-else customClass="w-7 h-7" />
+          <Gift v-if="day === 7" class="w-8 h-8 text-black animate-bounce" />
+          <CoinIcon v-else customClass="w-8 h-8" />
         </div>
 
-        <div class="font-mono font-black text-sm flex items-center justify-center gap-0.5" :class="day === currentStreakIndex ? 'text-amber-300' : 'text-slate-200'">
+        <div class="font-mono font-black text-sm flex items-center justify-center gap-0.5 text-black">
           <span>+{{ 1000 + (day - 1) * 500 }}</span>
         </div>
       </div>
@@ -66,18 +66,22 @@
       <button
         @click="handleClaim"
         :disabled="walletStore.isCheckedInToday || walletStore.loading"
-        class="w-full sm:w-80 py-3.5 rounded-2xl text-base font-black text-slate-950 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
-        :class="walletStore.isCheckedInToday ? 'bg-slate-800 text-slate-400 border border-slate-700' : 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:scale-105 shadow-amber-500/20'"
+        class="w-full sm:w-80 py-4 rounded-none font-mono font-black uppercase text-base transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+        :class="[
+          walletStore.isCheckedInToday
+            ? 'bg-slate-200 text-slate-700 border-3 border-black shadow-brutal-sm cursor-not-allowed'
+            : 'bg-[#ff006e] text-white border-4 border-black shadow-brutal-lg hover:shadow-brutal-xl hover:bg-[#ccff00] hover:text-black hover:-translate-x-1 hover:-translate-y-1 active:translate-x-[8px] active:translate-y-[8px] active:shadow-none'
+        ]"
       >
         <Check v-if="walletStore.isCheckedInToday" class="w-5 h-5" />
         <Gift v-else class="w-5 h-5" />
-        <span>{{ walletStore.isCheckedInToday ? '今日已签到，明天再来！' : '立即领取今日奖励' }}</span>
-        <CoinIcon v-if="!walletStore.isCheckedInToday" customClass="w-4 h-4" />
+        <span>{{ walletStore.isCheckedInToday ? '今日已签到，明日再来！' : '立即领取今日奖励' }}</span>
+        <CoinIcon v-if="!walletStore.isCheckedInToday" customClass="w-5 h-5" />
       </button>
 
-      <span v-if="walletStore.isCheckedInToday" class="text-xs text-emerald-400 font-semibold flex items-center gap-1">
-        <Check class="w-3.5 h-3.5" />
-        <span>今日签到奖励已发放至您的账户余额！</span>
+      <span v-if="walletStore.isCheckedInToday" class="px-4 py-1.5 rounded-none border-2 border-black bg-[#ccff00] text-black font-mono font-black text-xs shadow-brutal-sm flex items-center gap-1.5">
+        <Check class="w-4 h-4 stroke-[3]" />
+        <span>今日签到奖励已成功入账！</span>
       </span>
     </div>
   </div>

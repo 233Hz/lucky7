@@ -5,27 +5,30 @@
       :key="chip"
       type="button"
       @click="selectChip(chip)"
-      class="relative group rounded-full transition-all duration-200 transform focus:outline-none"
+      class="relative group rounded-full transition-all duration-150 transform focus:outline-none"
       :class="[
-        modelValue === chip ? '-translate-y-2 scale-110 shadow-lg' : 'hover:-translate-y-1 opacity-85 hover:opacity-100',
+        modelValue === chip ? '-translate-y-1.5 scale-110' : 'hover:-translate-y-0.5',
         disabled ? 'cursor-not-allowed opacity-40 hover:translate-y-0' : 'cursor-pointer'
       ]"
       :disabled="disabled"
     >
-      <!-- Circular Chip Design -->
+      <!-- Circular Chip Design with Solid Black Outline & Hard Shadow -->
       <div
-        class="w-11 h-11 sm:w-13 sm:h-13 rounded-full border-4 border-dashed flex items-center justify-center font-mono font-black text-xs sm:text-sm shadow-md transition-shadow"
-        :class="chipStyles[chip]"
+        class="w-11 h-11 sm:w-13 sm:h-13 rounded-full border-3 border-black flex items-center justify-center font-mono font-black text-xs sm:text-sm transition-all"
+        :class="[
+          chipStyles[chip],
+          modelValue === chip ? 'shadow-brutal' : 'shadow-brutal-sm'
+        ]"
       >
-        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900/40 backdrop-blur-xs flex items-center justify-center border border-white/20">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/25 flex items-center justify-center border border-black/40">
           {{ chip }}
         </div>
       </div>
 
-      <!-- Active Indicator Glow -->
+      <!-- Active Indicator -->
       <div
         v-if="modelValue === chip"
-        class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-amber-400 animate-pulse"
+        class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-none bg-black border border-white"
       ></div>
     </button>
   </div>
@@ -53,12 +56,12 @@ const emit = defineEmits<{
 }>()
 
 const chipStyles: Record<number, string> = {
-  10: 'bg-gradient-to-tr from-slate-600 to-slate-400 border-slate-300 text-white shadow-slate-900/40',
-  50: 'bg-gradient-to-tr from-rose-700 to-rose-500 border-rose-300 text-white shadow-rose-900/40',
-  100: 'bg-gradient-to-tr from-emerald-700 to-emerald-500 border-emerald-300 text-white shadow-emerald-900/40',
-  500: 'bg-gradient-to-tr from-indigo-700 to-indigo-500 border-indigo-300 text-white shadow-indigo-900/40',
-  1000: 'bg-gradient-to-tr from-amber-600 to-gold-400 border-amber-200 text-slate-950 shadow-amber-900/40',
-  5000: 'bg-gradient-to-tr from-purple-800 to-purple-600 border-purple-300 text-white shadow-purple-900/40'
+  10: 'bg-white text-black',
+  50: 'bg-[#ff006e] text-white',
+  100: 'bg-[#ccff00] text-black',
+  500: 'bg-[#00d9ff] text-black',
+  1000: 'bg-[#ffff00] text-black',
+  5000: 'bg-[#ff9500] text-black'
 }
 
 function selectChip(val: number) {

@@ -4,25 +4,74 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 font-sans;
+    @apply bg-[#fbfbfa] text-black font-sans selection:bg-[#ccff00] selection:text-black min-h-screen overflow-x-hidden;
   }
 }
 
-/* Custom Sleek Scrollbar */
+@layer components {
+  .brutal-card {
+    @apply bg-white border-2 md:border-4 border-black shadow-brutal md:shadow-brutal-lg rounded-none text-black;
+  }
+
+  .brutal-btn {
+    @apply inline-flex items-center justify-center font-black rounded-none border-2 md:border-3 border-black shadow-brutal transition-all duration-150 select-none hover:shadow-brutal-hover hover:-translate-x-[2px] hover:-translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-brutal;
+  }
+
+  .brutal-btn-lime {
+    @apply brutal-btn bg-[#ccff00] text-black hover:bg-[#ffff00];
+  }
+
+  .brutal-btn-pink {
+    @apply brutal-btn bg-[#ff006e] text-white hover:bg-[#ff3388];
+  }
+
+  .brutal-btn-cyan {
+    @apply brutal-btn bg-[#00d9ff] text-black hover:bg-[#33e2ff];
+  }
+
+  .brutal-btn-orange {
+    @apply brutal-btn bg-[#ff9500] text-black hover:bg-[#ffaa33];
+  }
+
+  .brutal-btn-yellow {
+    @apply brutal-btn bg-[#ffff00] text-black hover:bg-[#ccff00];
+  }
+
+  .brutal-btn-white {
+    @apply brutal-btn bg-white text-black hover:bg-black hover:text-white;
+  }
+
+  .brutal-btn-black {
+    @apply brutal-btn bg-black text-white hover:bg-[#ccff00] hover:text-black;
+  }
+
+  .brutal-input {
+    @apply rounded-none border-2 border-black bg-white text-black font-mono shadow-brutal-sm focus:outline-none focus:bg-[#ffffea] focus:shadow-brutal;
+  }
+
+  .brutal-badge {
+    @apply inline-flex items-center rounded-none border-2 border-black font-mono font-bold text-xs uppercase shadow-brutal-sm;
+  }
+}
+
+/* Neo-Brutalist Block Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: #f0ede6;
+  border-left: 2px solid #000000;
+  border-top: 2px solid #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(51, 65, 85, 0.8);
-  border-radius: 9999px;
+  background: #ccff00;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0px 0px #000000;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 1);
+  background: #ffff00;
 }

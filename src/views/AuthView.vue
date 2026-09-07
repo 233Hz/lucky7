@@ -3,39 +3,39 @@
     <div class="w-full max-w-md space-y-6">
       <!-- Logo & Heading -->
       <div class="text-center space-y-2">
-        <div class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-emerald-400 text-white font-black text-2xl shadow-lg shadow-emerald-500/20">
+        <div class="inline-flex h-14 w-14 items-center justify-center rounded-none bg-[#ccff00] text-black font-black text-3xl border-3 border-black shadow-brutal">
           7
         </div>
-        <h2 class="text-2xl font-extrabold text-white tracking-tight">
-          {{ isSignUp ? '创建 Lucky 7 账号' : '登录 Lucky 7 大厅' }}
+        <h2 class="text-3xl font-black text-black uppercase tracking-tight font-mono">
+          {{ isSignUp ? '创建 LUCKY 7 账号' : '登录 LUCKY 7 大厅' }}
         </h2>
-        <p class="text-xs text-slate-400 flex items-center justify-center gap-1">
+        <p class="text-xs text-black font-mono font-bold flex items-center justify-center gap-1">
           <span v-if="isSignUp" class="flex items-center gap-1">
             <span>注册即送 10,000</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
             <span>虚拟体验筹码</span>
           </span>
-          <span v-else>随时随地，开启你的竞技之旅</span>
+          <span v-else>随时随地，开启硬派竞技之旅</span>
         </p>
       </div>
 
       <!-- Auth Form Card -->
-      <div class="rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-5">
+      <div class="rounded-none bg-white border-4 border-black p-6 sm:p-8 shadow-brutal-xl space-y-5">
         <!-- Tab Switcher -->
-        <div class="grid grid-cols-2 p-1 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold">
+        <div class="grid grid-cols-2 p-1 rounded-none bg-[#f4f4f0] border-2 border-black text-xs font-black font-mono gap-1">
           <button
             type="button"
             @click="isSignUp = false"
-            class="py-2 rounded-lg transition-all"
-            :class="!isSignUp ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'"
+            class="py-2 rounded-none transition-all"
+            :class="!isSignUp ? 'bg-[#ccff00] text-black border-2 border-black shadow-brutal-sm' : 'text-black hover:bg-white border-2 border-transparent'"
           >
             登录已有账号
           </button>
           <button
             type="button"
             @click="isSignUp = true"
-            class="py-2 rounded-lg transition-all"
-            :class="isSignUp ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'"
+            class="py-2 rounded-none transition-all"
+            :class="isSignUp ? 'bg-[#ccff00] text-black border-2 border-black shadow-brutal-sm' : 'text-black hover:bg-white border-2 border-transparent'"
           >
             注册新用户
           </button>
@@ -44,7 +44,7 @@
         <!-- Error Alert -->
         <div
           v-if="authStore.authError"
-          class="p-3 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center space-x-2"
+          class="p-3 rounded-none bg-[#ff006e] border-2 border-black text-white text-xs font-mono font-bold flex items-center space-x-2 shadow-brutal-sm"
         >
           <AlertCircle class="w-4 h-4 flex-shrink-0" />
           <span>{{ authStore.authError }}</span>
@@ -53,38 +53,38 @@
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <!-- Nickname (only on sign up) -->
           <div v-if="isSignUp">
-            <label class="block text-xs font-semibold text-slate-400 mb-1">玩家昵称</label>
+            <label class="block text-xs font-black text-black uppercase mb-1 font-mono">玩家昵称</label>
             <input
               v-model="nickname"
               type="text"
               required
               placeholder="例如: 赌圣阿星"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+              class="brutal-input w-full px-3.5 py-2.5 text-sm placeholder-slate-400"
             />
           </div>
 
           <!-- Email -->
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">电子邮箱</label>
+            <label class="block text-xs font-black text-black uppercase mb-1 font-mono">电子邮箱</label>
             <input
               v-model="email"
               type="email"
               required
               placeholder="player@example.com"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+              class="brutal-input w-full px-3.5 py-2.5 text-sm placeholder-slate-400"
             />
           </div>
 
           <!-- Password -->
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1">密码</label>
+            <label class="block text-xs font-black text-black uppercase mb-1 font-mono">密码</label>
             <input
               v-model="password"
               type="password"
               required
               minlength="6"
               placeholder="••••••••"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+              class="brutal-input w-full px-3.5 py-2.5 text-sm placeholder-slate-400"
             />
           </div>
 
@@ -92,25 +92,25 @@
           <button
             type="submit"
             :disabled="authStore.loading"
-            class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50 mt-2 flex items-center justify-center gap-1.5"
+            class="brutal-btn-lime w-full py-3.5 text-sm font-black mt-2 flex items-center justify-center gap-1.5"
           >
-            <span>{{ authStore.loading ? '处理中...' : (isSignUp ? '立即注册并获取 10,000' : '登录') }}</span>
+            <span>{{ authStore.loading ? '处理中...' : (isSignUp ? '立即注册并获取 10,000' : '登录大厅') }}</span>
             <CoinIcon v-if="isSignUp && !authStore.loading" customClass="w-4 h-4" />
           </button>
         </form>
 
         <div class="relative flex items-center justify-center my-2">
-          <div class="border-t border-slate-800 w-full"></div>
-          <span class="bg-slate-900 px-3 text-[11px] text-slate-500 uppercase tracking-widest absolute">或</span>
+          <div class="border-t-2 border-black w-full"></div>
+          <span class="bg-white px-3 text-xs font-mono font-black text-black uppercase tracking-widest absolute">或</span>
         </div>
 
         <!-- Quick Guest Demo Entry -->
         <button
           type="button"
           @click="handleGuestLogin"
-          class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-all flex items-center justify-center space-x-1.5"
+          class="brutal-btn-orange w-full py-3 text-xs font-black flex items-center justify-center space-x-1.5"
         >
-          <Zap class="w-4 h-4 text-amber-400" />
+          <Zap class="w-4 h-4 mr-1 text-black" />
           <span>一键免密快速试玩</span>
         </button>
       </div>

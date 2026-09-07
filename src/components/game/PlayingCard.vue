@@ -1,27 +1,25 @@
 <template>
   <div
-    class="relative select-none transition-all duration-300 font-sans rounded-xl overflow-hidden shadow-md flex items-center justify-center aspect-[224/313]"
+    class="relative select-none transition-all duration-200 font-sans rounded-none overflow-hidden flex items-center justify-center aspect-[224/313] border-2 border-black bg-white"
     :class="[
       sizeClasses[size],
-      faceDown || !card
-        ? 'bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-950 border border-indigo-700/60 shadow-indigo-950/50'
-        : 'bg-white shadow-md',
-      highlight ? 'ring-2 ring-amber-400 -translate-y-2 shadow-amber-500/40 shadow-xl' : ''
+      faceDown || !card ? 'shadow-brutal-sm' : 'shadow-brutal-sm sm:shadow-brutal',
+      highlight ? 'ring-4 ring-black -translate-y-2 !shadow-brutal-hover' : ''
     ]"
   >
-    <!-- Card Back (Face Down) -->
+    <!-- Card Back (Face Down) - Neo-Brutalist Geometric Block -->
     <div
       v-if="faceDown || !card"
-      class="w-full h-full p-1 sm:p-1.5 flex items-center justify-center select-none"
+      class="w-full h-full p-1 flex items-center justify-center select-none bg-[#ffff00]"
     >
-      <div class="w-full h-full rounded-lg border border-indigo-500/40 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-950 flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
-        <!-- Geometric Grid Pattern -->
-        <div class="absolute inset-0 bg-[radial-gradient(#6366f1_1.2px,transparent_1.2px)] [background-size:6px_6px] sm:[background-size:8px_8px] opacity-35"></div>
-        <!-- Inner Gold Border Frame -->
-        <div class="absolute inset-1 sm:inset-1.5 rounded border border-amber-400/30 pointer-events-none"></div>
-        <!-- Center Gold 7 Emblem -->
-        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-amber-400/50 bg-gradient-to-b from-indigo-900 to-indigo-950 flex items-center justify-center shadow-lg relative z-10">
-          <span class="text-[11px] sm:text-xs font-black text-amber-300 tracking-wider">7</span>
+      <div class="w-full h-full rounded-none border-2 border-black bg-[#ffff00] flex flex-col items-center justify-center relative overflow-hidden">
+        <!-- Diagonal Brutal Crosshatch Texture -->
+        <div class="absolute inset-0 bg-[linear-gradient(45deg,#000_12.5%,transparent_12.5%,transparent_50%,#000_50%,#000_62.5%,transparent_62.5%,transparent_100%)] [background-size:8px_8px] opacity-15"></div>
+        <!-- Inner Frame -->
+        <div class="absolute inset-1 rounded-none border border-black pointer-events-none"></div>
+        <!-- Center Emblem -->
+        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-none border-2 border-black bg-black text-[#ccff00] flex items-center justify-center shadow-brutal-sm relative z-10">
+          <span class="text-xs sm:text-sm font-black font-mono tracking-wider">7</span>
         </div>
       </div>
     </div>
@@ -32,7 +30,7 @@
         v-if="!hasError"
         :src="cardSvgUrl"
         :alt="`${card.rank} of ${card.suit}`"
-        class="w-full h-full object-contain pointer-events-none select-none rounded-xl"
+        class="w-full h-full object-contain pointer-events-none select-none rounded-none bg-white"
         loading="eager"
         @error="hasError = true"
       />
@@ -40,7 +38,7 @@
       <!-- Programmatic Vector Fallback (in case SVG fails to load) -->
       <div
         v-else
-        class="w-full h-full flex flex-col justify-between p-1.5 sm:p-2 relative bg-gradient-to-b from-white to-slate-50 rounded-xl"
+        class="w-full h-full flex flex-col justify-between p-1.5 sm:p-2 relative bg-white rounded-none"
       >
         <!-- Top Left Corner -->
         <div class="flex flex-col items-start leading-none" :class="isRed ? 'text-rose-600' : 'text-slate-900'">

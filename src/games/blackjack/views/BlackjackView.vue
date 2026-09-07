@@ -1,35 +1,38 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 py-6">
+  <div class="max-w-5xl mx-auto px-4 py-6 font-mono">
     <!-- Top Header -->
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between mb-4 border-b-4 border-black pb-3">
       <div class="flex items-center space-x-3">
-        <router-link to="/" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold">
-          <ArrowLeft class="w-4 h-4" />
+        <router-link to="/" class="brutal-btn-white px-3 py-1.5 text-xs">
+          <ArrowLeft class="w-4 h-4 mr-1" />
           <span>返回大厅</span>
         </router-link>
         <div>
-          <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
-            <CreditCard class="w-5 h-5 text-amber-400" />
+          <h1 class="text-xl sm:text-2xl font-black text-black uppercase flex items-center gap-2">
+            <CreditCard class="w-6 h-6 text-black" />
             <span>21点 (Blackjack)</span>
-            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300 font-medium">
-              单人对战庄家 · 3:2 天王赔率
+            <span class="text-xs px-2.5 py-0.5 rounded-none bg-black text-[#ffff00] border-2 border-black font-black uppercase shadow-brutal-sm">
+              单人对决 · 3:2 天王赔率
             </span>
           </h1>
-          <p class="text-xs text-slate-400">庄家必须在 16 点及以下补牌，17 点及以上停牌</p>
+          <p class="text-xs text-black font-bold mt-0.5">庄家必须在 16 点及以下补牌，17 点及以上停牌</p>
         </div>
       </div>
     </div>
 
     <!-- Felt Table -->
-    <div class="relative rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border-2 border-slate-800 p-6 min-h-[540px] flex flex-col justify-between shadow-2xl overflow-hidden">
+    <div class="relative rounded-none bg-white border-4 border-black p-6 min-h-[540px] flex flex-col justify-between shadow-brutal-xl overflow-hidden">
+      <!-- Ambient Grid -->
+      <div class="absolute inset-0 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
+
       <!-- Dealer Area (Top) -->
-      <div class="flex flex-col items-center">
+      <div class="flex flex-col items-center relative z-10">
         <div class="flex items-center space-x-2 mb-2">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">庄家 (DEALER)</span>
+          <span class="text-xs font-black text-black uppercase tracking-wider">庄家 (DEALER)</span>
           <span
             v-if="dealerScore.total > 0 && phase !== 'betting'"
-            class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold"
-            :class="dealerScore.isBust ? 'bg-rose-950 text-rose-400' : 'bg-slate-800 text-amber-300'"
+            class="px-2.5 py-0.5 rounded-none text-xs font-mono font-black border-2 border-black shadow-brutal-sm"
+            :class="dealerScore.isBust ? 'bg-[#ff006e] text-white' : 'bg-[#ffff00] text-black'"
           >
             {{ phase === 'player_turn' ? '?' : dealerScore.total + ' 点' }}
           </span>
@@ -46,27 +49,27 @@
               size="md"
             />
           </template>
-          <div v-else class="w-20 h-28 rounded-xl border-2 border-dashed border-slate-800 flex items-center justify-center text-slate-600 text-xs font-mono">
+          <div v-else class="w-20 h-28 rounded-none border-2 border-dashed border-black flex items-center justify-center text-black text-xs font-mono font-bold bg-[#f4f4f0]">
             等待发牌
           </div>
         </div>
       </div>
 
       <!-- Center Status & Round Info -->
-      <div class="flex flex-col items-center justify-center my-4">
+      <div class="flex flex-col items-center justify-center my-4 relative z-10">
         <div v-if="phase === 'betting'" class="text-center space-y-2">
-          <span class="text-sm font-semibold text-slate-300">请选择下注筹码，点击「发牌」开始</span>
-          <div class="text-xs text-amber-400/90 font-mono flex items-center justify-center gap-1">
+          <span class="text-sm font-black text-black">请选择下注筹码，点击「发牌」开始</span>
+          <div class="text-xs text-black font-black flex items-center justify-center gap-1 bg-[#ffff00] px-3 py-1 border-2 border-black shadow-brutal-sm inline-block">
             <span>当前已下注: {{ currentBet }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
           </div>
         </div>
 
-        <div v-else-if="roundResult" class="text-center space-y-1 py-2.5 px-6 rounded-2xl bg-slate-950/80 border border-slate-700 shadow-xl">
-          <div class="text-lg font-black" :class="roundResult.netProfit > 0 ? 'text-emerald-400' : roundResult.netProfit < 0 ? 'text-rose-400' : 'text-slate-300'">
+        <div v-else-if="roundResult" class="text-center space-y-1 py-3 px-6 rounded-none bg-white border-3 border-black shadow-brutal">
+          <div class="text-lg font-black uppercase" :class="roundResult.netProfit > 0 ? 'text-[#059669]' : roundResult.netProfit < 0 ? 'text-[#ff006e]' : 'text-black'">
             {{ roundResult.description }}
           </div>
-          <div class="text-xs font-mono font-bold flex items-center justify-center gap-1" :class="roundResult.netProfit >= 0 ? 'text-amber-300' : 'text-rose-400'">
+          <div class="text-xs font-mono font-black flex items-center justify-center gap-1" :class="roundResult.netProfit >= 0 ? 'text-[#059669]' : 'text-[#ff006e]'">
             <span>{{ roundResult.netProfit >= 0 ? '+' : '' }}{{ roundResult.netProfit }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
           </div>
@@ -74,7 +77,7 @@
       </div>
 
       <!-- Player Area (Bottom) -->
-      <div class="flex flex-col items-center">
+      <div class="flex flex-col items-center relative z-10">
         <!-- Player Cards (Spaced cleanly) -->
         <div class="flex items-center space-x-3 mb-2 min-h-[116px]">
           <template v-if="playerCards.length > 0">
@@ -86,30 +89,30 @@
               :highlight="playerScore.isBlackjack"
             />
           </template>
-          <div v-else class="w-20 h-28 rounded-xl border-2 border-dashed border-slate-800 flex items-center justify-center text-slate-600 text-xs font-mono">
+          <div v-else class="w-20 h-28 rounded-none border-2 border-dashed border-black flex items-center justify-center text-black text-xs font-mono font-bold bg-[#f4f4f0]">
             等待下注
           </div>
         </div>
 
         <!-- Player Points Pill -->
         <div class="flex items-center space-x-2 mb-4">
-          <div class="px-3.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-xs font-mono font-bold flex items-center space-x-2">
-            <span class="text-slate-400">闲家点数:</span>
-            <span :class="playerScore.isBust ? 'text-rose-400 font-black' : playerScore.isBlackjack ? 'text-amber-300 font-black' : 'text-emerald-400'">
+          <div class="px-3.5 py-1 rounded-none bg-white border-2 border-black text-xs font-mono font-black text-black shadow-brutal-sm flex items-center space-x-2">
+            <span>闲家点数:</span>
+            <span :class="playerScore.isBust ? 'text-[#ff006e]' : playerScore.isBlackjack ? 'text-[#ff9500]' : 'text-[#059669]'">
               {{ playerScore.total }} 点
               <span v-if="playerScore.isSoft && !playerScore.isBust && playerScore.total !== 21">(软)</span>
-              <span v-if="playerScore.isBlackjack" class="inline-flex items-center gap-1 ml-1 text-amber-300 font-black">
+              <span v-if="playerScore.isBlackjack" class="inline-flex items-center gap-1 ml-1 text-[#ff9500]">
                 <Sparkles class="w-3.5 h-3.5" />
                 <span>BLACKJACK!</span>
               </span>
-              <span v-if="playerScore.isBust" class="inline-flex items-center gap-1 ml-1 text-rose-400 font-black">
+              <span v-if="playerScore.isBust" class="inline-flex items-center gap-1 ml-1 text-[#ff006e]">
                 <AlertTriangle class="w-3.5 h-3.5" />
                 <span>爆牌</span>
               </span>
             </span>
           </div>
 
-          <div v-if="currentBet > 0" class="px-3.5 py-1 rounded-full bg-amber-950/70 border border-amber-800 text-xs font-mono font-bold text-amber-300 flex items-center gap-1">
+          <div v-if="currentBet > 0" class="px-3.5 py-1 rounded-none bg-[#ffff00] border-2 border-black text-xs font-mono font-black text-black shadow-brutal-sm flex items-center gap-1">
             <span>下注: {{ currentBet }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
           </div>
@@ -124,16 +127,16 @@
             <button
               @click="clearBet"
               :disabled="currentBet === 0"
-              class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-slate-800 border border-slate-700 transition-all disabled:opacity-40"
+              class="brutal-btn-white px-4 py-2.5 text-xs"
             >
               清空下注
             </button>
             <button
               @click="dealHands"
               :disabled="currentBet === 0 || authStore.userChips < currentBet"
-              class="px-8 py-2.5 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-40 flex items-center gap-1.5"
+              class="brutal-btn-lime px-8 py-2.5 text-sm"
             >
-              <Play class="w-4 h-4" />
+              <Play class="w-4 h-4 mr-1" />
               <span>确认发牌</span>
             </button>
           </div>
@@ -144,18 +147,18 @@
           <!-- 要牌 (Hit) -->
           <button
             @click="handleHit"
-            class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-1.5"
+            class="brutal-btn-lime px-6 py-2.5 text-sm"
           >
-            <Plus class="w-4 h-4" />
+            <Plus class="w-4 h-4 mr-1" />
             <span>要牌 (Hit)</span>
           </button>
 
           <!-- 停牌 (Stand) -->
           <button
             @click="handleStand"
-            class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-black text-sm transition-all flex items-center gap-1.5"
+            class="brutal-btn-orange px-6 py-2.5 text-sm"
           >
-            <Hand class="w-4 h-4" />
+            <Hand class="w-4 h-4 mr-1" />
             <span>停牌 (Stand)</span>
           </button>
 
@@ -163,9 +166,9 @@
           <button
             v-if="playerCards.length === 2 && authStore.userChips >= currentBet * 2"
             @click="handleDouble"
-            class="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-black text-sm shadow-lg shadow-amber-600/30 transition-all flex items-center gap-1.5"
+            class="brutal-btn-pink px-6 py-2.5 text-sm"
           >
-            <Zap class="w-4 h-4" />
+            <Zap class="w-4 h-4 mr-1" />
             <span>加倍 (Double)</span>
           </button>
         </div>
@@ -174,9 +177,9 @@
         <div v-else-if="phase === 'settled'" class="flex items-center space-x-4">
           <button
             @click="resetToBetting"
-            class="px-8 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-1.5"
+            class="brutal-btn-lime px-8 py-2.5 text-sm"
           >
-            <RotateCw class="w-4 h-4" />
+            <RotateCw class="w-4 h-4 mr-1" />
             <span>再来一局</span>
           </button>
         </div>

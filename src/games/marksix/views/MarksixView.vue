@@ -1,32 +1,32 @@
 <template>
   <div class="max-w-5xl mx-auto px-4 py-6">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-4 border-black">
       <div class="flex items-center space-x-3">
-        <router-link to="/" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold">
+        <router-link to="/" class="brutal-btn brutal-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5">
           <ArrowLeft class="w-4 h-4" />
           <span>返回大厅</span>
         </router-link>
         <div>
-          <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
-            <Disc class="w-5 h-5 text-sky-400" />
+          <h1 class="text-xl sm:text-2xl font-black text-black flex items-center gap-2 tracking-tight">
+            <Disc class="w-6 h-6 text-black" />
             <span>猜点数六合彩 (Mark Six)</span>
-            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300 font-medium">
-              即开滚球 · 1-49特码 · 红蓝绿波
+            <span class="brutal-badge bg-[#ccff00] text-black">
+              1-49特码 · 红蓝绿波
             </span>
           </h1>
-          <p class="text-xs text-slate-400">特码直选高达 47 倍 · 波色 · 生肖 · 两面盘</p>
+          <p class="text-xs font-mono text-black/70">特码直选高达 47 倍 · 波色 · 生肖 · 两面盘</p>
         </div>
       </div>
     </div>
 
     <!-- Main Live Draw Shaker & Table -->
-    <div class="rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border-2 border-slate-800 p-6 shadow-2xl space-y-6">
+    <div class="rounded-none bg-white border-4 border-black p-6 shadow-brutal-xl space-y-6">
       <!-- Top Draw Stage & History -->
-      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-800">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b-3 border-black">
         <!-- History Roadmap -->
-        <div class="w-full md:w-auto flex flex-col items-center md:items-start space-y-1.5">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">历史开出特码</span>
+        <div class="w-full md:w-auto flex flex-col items-center md:items-start space-y-2">
+          <span class="text-xs font-black font-mono text-black uppercase tracking-wider bg-[#ffff00] px-2 py-0.5 border-2 border-black shadow-brutal-sm">历史开出特码</span>
           <div class="flex items-center space-x-2 overflow-x-auto max-w-full py-1">
             <div
               v-for="(hist, idx) in historyList"
@@ -34,42 +34,42 @@
               class="flex flex-col items-center"
             >
               <div
-                class="w-8 h-8 rounded-full flex items-center justify-center font-mono font-bold text-xs text-white shadow"
-                :class="hist.waveColor === 'red' ? 'bg-rose-600' : hist.waveColor === 'blue' ? 'bg-sky-600' : 'bg-emerald-600'"
+                class="w-8 h-8 rounded-full border-2 border-black flex items-center justify-center font-mono font-black text-xs shadow-[2px_2px_0px_0px_#000]"
+                :class="hist.waveColor === 'red' ? 'bg-[#ff006e] text-white' : hist.waveColor === 'blue' ? 'bg-[#00d9ff] text-black' : 'bg-[#ccff00] text-black'"
               >
                 {{ hist.number < 10 ? '0' + hist.number : hist.number }}
               </div>
-              <span class="text-[10px] text-slate-400 mt-0.5">{{ hist.zodiac }}</span>
+              <span class="text-[10px] font-mono font-black text-black mt-1">{{ hist.zodiac }}</span>
             </div>
           </div>
         </div>
 
         <!-- Shaker Center Stage -->
         <div class="flex flex-col items-center">
-          <div class="p-4 rounded-3xl bg-slate-950 border border-slate-800 shadow-inner flex flex-col items-center">
+          <div class="p-4 rounded-none bg-[#f4f4f0] border-3 border-black shadow-brutal flex flex-col items-center">
             <BallShaker
               :number="currentResult.number"
               :rolling="isDrawing"
               :zodiac="currentResult.zodiac"
             />
-            <div class="mt-2 text-xs font-mono text-slate-400 flex items-center space-x-2">
+            <div class="mt-2 text-xs font-mono text-black font-bold flex items-center space-x-2">
               <span>期号: {{ currentResult.period }}</span>
-              <span>·</span>
-              <span class="font-bold text-amber-400">{{ currentResult.isBig ? '大' : '小' }}</span>
-              <span>·</span>
-              <span class="font-bold text-slate-300">{{ currentResult.isOdd ? '单' : '双' }}</span>
+              <span>|</span>
+              <span class="font-black px-1.5 py-0.2 bg-[#ffff00] border border-black">{{ currentResult.isBig ? '大' : '小' }}</span>
+              <span>|</span>
+              <span class="font-black px-1.5 py-0.2 bg-[#00d9ff] border border-black">{{ currentResult.isOdd ? '单' : '双' }}</span>
             </div>
           </div>
         </div>
 
         <!-- Current Total Bet & Profit -->
-        <div class="w-full md:w-auto flex flex-col items-center md:items-end space-y-1">
-          <div class="text-xs text-slate-400 font-semibold">本局累计下注</div>
-          <div class="text-2xl font-black font-mono text-amber-300 flex items-center gap-1.5">
+        <div class="w-full md:w-auto flex flex-col items-center md:items-end space-y-1.5">
+          <div class="text-xs font-black font-mono text-black/70 uppercase">本局累计下注</div>
+          <div class="text-2xl font-black font-mono text-black flex items-center gap-1.5 bg-[#ffff00] px-3 py-1 border-2 border-black shadow-brutal-sm">
             <CoinIcon customClass="w-5 h-5" />
             <span>{{ formattedTotalBet }}</span>
           </div>
-          <div v-if="lastProfit !== null" class="text-xs font-mono font-bold flex items-center gap-1" :class="lastProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'">
+          <div v-if="lastProfit !== null" class="text-xs font-mono font-black flex items-center gap-1 border-2 border-black px-2 py-0.5 shadow-brutal-sm" :class="lastProfit >= 0 ? 'bg-[#ccff00] text-black' : 'bg-[#ff006e] text-white'">
             <span>上期盈亏: {{ lastProfit >= 0 ? '+' : '' }}{{ lastProfit }}</span>
             <CoinIcon customClass="w-3 h-3" />
           </div>
@@ -77,13 +77,13 @@
       </div>
 
       <!-- Betting Panels Navigation Tabs -->
-      <div class="flex items-center space-x-2 border-b border-slate-800 pb-2">
+      <div class="flex flex-wrap items-center gap-2 border-b-3 border-black pb-3">
         <button
           v-for="tab in ['two_sides', 'waves', 'zodiacs', 'exact']"
           :key="tab"
           @click="activeTab = tab"
-          class="px-4 py-2 rounded-xl text-xs font-bold transition-all"
-          :class="activeTab === tab ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-900 text-slate-400 hover:text-white'"
+          class="px-4 py-2 rounded-none border-2 border-black font-mono font-black text-xs uppercase transition-all"
+          :class="activeTab === tab ? 'bg-[#ccff00] text-black shadow-brutal-sm' : 'bg-white text-black hover:bg-black hover:text-white'"
         >
           {{ tabNames[tab] }}
         </button>
@@ -100,12 +100,12 @@
           ]"
           :key="item.name"
           @click="placeBet(item.type as any, item.value, item.name, item.odds)"
-          class="p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-between select-none"
-          :class="getBetAmount(item.type as any, item.value) > 0 ? 'bg-emerald-950/60 border-emerald-500 shadow-lg' : 'bg-slate-900/90 border-slate-800 hover:border-slate-700'"
+          class="p-4 rounded-none border-3 border-black transition-all cursor-pointer flex flex-col items-center justify-between select-none"
+          :class="getBetAmount(item.type as any, item.value) > 0 ? 'bg-[#ccff00] text-black shadow-brutal translate-x-[-2px] translate-y-[-2px]' : 'bg-white text-black hover:bg-neutral-50 shadow-brutal-sm'"
         >
-          <span class="text-base font-bold text-slate-200">{{ item.name }}</span>
-          <span class="text-xs text-amber-400 font-bold mt-1">1 赔 {{ item.odds }}</span>
-          <div v-if="getBetAmount(item.type as any, item.value) > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-emerald-900 text-emerald-200 text-xs font-mono font-bold flex items-center gap-1">
+          <span class="text-base font-black">{{ item.name }}</span>
+          <span class="text-xs font-mono font-black mt-1 px-1.5 py-0.5 border border-black bg-white text-black">1 赔 {{ item.odds }}</span>
+          <div v-if="getBetAmount(item.type as any, item.value) > 0" class="mt-2 px-2.5 py-0.5 rounded-none bg-black text-[#ccff00] border border-black text-xs font-mono font-bold flex items-center gap-1">
             <CoinIcon customClass="w-3 h-3" />
             <span>{{ getBetAmount(item.type as any, item.value) }}</span>
           </div>
@@ -116,15 +116,15 @@
       <div v-if="activeTab === 'waves'" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div
           @click="placeBet('wave_color', 'red', '红波', 2.8)"
-          class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-between select-none"
-          :class="getBetAmount('wave_color', 'red') > 0 ? 'bg-rose-950/60 border-rose-500 shadow-lg' : 'bg-slate-900/90 border-slate-800 hover:border-rose-900/40'"
+          class="p-5 rounded-none border-3 border-black transition-all cursor-pointer flex flex-col items-center justify-between select-none"
+          :class="getBetAmount('wave_color', 'red') > 0 ? 'bg-[#ff006e] text-white shadow-brutal translate-x-[-2px] translate-y-[-2px]' : 'bg-white text-black hover:bg-[#ff006e]/10 shadow-brutal-sm'"
         >
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 rounded-full bg-rose-500 shadow-sm"></span>
-            <span class="text-lg font-black text-rose-400">红 波 (Red)</span>
+            <span class="w-4 h-4 rounded-full bg-[#ff006e] border-2 border-black"></span>
+            <span class="text-lg font-black" :class="getBetAmount('wave_color', 'red') > 0 ? 'text-white' : 'text-[#ff006e]'">红 波 (Red)</span>
           </div>
-          <span class="text-xs text-slate-400 mt-1">涵盖 17 个红球 · 1 赔 2.8</span>
-          <div v-if="getBetAmount('wave_color', 'red') > 0" class="mt-2 px-3 py-0.5 rounded-full bg-rose-900 text-rose-200 text-xs font-mono font-bold flex items-center gap-1">
+          <span class="text-xs font-mono font-bold mt-1" :class="getBetAmount('wave_color', 'red') > 0 ? 'text-white' : 'text-black/70'">涵盖 17 个红球 · 1 赔 2.8</span>
+          <div v-if="getBetAmount('wave_color', 'red') > 0" class="mt-2 px-3 py-0.5 rounded-none bg-black text-white border border-black text-xs font-mono font-bold flex items-center gap-1">
             <CoinIcon customClass="w-3 h-3" />
             <span>{{ getBetAmount('wave_color', 'red') }}</span>
           </div>
@@ -132,15 +132,15 @@
 
         <div
           @click="placeBet('wave_color', 'blue', '蓝波', 2.9)"
-          class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-between select-none"
-          :class="getBetAmount('wave_color', 'blue') > 0 ? 'bg-sky-950/60 border-sky-500 shadow-lg' : 'bg-slate-900/90 border-slate-800 hover:border-sky-900/40'"
+          class="p-5 rounded-none border-3 border-black transition-all cursor-pointer flex flex-col items-center justify-between select-none"
+          :class="getBetAmount('wave_color', 'blue') > 0 ? 'bg-[#00d9ff] text-black shadow-brutal translate-x-[-2px] translate-y-[-2px]' : 'bg-white text-black hover:bg-[#00d9ff]/10 shadow-brutal-sm'"
         >
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 rounded-full bg-sky-500 shadow-sm"></span>
-            <span class="text-lg font-black text-sky-400">蓝 波 (Blue)</span>
+            <span class="w-4 h-4 rounded-full bg-[#00d9ff] border-2 border-black"></span>
+            <span class="text-lg font-black text-black">蓝 波 (Blue)</span>
           </div>
-          <span class="text-xs text-slate-400 mt-1">涵盖 16 个蓝球 · 1 赔 2.9</span>
-          <div v-if="getBetAmount('wave_color', 'blue') > 0" class="mt-2 px-3 py-0.5 rounded-full bg-sky-900 text-sky-200 text-xs font-mono font-bold flex items-center gap-1">
+          <span class="text-xs font-mono font-bold mt-1 text-black/70">涵盖 16 个蓝球 · 1 赔 2.9</span>
+          <div v-if="getBetAmount('wave_color', 'blue') > 0" class="mt-2 px-3 py-0.5 rounded-none bg-black text-[#00d9ff] border border-black text-xs font-mono font-bold flex items-center gap-1">
             <CoinIcon customClass="w-3 h-3" />
             <span>{{ getBetAmount('wave_color', 'blue') }}</span>
           </div>
@@ -148,15 +148,15 @@
 
         <div
           @click="placeBet('wave_color', 'green', '绿波', 2.9)"
-          class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-between select-none"
-          :class="getBetAmount('wave_color', 'green') > 0 ? 'bg-emerald-950/60 border-emerald-500 shadow-lg' : 'bg-slate-900/90 border-slate-800 hover:border-emerald-900/40'"
+          class="p-5 rounded-none border-3 border-black transition-all cursor-pointer flex flex-col items-center justify-between select-none"
+          :class="getBetAmount('wave_color', 'green') > 0 ? 'bg-[#ccff00] text-black shadow-brutal translate-x-[-2px] translate-y-[-2px]' : 'bg-white text-black hover:bg-[#ccff00]/10 shadow-brutal-sm'"
         >
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span>
-            <span class="text-lg font-black text-emerald-400">绿 波 (Green)</span>
+            <span class="w-4 h-4 rounded-full bg-[#ccff00] border-2 border-black"></span>
+            <span class="text-lg font-black text-black">绿 波 (Green)</span>
           </div>
-          <span class="text-xs text-slate-400 mt-1">涵盖 16 个绿球 · 1 赔 2.9</span>
-          <div v-if="getBetAmount('wave_color', 'green') > 0" class="mt-2 px-3 py-0.5 rounded-full bg-emerald-900 text-emerald-200 text-xs font-mono font-bold flex items-center gap-1">
+          <span class="text-xs font-mono font-bold mt-1 text-black/70">涵盖 16 个绿球 · 1 赔 2.9</span>
+          <div v-if="getBetAmount('wave_color', 'green') > 0" class="mt-2 px-3 py-0.5 rounded-none bg-black text-[#ccff00] border border-black text-xs font-mono font-bold flex items-center gap-1">
             <CoinIcon customClass="w-3 h-3" />
             <span>{{ getBetAmount('wave_color', 'green') }}</span>
           </div>
@@ -169,12 +169,12 @@
           v-for="zod in zodiacList"
           :key="zod"
           @click="placeBet('zodiac', zod, `生肖-${zod}`, 11.5)"
-          class="p-3 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-center select-none"
-          :class="getBetAmount('zodiac', zod) > 0 ? 'bg-amber-950/50 border-amber-500 shadow' : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'"
+          class="p-3 rounded-none border-2 border-black transition-all cursor-pointer flex flex-col items-center justify-center select-none"
+          :class="getBetAmount('zodiac', zod) > 0 ? 'bg-[#ffff00] shadow-brutal translate-x-[-2px] translate-y-[-2px]' : 'bg-white hover:bg-neutral-50 shadow-brutal-sm'"
         >
-          <span class="text-lg font-black text-amber-300">{{ zod }}</span>
-          <span class="text-[10px] text-slate-400 font-bold">1:11.5</span>
-          <span v-if="getBetAmount('zodiac', zod) > 0" class="mt-1 text-[10px] font-mono font-bold text-amber-400 flex items-center gap-0.5">
+          <span class="text-lg font-black text-black">{{ zod }}</span>
+          <span class="text-[10px] font-mono font-bold text-black/70">1:11.5</span>
+          <span v-if="getBetAmount('zodiac', zod) > 0" class="mt-1 text-[10px] font-mono font-black bg-black text-[#ffff00] px-1.5 py-0.5 flex items-center gap-0.5">
             <CoinIcon customClass="w-2.5 h-2.5" />
             <span>{{ getBetAmount('zodiac', zod) }}</span>
           </span>
@@ -182,26 +182,26 @@
       </div>
 
       <!-- 4. 特码直选 1-49 (1 赔 47) -->
-      <div v-if="activeTab === 'exact'" class="rounded-2xl bg-slate-950/80 border border-slate-800 p-4">
-        <div class="text-xs font-bold text-slate-400 mb-3 flex items-center justify-between">
+      <div v-if="activeTab === 'exact'" class="rounded-none bg-[#f4f4f0] border-3 border-black p-4 shadow-brutal-sm">
+        <div class="text-xs font-black font-mono text-black mb-3 flex items-center justify-between">
           <span class="uppercase tracking-wider">特码 1-49 直选号盘 (1 赔 47)</span>
-          <span class="text-amber-400 text-[11px]">点击球号下注</span>
+          <span class="bg-[#ffff00] px-2 py-0.5 border border-black text-[11px] font-bold">点击球号下注</span>
         </div>
         <div class="grid grid-cols-7 sm:grid-cols-10 gap-2 max-h-72 overflow-y-auto pr-1">
           <div
             v-for="n in 49"
             :key="n"
             @click="placeBet('exact_number', n, `特码${n}`, 47)"
-            class="p-2 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center select-none relative"
-            :class="getBetAmount('exact_number', n) > 0 ? 'ring-2 ring-amber-400 bg-slate-800' : 'bg-slate-900/70 border-slate-800 hover:border-slate-700'"
+            class="p-2 rounded-none border-2 border-black transition-all cursor-pointer flex flex-col items-center justify-center select-none relative"
+            :class="getBetAmount('exact_number', n) > 0 ? 'bg-[#ffff00] shadow-brutal-sm' : 'bg-white hover:bg-neutral-100'"
           >
             <div
-              class="w-7 h-7 rounded-full flex items-center justify-center font-mono font-bold text-xs text-white shadow"
-              :class="getBallWave(n) === 'red' ? 'bg-rose-600' : getBallWave(n) === 'blue' ? 'bg-sky-600' : 'bg-emerald-600'"
+              class="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center font-mono font-black text-xs shadow-[1px_1px_0px_0px_#000]"
+              :class="getBallWave(n) === 'red' ? 'bg-[#ff006e] text-white' : getBallWave(n) === 'blue' ? 'bg-[#00d9ff] text-black' : 'bg-[#ccff00] text-black'"
             >
               {{ n < 10 ? '0' + n : n }}
             </div>
-            <span v-if="getBetAmount('exact_number', n) > 0" class="mt-1 text-[9px] font-mono font-bold text-amber-300 flex items-center gap-0.5">
+            <span v-if="getBetAmount('exact_number', n) > 0" class="mt-1 text-[9px] font-mono font-black bg-black text-[#ffff00] px-1 flex items-center gap-0.5">
               <CoinIcon customClass="w-2.5 h-2.5" />
               <span>{{ getBetAmount('exact_number', n) }}</span>
             </span>
@@ -210,23 +210,23 @@
       </div>
 
       <!-- Bottom Controls: Chips + Draw Button -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-800">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t-3 border-black">
         <ChipSelector v-model="selectedChip" :disabled="isDrawing" />
 
         <div class="flex items-center space-x-3 w-full sm:w-auto">
           <button
             @click="clearAllBets"
             :disabled="totalBetAmount === 0 || isDrawing"
-            class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-slate-800 border border-slate-700 transition-all disabled:opacity-40"
+            class="brutal-btn brutal-btn-white flex-1 sm:flex-none px-4 py-2.5 text-xs disabled:opacity-40"
           >
             清空下注
           </button>
           <button
             @click="handleInstantDraw"
             :disabled="totalBetAmount === 0 || isDrawing || authStore.userChips < totalBetAmount"
-            class="flex-1 sm:flex-none px-8 py-2.5 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+            class="brutal-btn brutal-btn-lime flex-1 sm:flex-none px-8 py-2.5 text-sm font-black disabled:opacity-40 flex items-center justify-center gap-2"
           >
-            <Play class="w-4 h-4" />
+            <Play class="w-4 h-4 fill-black" />
             <span>{{ isDrawing ? '开奖中...' : '即开摇奖' }}</span>
           </button>
         </div>

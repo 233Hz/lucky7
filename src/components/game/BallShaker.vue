@@ -1,25 +1,22 @@
 <template>
   <div class="flex flex-col items-center select-none">
-    <!-- Lottery Ball Sphere -->
+    <!-- Lottery Ball Sphere with Solid Black Border & Hard Shadow -->
     <div
-      class="w-13 h-13 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center font-black text-lg sm:text-xl shadow-lg border-2 border-white/60 relative overflow-hidden transition-all duration-300"
+      class="w-13 h-13 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center font-black text-lg sm:text-xl border-3 border-black relative overflow-hidden transition-all duration-200"
       :class="[
         colorWaveClass,
-        rolling ? 'animate-spin scale-110' : 'hover:scale-105'
+        rolling ? 'animate-spin scale-110 shadow-brutal' : 'shadow-brutal hover:-translate-y-0.5'
       ]"
     >
-      <!-- Gloss highlight reflection -->
-      <div class="absolute top-1 left-2 w-4 h-2 rounded-full bg-white/40 blur-[1px]"></div>
-
-      <span class="text-white drop-shadow font-mono tracking-tighter">
+      <span class="font-mono font-black tracking-tighter">
         {{ formattedNumber }}
       </span>
     </div>
 
-    <!-- Zodiac & Info pill -->
-    <div v-if="zodiac && !rolling" class="mt-1.5 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-[11px] font-bold text-slate-300">
-      <span class="text-amber-400">{{ zodiac }}</span>
-      <span class="text-slate-500">·</span>
+    <!-- Zodiac & Info badge -->
+    <div v-if="zodiac && !rolling" class="mt-2 flex items-center space-x-1 px-2.5 py-0.5 rounded-none bg-white border-2 border-black text-xs font-black font-mono shadow-brutal-sm text-black">
+      <span class="text-[#ff9500]">{{ zodiac }}</span>
+      <span class="text-black">·</span>
       <span :class="colorWaveText">{{ waveName }}</span>
     </div>
   </div>
@@ -65,17 +62,17 @@ const waveName = computed(() => {
 
 const colorWaveClass = computed(() => {
   switch (waveColor.value) {
-    case 'red': return 'bg-gradient-to-tr from-rose-700 to-rose-500 shadow-rose-500/30'
-    case 'blue': return 'bg-gradient-to-tr from-sky-700 to-sky-500 shadow-sky-500/30'
-    case 'green': return 'bg-gradient-to-tr from-emerald-700 to-emerald-500 shadow-emerald-500/30'
+    case 'red': return 'bg-[#ff006e] text-white'
+    case 'blue': return 'bg-[#00d9ff] text-black'
+    case 'green': return 'bg-[#ccff00] text-black'
   }
 })
 
 const colorWaveText = computed(() => {
   switch (waveColor.value) {
-    case 'red': return 'text-rose-400'
-    case 'blue': return 'text-sky-400'
-    case 'green': return 'text-emerald-400'
+    case 'red': return 'text-[#ff006e]'
+    case 'blue': return 'text-[#0088cc]'
+    case 'green': return 'text-[#059669]'
   }
 })
 </script>
