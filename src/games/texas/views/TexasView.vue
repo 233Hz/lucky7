@@ -3,36 +3,45 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center space-x-3">
-        <router-link to="/" class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors">
-          ← 返回大厅
+        <router-link to="/" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold">
+          <ArrowLeft class="w-4 h-4" />
+          <span>返回大厅</span>
         </router-link>
         <div>
           <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
-            <span>♠️ 德州扑克 (Texas Hold'em)</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300">
+            <Crown class="w-5 h-5 text-indigo-400" />
+            <span>德州扑克 (Texas Hold'em)</span>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300 font-medium">
               专业竞技 · 7选5牌型评估
             </span>
           </h1>
-          <p class="text-xs text-slate-400">大盲: {{ bigBlind }} 🪙 | 小盲: {{ smallBlind }} 🪙</p>
+          <p class="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+            <span>大盲: {{ bigBlind }}</span>
+            <CoinIcon customClass="w-3.5 h-3.5" />
+            <span class="ml-1 text-slate-500">| 小盲: {{ smallBlind }}</span>
+            <CoinIcon customClass="w-3.5 h-3.5" />
+          </p>
         </div>
       </div>
 
       <button
         @click="startNewGame"
         :disabled="gameActive"
-        class="px-5 py-2 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50"
+        class="px-5 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50 flex items-center gap-2"
       >
-        {{ gameActive ? '对局进行中' : '开始新对局' }}
+        <Play v-if="!gameActive" class="w-4 h-4" />
+        <RotateCw v-else class="w-4 h-4 animate-spin" />
+        <span>{{ gameActive ? '对局进行中' : '开始新对局' }}</span>
       </button>
     </div>
 
     <!-- Felt Poker Table -->
-    <div class="relative rounded-3xl bg-gradient-to-b from-emerald-950 via-slate-950 to-slate-950 border-4 border-emerald-900/60 p-6 min-h-[560px] flex flex-col justify-between shadow-2xl overflow-hidden">
+    <div class="relative rounded-3xl bg-gradient-to-b from-emerald-950 via-slate-950 to-slate-950 border-4 border-emerald-900/60 p-6 min-h-[580px] flex flex-col justify-between shadow-2xl overflow-hidden">
       <!-- Ambient Felt Pattern -->
       <div class="absolute inset-0 bg-[radial-gradient(#059669_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
       <!-- Top AI Opponents -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 justify-items-center relative z-20">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 justify-items-center relative z-20 pt-2">
         <div
           v-for="(ai, idx) in aiPlayers"
           :key="ai.id"
@@ -58,16 +67,19 @@
       <!-- Center Community Cards & Pot -->
       <div class="flex flex-col items-center justify-center my-6 relative z-10">
         <!-- Pot Display -->
-        <div class="px-5 py-2 rounded-2xl bg-slate-900/90 border border-emerald-500/50 backdrop-blur-md shadow-xl flex items-center space-x-3 mb-4">
+        <div class="px-6 py-3 rounded-2xl bg-slate-900/90 border border-emerald-500/50 backdrop-blur-md shadow-xl flex items-center space-x-3 mb-4">
           <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">总彩池:</span>
-          <span class="text-2xl font-black font-mono text-amber-300">🪙 {{ formattedPot }}</span>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-semibold uppercase">
+          <div class="flex items-center gap-1 text-2xl font-black font-mono text-amber-300">
+            <CoinIcon customClass="w-6 h-6" />
+            <span>{{ formattedPot }}</span>
+          </div>
+          <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700 font-semibold uppercase">
             {{ roundName }}
           </span>
         </div>
 
-        <!-- 5 Community Cards Area -->
-        <div class="flex items-center space-x-2 sm:space-x-3 min-h-[96px] p-2 rounded-2xl bg-slate-950/60 border border-slate-800">
+        <!-- 5 Community Cards Area (Clean spacing) -->
+        <div class="flex items-center space-x-2.5 sm:space-x-3.5 min-h-[116px] p-3 rounded-2xl bg-slate-950/70 border border-slate-800">
           <template v-if="communityCards.length > 0">
             <PlayingCard
               v-for="(c, idx) in communityCards"
@@ -80,7 +92,7 @@
           <div
             v-for="idx in (5 - communityCards.length)"
             :key="'ph_' + idx"
-            class="w-14 h-20 sm:w-16 sm:h-24 rounded-lg border-2 border-dashed border-slate-800 flex items-center justify-center text-slate-700 text-xs font-mono"
+            class="w-20 h-28 sm:w-22 sm:h-32 rounded-xl border-2 border-dashed border-slate-800 flex items-center justify-center text-slate-600 text-xs font-mono"
           >
             {{ idx === 1 && communityCards.length === 0 ? '翻牌' : idx === 4 ? '转牌' : '河牌' }}
           </div>
@@ -88,10 +100,10 @@
       </div>
 
       <!-- Bottom Hero Player Area -->
-      <div class="flex flex-col items-center relative z-20">
-        <!-- Hero Hole Cards -->
+      <div class="flex flex-col items-center relative z-20 pb-2">
+        <!-- Hero Hole Cards (Spaced cleanly side-by-side) -->
         <div class="flex flex-col items-center mb-2">
-          <div class="flex items-center -space-x-3 mb-1">
+          <div class="flex items-center space-x-3 sm:space-x-4 mb-2">
             <template v-if="hero.holeCards.length > 0">
               <PlayingCard
                 v-for="(card, i) in hero.holeCards"
@@ -103,20 +115,24 @@
           </div>
 
           <!-- Hero Best 5-Card Hand Evaluation Badge -->
-          <div v-if="heroEvaluation" class="px-3 py-1 rounded-full bg-slate-900 border border-emerald-500/60 text-emerald-300 font-bold text-xs shadow">
+          <div v-if="heroEvaluation" class="px-3.5 py-1 rounded-full bg-slate-900 border border-emerald-500/60 text-emerald-300 font-bold text-xs shadow">
             成牌牌型: {{ heroEvaluation.rankName }}
           </div>
         </div>
 
         <!-- Hero Chips & Bet Info -->
         <div class="flex items-center space-x-3 mb-3">
-          <div class="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 shadow">
             <img :src="hero.avatarUrl" class="w-6 h-6 rounded-full border border-slate-700" />
             <span class="text-sm font-bold text-slate-200">{{ hero.nickname }}</span>
-            <span class="text-amber-400 font-mono font-black text-sm ml-2">🪙 {{ formattedHeroChips }}</span>
+            <div class="flex items-center space-x-1 ml-2 text-amber-400 font-mono font-black text-sm">
+              <CoinIcon customClass="w-4 h-4" />
+              <span>{{ formattedHeroChips }}</span>
+            </div>
           </div>
-          <div v-if="hero.currentBet > 0" class="text-xs font-mono text-amber-300 px-2.5 py-1 rounded-lg bg-amber-950/60 border border-amber-800">
-            本轮注额: {{ hero.currentBet }}
+          <div v-if="hero.currentBet > 0" class="text-xs font-mono text-amber-300 px-3 py-1 rounded-lg bg-amber-950/60 border border-amber-800 flex items-center gap-1">
+            <span>本轮注额: {{ hero.currentBet }}</span>
+            <CoinIcon customClass="w-3.5 h-3.5" />
           </div>
         </div>
 
@@ -126,9 +142,10 @@
           <button
             @click="handleHeroFold"
             :disabled="currentTurnIdx !== 0"
-            class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-300 border border-slate-700 text-sm font-bold transition-all disabled:opacity-40"
+            class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-300 border border-slate-700 text-sm font-bold transition-all disabled:opacity-40 flex items-center gap-1.5"
           >
-            弃牌 (Fold)
+            <Flag class="w-4 h-4" />
+            <span>弃牌 (Fold)</span>
           </button>
 
           <!-- 过牌 (Check) 或 跟注 (Call) -->
@@ -136,35 +153,41 @@
             v-if="heroCallAmount === 0"
             @click="handleHeroCheck"
             :disabled="currentTurnIdx !== 0"
-            class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-40"
+            class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-40 flex items-center gap-1.5"
           >
-            过牌 (Check)
+            <Check class="w-4 h-4" />
+            <span>过牌 (Check)</span>
           </button>
           <button
             v-else
             @click="handleHeroCall"
             :disabled="currentTurnIdx !== 0 || hero.chips < heroCallAmount"
-            class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-40"
+            class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-40 flex items-center gap-1.5"
           >
-            跟注 (Call: {{ heroCallAmount }} 🪙)
+            <PlusCircle class="w-4 h-4" />
+            <span>跟注 (Call: {{ heroCallAmount }})</span>
+            <CoinIcon customClass="w-3.5 h-3.5" />
           </button>
 
           <!-- 加注 (Raise) -->
           <button
             @click="handleHeroRaise"
             :disabled="currentTurnIdx !== 0 || hero.chips < highestBet + bigBlind"
-            class="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow-lg shadow-amber-600/30 transition-all disabled:opacity-40"
+            class="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow-lg shadow-amber-600/30 transition-all disabled:opacity-40 flex items-center gap-1.5"
           >
-            加注 (+{{ bigBlind }} 🪙)
+            <ArrowUpCircle class="w-4 h-4" />
+            <span>加注 (+{{ bigBlind }})</span>
+            <CoinIcon customClass="w-3.5 h-3.5" />
           </button>
 
           <!-- 全下 (All-In) -->
           <button
             @click="handleHeroAllIn"
             :disabled="currentTurnIdx !== 0 || hero.chips <= 0"
-            class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-black shadow-lg shadow-rose-600/30 transition-all disabled:opacity-40"
+            class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-black shadow-lg shadow-rose-600/30 transition-all disabled:opacity-40 flex items-center gap-1.5"
           >
-            全下 (All-In)
+            <Zap class="w-4 h-4" />
+            <span>全下 (All-In)</span>
           </button>
         </div>
       </div>
@@ -173,7 +196,15 @@
     <!-- Settlement Modal -->
     <Modal v-model="showResultModal" title="德扑牌局结算">
       <div class="text-center py-4 space-y-4">
-        <div class="text-4xl">{{ gameResult?.isWin ? '🏆' : '💀' }}</div>
+        <div class="flex justify-center">
+          <div
+            class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
+            :class="gameResult?.isWin ? 'bg-emerald-950/80 border border-emerald-500 text-emerald-400' : 'bg-rose-950/80 border border-rose-700 text-rose-400'"
+          >
+            <Trophy v-if="gameResult?.isWin" class="w-9 h-9" />
+            <Frown v-else class="w-9 h-9" />
+          </div>
+        </div>
         <h2 class="text-2xl font-black" :class="gameResult?.isWin ? 'text-emerald-400' : 'text-rose-400'">
           {{ gameResult?.isWin ? '胜利赢得底池！' : '本局遗憾失利' }}
         </h2>
@@ -182,17 +213,19 @@
         </p>
         <div class="px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm font-mono flex items-center justify-between">
           <span class="text-slate-400">净盈亏筹码:</span>
-          <span :class="gameResult?.netProfit && gameResult.netProfit >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'">
-            {{ (gameResult?.netProfit ?? 0) >= 0 ? '+' : '' }}{{ gameResult?.netProfit }} 🪙
+          <span class="flex items-center gap-1" :class="gameResult?.netProfit && gameResult.netProfit >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'">
+            <span>{{ (gameResult?.netProfit ?? 0) >= 0 ? '+' : '' }}{{ gameResult?.netProfit }}</span>
+            <CoinIcon customClass="w-4 h-4" />
           </span>
         </div>
       </div>
       <template #footer>
         <button
           @click="startNewGame"
-          class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow transition-all"
+          class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow transition-all flex items-center justify-center gap-1.5"
         >
-          开始下一局
+          <RotateCw class="w-4 h-4" />
+          <span>开始下一局</span>
         </button>
       </template>
     </Modal>
@@ -202,12 +235,26 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import confetti from 'canvas-confetti'
+import {
+  Crown,
+  ArrowLeft,
+  Play,
+  RotateCw,
+  Flag,
+  Check,
+  PlusCircle,
+  ArrowUpCircle,
+  Zap,
+  Trophy,
+  Frown
+} from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { sound } from '@/lib/sound'
 import PlayingCard from '@/components/game/PlayingCard.vue'
 import PlayerSeat from '@/components/game/PlayerSeat.vue'
 import Modal from '@/components/common/Modal.vue'
+import CoinIcon from '@/components/common/CoinIcon.vue'
 import { createTexasDeck, evaluateTexas7Cards, getAITexasAction } from '../engine'
 import type { TexasPlayer, TexasBetRound, TexasEvaluation } from '../types'
 import type { Card } from '@/types/game'

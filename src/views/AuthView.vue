@@ -9,8 +9,13 @@
         <h2 class="text-2xl font-extrabold text-white tracking-tight">
           {{ isSignUp ? '创建 Lucky 7 账号' : '登录 Lucky 7 大厅' }}
         </h2>
-        <p class="text-xs text-slate-400">
-          {{ isSignUp ? '注册即送 10,000 虚拟体验筹码' : '随时随地，开启你的竞技之旅' }}
+        <p class="text-xs text-slate-400 flex items-center justify-center gap-1">
+          <span v-if="isSignUp" class="flex items-center gap-1">
+            <span>注册即送 10,000</span>
+            <CoinIcon customClass="w-3.5 h-3.5" />
+            <span>虚拟体验筹码</span>
+          </span>
+          <span v-else>随时随地，开启你的竞技之旅</span>
         </p>
       </div>
 
@@ -41,7 +46,7 @@
           v-if="authStore.authError"
           class="p-3 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center space-x-2"
         >
-          <span>⚠️</span>
+          <AlertCircle class="w-4 h-4 flex-shrink-0" />
           <span>{{ authStore.authError }}</span>
         </div>
 
@@ -87,9 +92,10 @@
           <button
             type="submit"
             :disabled="authStore.loading"
-            class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50 mt-2"
+            class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50 mt-2 flex items-center justify-center gap-1.5"
           >
-            {{ authStore.loading ? '处理中...' : (isSignUp ? '立即注册并获取 10,000 🪙' : '登录') }}
+            <span>{{ authStore.loading ? '处理中...' : (isSignUp ? '立即注册并获取 10,000' : '登录') }}</span>
+            <CoinIcon v-if="isSignUp && !authStore.loading" customClass="w-4 h-4" />
           </button>
         </form>
 
@@ -104,7 +110,8 @@
           @click="handleGuestLogin"
           class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-all flex items-center justify-center space-x-1.5"
         >
-          <span>⚡ 一键免密快速试玩</span>
+          <Zap class="w-4 h-4 text-amber-400" />
+          <span>一键免密快速试玩</span>
         </button>
       </div>
     </div>
@@ -114,7 +121,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { AlertCircle, Zap } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import CoinIcon from '@/components/common/CoinIcon.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()

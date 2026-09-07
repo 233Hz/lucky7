@@ -3,17 +3,22 @@
     <!-- Header -->
     <div class="text-center space-y-2">
       <h1 class="text-3xl font-extrabold text-white flex items-center justify-center gap-2">
-        <span>📅 每日签到领好礼</span>
+        <CalendarCheck class="w-8 h-8 text-emerald-400" />
+        <span>每日签到领好礼</span>
       </h1>
-      <p class="text-sm text-slate-400">
-        连续签到天数越多，奖励越丰厚！最高可领 4,000 🪙 奖励。
+      <p class="text-sm text-slate-400 flex items-center justify-center gap-1">
+        <span>连续签到天数越多，奖励越丰厚！最高可领 4,000</span>
+        <CoinIcon customClass="w-3.5 h-3.5" />
+        <span>奖励。</span>
       </p>
     </div>
 
     <!-- Streak Status Pill -->
     <div class="flex items-center justify-center">
       <div class="px-5 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 shadow flex items-center space-x-3">
-        <span class="text-2xl">🔥</span>
+        <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+          <Flame class="w-5 h-5" />
+        </div>
         <div class="text-left">
           <div class="text-xs text-slate-400 font-semibold">当前连续签到</div>
           <div class="text-lg font-black text-amber-400 font-mono">{{ walletStore.currentStreak }} 天</div>
@@ -38,19 +43,20 @@
         <!-- Checked stamp -->
         <div
           v-if="day < currentStreakIndex || (day === currentStreakIndex && walletStore.isCheckedInToday)"
-          class="absolute top-2 right-2 text-emerald-400 text-xs font-bold"
+          class="absolute top-2 right-2 text-emerald-400"
         >
-          ✓
+          <Check class="w-4 h-4" />
         </div>
 
         <span class="text-xs font-bold text-slate-400">第 {{ day }} 天</span>
 
-        <div class="my-3 text-2xl">
-          {{ day === 7 ? '🎁' : '🪙' }}
+        <div class="my-3 flex items-center justify-center">
+          <Gift v-if="day === 7" class="w-7 h-7 text-amber-400 animate-bounce" />
+          <CoinIcon v-else customClass="w-7 h-7" />
         </div>
 
-        <div class="font-mono font-black text-sm" :class="day === currentStreakIndex ? 'text-amber-300' : 'text-slate-200'">
-          +{{ 1000 + (day - 1) * 500 }}
+        <div class="font-mono font-black text-sm flex items-center justify-center gap-0.5" :class="day === currentStreakIndex ? 'text-amber-300' : 'text-slate-200'">
+          <span>+{{ 1000 + (day - 1) * 500 }}</span>
         </div>
       </div>
     </div>
@@ -60,14 +66,18 @@
       <button
         @click="handleClaim"
         :disabled="walletStore.isCheckedInToday || walletStore.loading"
-        class="w-full sm:w-80 py-3.5 rounded-2xl text-base font-black text-slate-950 transition-all shadow-xl disabled:opacity-50"
+        class="w-full sm:w-80 py-3.5 rounded-2xl text-base font-black text-slate-950 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
         :class="walletStore.isCheckedInToday ? 'bg-slate-800 text-slate-400 border border-slate-700' : 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:scale-105 shadow-amber-500/20'"
       >
-        {{ walletStore.isCheckedInToday ? '今日已签到，明天再来！' : '立即领取今日奖励 🪙' }}
+        <Check v-if="walletStore.isCheckedInToday" class="w-5 h-5" />
+        <Gift v-else class="w-5 h-5" />
+        <span>{{ walletStore.isCheckedInToday ? '今日已签到，明天再来！' : '立即领取今日奖励' }}</span>
+        <CoinIcon v-if="!walletStore.isCheckedInToday" customClass="w-4 h-4" />
       </button>
 
-      <span v-if="walletStore.isCheckedInToday" class="text-xs text-emerald-400 font-semibold">
-        今日签到奖励已发放至您的账户余额！
+      <span v-if="walletStore.isCheckedInToday" class="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+        <Check class="w-3.5 h-3.5" />
+        <span>今日签到奖励已发放至您的账户余额！</span>
       </span>
     </div>
   </div>
@@ -76,8 +86,10 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import confetti from 'canvas-confetti'
+import { CalendarCheck, Flame, Gift, Check } from 'lucide-vue-next'
 import { useWalletStore } from '@/stores/wallet'
 import { sound } from '@/lib/sound'
+import CoinIcon from '@/components/common/CoinIcon.vue'
 
 const walletStore = useWalletStore()
 

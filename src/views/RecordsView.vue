@@ -4,7 +4,8 @@
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-extrabold text-white flex items-center gap-2">
-          <span>📜 对局战绩历史</span>
+          <History class="w-6 h-6 text-emerald-400" />
+          <span>对局战绩历史</span>
         </h1>
         <p class="text-xs text-slate-400 mt-1">查看您在各游戏中的下注明细与盈亏记录</p>
       </div>
@@ -35,8 +36,9 @@
       </div>
       <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-center">
         <div class="text-xs text-slate-400">净盈亏汇总</div>
-        <div class="text-xl font-black font-mono mt-1" :class="totalNetProfit >= 0 ? 'text-amber-300' : 'text-rose-400'">
-          {{ totalNetProfit >= 0 ? '+' : '' }}{{ totalNetProfit }} 🪙
+        <div class="text-xl font-black font-mono mt-1 flex items-center justify-center gap-1" :class="totalNetProfit >= 0 ? 'text-amber-300' : 'text-rose-400'">
+          <span>{{ totalNetProfit >= 0 ? '+' : '' }}{{ totalNetProfit }}</span>
+          <CoinIcon customClass="w-4 h-4" />
         </div>
       </div>
     </div>
@@ -63,17 +65,22 @@
           </div>
 
           <div class="flex items-center space-x-6 text-xs font-mono">
-            <div class="text-slate-400">
-              下注: <span class="text-slate-200 font-bold">{{ rec.bet_amount }} 🪙</span>
+            <div class="text-slate-400 flex items-center gap-1">
+              <span>下注:</span>
+              <span class="text-slate-200 font-bold">{{ rec.bet_amount }}</span>
+              <CoinIcon customClass="w-3.5 h-3.5" />
             </div>
-            <div class="text-slate-400">
-              派彩: <span class="text-slate-200 font-bold">{{ rec.payout }} 🪙</span>
+            <div class="text-slate-400 flex items-center gap-1">
+              <span>派彩:</span>
+              <span class="text-slate-200 font-bold">{{ rec.payout }}</span>
+              <CoinIcon customClass="w-3.5 h-3.5" />
             </div>
             <div
-              class="font-black text-sm px-3 py-1 rounded-full"
+              class="font-black text-sm px-3 py-1 rounded-full flex items-center gap-1"
               :class="rec.net_profit > 0 ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : rec.net_profit < 0 ? 'bg-rose-950 text-rose-400 border border-rose-800' : 'bg-slate-800 text-slate-300'"
             >
-              {{ rec.net_profit >= 0 ? '+' : '' }}{{ rec.net_profit }} 🪙
+              <span>{{ rec.net_profit >= 0 ? '+' : '' }}{{ rec.net_profit }}</span>
+              <CoinIcon customClass="w-3.5 h-3.5" />
             </div>
           </div>
         </div>
@@ -84,7 +91,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { History } from 'lucide-vue-next'
 import { useWalletStore } from '@/stores/wallet'
+import CoinIcon from '@/components/common/CoinIcon.vue'
 
 const walletStore = useWalletStore()
 const selectedGameFilter = ref('all')

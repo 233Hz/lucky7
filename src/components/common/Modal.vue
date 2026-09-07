@@ -18,7 +18,7 @@
               @click="close"
               class="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
             >
-              ✕
+              <X class="w-4 h-4" />
             </button>
           </div>
 
@@ -38,6 +38,8 @@
 </template>
 
 <script setup lang="ts">
+import { X } from 'lucide-vue-next'
+
 const props = withDefaults(
   defineProps<{
     modelValue: boolean

@@ -3,13 +3,15 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center space-x-3">
-        <router-link to="/" class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors">
-          ← 返回大厅
+        <router-link to="/" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold">
+          <ArrowLeft class="w-4 h-4" />
+          <span>返回大厅</span>
         </router-link>
         <div>
           <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
-            <span>🎱 猜点数六合彩 (Mark Six)</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300">
+            <Disc class="w-5 h-5 text-sky-400" />
+            <span>猜点数六合彩 (Mark Six)</span>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300 font-medium">
               即开滚球 · 1-49特码 · 红蓝绿波
             </span>
           </h1>
@@ -63,9 +65,13 @@
         <!-- Current Total Bet & Profit -->
         <div class="w-full md:w-auto flex flex-col items-center md:items-end space-y-1">
           <div class="text-xs text-slate-400 font-semibold">本局累计下注</div>
-          <div class="text-2xl font-black font-mono text-amber-300">🪙 {{ formattedTotalBet }}</div>
-          <div v-if="lastProfit !== null" class="text-xs font-mono font-bold" :class="lastProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'">
-            上期盈亏: {{ lastProfit >= 0 ? '+' : '' }}{{ lastProfit }} 🪙
+          <div class="text-2xl font-black font-mono text-amber-300 flex items-center gap-1.5">
+            <CoinIcon customClass="w-5 h-5" />
+            <span>{{ formattedTotalBet }}</span>
+          </div>
+          <div v-if="lastProfit !== null" class="text-xs font-mono font-bold flex items-center gap-1" :class="lastProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'">
+            <span>上期盈亏: {{ lastProfit >= 0 ? '+' : '' }}{{ lastProfit }}</span>
+            <CoinIcon customClass="w-3 h-3" />
           </div>
         </div>
       </div>
@@ -99,8 +105,9 @@
         >
           <span class="text-base font-bold text-slate-200">{{ item.name }}</span>
           <span class="text-xs text-amber-400 font-bold mt-1">1 赔 {{ item.odds }}</span>
-          <div v-if="getBetAmount(item.type as any, item.value) > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-emerald-900 text-emerald-200 text-xs font-mono font-bold">
-            🪙 {{ getBetAmount(item.type as any, item.value) }}
+          <div v-if="getBetAmount(item.type as any, item.value) > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-emerald-900 text-emerald-200 text-xs font-mono font-bold flex items-center gap-1">
+            <CoinIcon customClass="w-3 h-3" />
+            <span>{{ getBetAmount(item.type as any, item.value) }}</span>
           </div>
         </div>
       </div>
@@ -112,10 +119,14 @@
           class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-between select-none"
           :class="getBetAmount('wave_color', 'red') > 0 ? 'bg-rose-950/60 border-rose-500 shadow-lg' : 'bg-slate-900/90 border-slate-800 hover:border-rose-900/40'"
         >
-          <span class="text-lg font-black text-rose-400">🔴 红 波 (Red)</span>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full bg-rose-500 shadow-sm"></span>
+            <span class="text-lg font-black text-rose-400">红 波 (Red)</span>
+          </div>
           <span class="text-xs text-slate-400 mt-1">涵盖 17 个红球 · 1 赔 2.8</span>
-          <div v-if="getBetAmount('wave_color', 'red') > 0" class="mt-2 px-3 py-0.5 rounded-full bg-rose-900 text-rose-200 text-xs font-mono font-bold">
-            🪙 {{ getBetAmount('wave_color', 'red') }}
+          <div v-if="getBetAmount('wave_color', 'red') > 0" class="mt-2 px-3 py-0.5 rounded-full bg-rose-900 text-rose-200 text-xs font-mono font-bold flex items-center gap-1">
+            <CoinIcon customClass="w-3 h-3" />
+            <span>{{ getBetAmount('wave_color', 'red') }}</span>
           </div>
         </div>
 
@@ -124,10 +135,14 @@
           class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-between select-none"
           :class="getBetAmount('wave_color', 'blue') > 0 ? 'bg-sky-950/60 border-sky-500 shadow-lg' : 'bg-slate-900/90 border-slate-800 hover:border-sky-900/40'"
         >
-          <span class="text-lg font-black text-sky-400">🔵 蓝 波 (Blue)</span>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full bg-sky-500 shadow-sm"></span>
+            <span class="text-lg font-black text-sky-400">蓝 波 (Blue)</span>
+          </div>
           <span class="text-xs text-slate-400 mt-1">涵盖 16 个蓝球 · 1 赔 2.9</span>
-          <div v-if="getBetAmount('wave_color', 'blue') > 0" class="mt-2 px-3 py-0.5 rounded-full bg-sky-900 text-sky-200 text-xs font-mono font-bold">
-            🪙 {{ getBetAmount('wave_color', 'blue') }}
+          <div v-if="getBetAmount('wave_color', 'blue') > 0" class="mt-2 px-3 py-0.5 rounded-full bg-sky-900 text-sky-200 text-xs font-mono font-bold flex items-center gap-1">
+            <CoinIcon customClass="w-3 h-3" />
+            <span>{{ getBetAmount('wave_color', 'blue') }}</span>
           </div>
         </div>
 
@@ -136,10 +151,14 @@
           class="p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-between select-none"
           :class="getBetAmount('wave_color', 'green') > 0 ? 'bg-emerald-950/60 border-emerald-500 shadow-lg' : 'bg-slate-900/90 border-slate-800 hover:border-emerald-900/40'"
         >
-          <span class="text-lg font-black text-emerald-400">🟢 绿 波 (Green)</span>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span>
+            <span class="text-lg font-black text-emerald-400">绿 波 (Green)</span>
+          </div>
           <span class="text-xs text-slate-400 mt-1">涵盖 16 个绿球 · 1 赔 2.9</span>
-          <div v-if="getBetAmount('wave_color', 'green') > 0" class="mt-2 px-3 py-0.5 rounded-full bg-emerald-900 text-emerald-200 text-xs font-mono font-bold">
-            🪙 {{ getBetAmount('wave_color', 'green') }}
+          <div v-if="getBetAmount('wave_color', 'green') > 0" class="mt-2 px-3 py-0.5 rounded-full bg-emerald-900 text-emerald-200 text-xs font-mono font-bold flex items-center gap-1">
+            <CoinIcon customClass="w-3 h-3" />
+            <span>{{ getBetAmount('wave_color', 'green') }}</span>
           </div>
         </div>
       </div>
@@ -155,8 +174,9 @@
         >
           <span class="text-lg font-black text-amber-300">{{ zod }}</span>
           <span class="text-[10px] text-slate-400 font-bold">1:11.5</span>
-          <span v-if="getBetAmount('zodiac', zod) > 0" class="mt-1 text-[10px] font-mono font-bold text-amber-400">
-            🪙{{ getBetAmount('zodiac', zod) }}
+          <span v-if="getBetAmount('zodiac', zod) > 0" class="mt-1 text-[10px] font-mono font-bold text-amber-400 flex items-center gap-0.5">
+            <CoinIcon customClass="w-2.5 h-2.5" />
+            <span>{{ getBetAmount('zodiac', zod) }}</span>
           </span>
         </div>
       </div>
@@ -181,8 +201,9 @@
             >
               {{ n < 10 ? '0' + n : n }}
             </div>
-            <span v-if="getBetAmount('exact_number', n) > 0" class="mt-1 text-[9px] font-mono font-bold text-amber-300">
-              🪙{{ getBetAmount('exact_number', n) }}
+            <span v-if="getBetAmount('exact_number', n) > 0" class="mt-1 text-[9px] font-mono font-bold text-amber-300 flex items-center gap-0.5">
+              <CoinIcon customClass="w-2.5 h-2.5" />
+              <span>{{ getBetAmount('exact_number', n) }}</span>
             </span>
           </div>
         </div>
@@ -203,9 +224,10 @@
           <button
             @click="handleInstantDraw"
             :disabled="totalBetAmount === 0 || isDrawing || authStore.userChips < totalBetAmount"
-            class="flex-1 sm:flex-none px-8 py-2.5 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-40"
+            class="flex-1 sm:flex-none px-8 py-2.5 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
           >
-            {{ isDrawing ? '开奖中...' : '即开摇奖 🎱' }}
+            <Play class="w-4 h-4" />
+            <span>{{ isDrawing ? '开奖中...' : '即开摇奖' }}</span>
           </button>
         </div>
       </div>
@@ -216,11 +238,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import confetti from 'canvas-confetti'
+import { Disc, ArrowLeft, Play } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { sound } from '@/lib/sound'
 import BallShaker from '@/components/game/BallShaker.vue'
 import ChipSelector from '@/components/game/ChipSelector.vue'
+import CoinIcon from '@/components/common/CoinIcon.vue'
 import {
   drawMarkSixResult,
   settleMarkSixBets,

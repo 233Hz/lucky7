@@ -3,13 +3,15 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center space-x-3">
-        <router-link to="/" class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors">
-          ← 返回大厅
+        <router-link to="/" class="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold">
+          <ArrowLeft class="w-4 h-4" />
+          <span>返回大厅</span>
         </router-link>
         <div>
           <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
-            <span>🎲 猜大小 · 骰宝 (Sic Bo)</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300">
+            <Dices class="w-5 h-5 text-rose-400" />
+            <span>猜大小 · 骰宝 (Sic Bo)</span>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 border border-emerald-700 text-emerald-300 font-medium">
               3骰摇宝 · 高达60倍赔率
             </span>
           </h1>
@@ -63,9 +65,13 @@
         <!-- Current Total Bet & Payout Status -->
         <div class="w-full md:w-auto flex flex-col items-center md:items-end space-y-1">
           <div class="text-xs text-slate-400 font-semibold">本局累计下注</div>
-          <div class="text-2xl font-black font-mono text-amber-300">🪙 {{ formattedTotalBet }}</div>
-          <div v-if="lastProfit !== null" class="text-xs font-mono font-bold" :class="lastProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'">
-            上一局: {{ lastProfit >= 0 ? '+' : '' }}{{ lastProfit }} 🪙
+          <div class="text-2xl font-black font-mono text-amber-300 flex items-center gap-1.5">
+            <CoinIcon customClass="w-5 h-5" />
+            <span>{{ formattedTotalBet }}</span>
+          </div>
+          <div v-if="lastProfit !== null" class="text-xs font-mono font-bold flex items-center gap-1" :class="lastProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'">
+            <span>上一局: {{ lastProfit >= 0 ? '+' : '' }}{{ lastProfit }}</span>
+            <CoinIcon customClass="w-3 h-3" />
           </div>
         </div>
       </div>
@@ -82,8 +88,9 @@
           >
             <span class="text-xl font-black text-sky-400">小 (4-10)</span>
             <span class="text-xs text-slate-400 mt-1">1 赔 1 (全围通吃)</span>
-            <div v-if="getBetAmount('small') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-sky-900 text-sky-200 text-xs font-mono font-bold">
-              🪙 {{ getBetAmount('small') }}
+            <div v-if="getBetAmount('small') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-sky-900 text-sky-200 text-xs font-mono font-bold flex items-center gap-1">
+              <CoinIcon customClass="w-3 h-3" />
+              <span>{{ getBetAmount('small') }}</span>
             </div>
           </div>
 
@@ -93,10 +100,14 @@
             class="p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-between select-none relative col-span-2 sm:col-span-1"
             :class="getBetAmount('any_triple') > 0 ? 'bg-amber-950/60 border-amber-500 shadow-lg shadow-amber-900/40' : 'bg-slate-900/90 border-slate-800 hover:border-slate-700'"
           >
-            <span class="text-xl font-black text-amber-400">👑 全 围</span>
+            <span class="text-xl font-black text-amber-400 flex items-center gap-1.5">
+              <Crown class="w-5 h-5 text-amber-400" />
+              <span>全 围</span>
+            </span>
             <span class="text-xs text-amber-300/80 mt-1 font-bold">1 赔 30 (高额彩金)</span>
-            <div v-if="getBetAmount('any_triple') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-amber-900 text-amber-200 text-xs font-mono font-bold">
-              🪙 {{ getBetAmount('any_triple') }}
+            <div v-if="getBetAmount('any_triple') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-amber-900 text-amber-200 text-xs font-mono font-bold flex items-center gap-1">
+              <CoinIcon customClass="w-3 h-3" />
+              <span>{{ getBetAmount('any_triple') }}</span>
             </div>
           </div>
 
@@ -108,8 +119,9 @@
           >
             <span class="text-xl font-black text-rose-400">大 (11-17)</span>
             <span class="text-xs text-slate-400 mt-1">1 赔 1 (全围通吃)</span>
-            <div v-if="getBetAmount('big') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-rose-900 text-rose-200 text-xs font-mono font-bold">
-              🪙 {{ getBetAmount('big') }}
+            <div v-if="getBetAmount('big') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-rose-900 text-rose-200 text-xs font-mono font-bold flex items-center gap-1">
+              <CoinIcon customClass="w-3 h-3" />
+              <span>{{ getBetAmount('big') }}</span>
             </div>
           </div>
 
@@ -121,8 +133,9 @@
           >
             <span class="text-xl font-black text-emerald-400">单 (Odd)</span>
             <span class="text-xs text-slate-400 mt-1">1 赔 1</span>
-            <div v-if="getBetAmount('odd') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-emerald-900 text-emerald-200 text-xs font-mono font-bold">
-              🪙 {{ getBetAmount('odd') }}
+            <div v-if="getBetAmount('odd') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-emerald-900 text-emerald-200 text-xs font-mono font-bold flex items-center gap-1">
+              <CoinIcon customClass="w-3 h-3" />
+              <span>{{ getBetAmount('odd') }}</span>
             </div>
           </div>
 
@@ -134,8 +147,9 @@
           >
             <span class="text-xl font-black text-indigo-400">双 (Even)</span>
             <span class="text-xs text-slate-400 mt-1">1 赔 1</span>
-            <div v-if="getBetAmount('even') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-indigo-900 text-indigo-200 text-xs font-mono font-bold">
-              🪙 {{ getBetAmount('even') }}
+            <div v-if="getBetAmount('even') > 0" class="mt-2 px-2.5 py-0.5 rounded-full bg-indigo-900 text-indigo-200 text-xs font-mono font-bold flex items-center gap-1">
+              <CoinIcon customClass="w-3 h-3" />
+              <span>{{ getBetAmount('even') }}</span>
             </div>
           </div>
         </div>
@@ -153,8 +167,9 @@
             >
               <span class="text-base font-black font-mono text-slate-200">{{ pt }}</span>
               <span class="text-[10px] text-amber-400/90 font-bold">1:{{ pointOdds[pt] }}</span>
-              <span v-if="getBetAmount('point', pt) > 0" class="mt-1 text-[10px] font-mono font-bold text-amber-300">
-                🪙{{ getBetAmount('point', pt) }}
+              <span v-if="getBetAmount('point', pt) > 0" class="mt-1 text-[10px] font-mono font-bold text-amber-300 flex items-center gap-0.5">
+                <CoinIcon customClass="w-2.5 h-2.5" />
+                <span>{{ getBetAmount('point', pt) }}</span>
               </span>
             </div>
           </div>
@@ -174,8 +189,9 @@
               <div class="w-8 h-8 rounded-lg bg-white text-slate-900 font-black text-sm flex items-center justify-center shadow">
                 {{ d }}
               </div>
-              <span v-if="getBetAmount('single_die', d) > 0" class="mt-1 text-[10px] font-mono font-bold text-emerald-300">
-                🪙{{ getBetAmount('single_die', d) }}
+              <span v-if="getBetAmount('single_die', d) > 0" class="mt-1 text-[10px] font-mono font-bold text-emerald-300 flex items-center gap-0.5">
+                <CoinIcon customClass="w-2.5 h-2.5" />
+                <span>{{ getBetAmount('single_die', d) }}</span>
               </span>
             </div>
           </div>
@@ -197,9 +213,10 @@
           <button
             @click="handleRoll"
             :disabled="totalBetAmount === 0 || isRolling || authStore.userChips < totalBetAmount"
-            class="flex-1 sm:flex-none px-8 py-2.5 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-40"
+            class="flex-1 sm:flex-none px-8 py-2.5 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
           >
-            {{ isRolling ? '摇盅中...' : '开始摇骰 🎲' }}
+            <Dices class="w-4 h-4" />
+            <span>{{ isRolling ? '摇盅中...' : '开始摇骰' }}</span>
           </button>
         </div>
       </div>
@@ -210,11 +227,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import confetti from 'canvas-confetti'
+import { Dices, ArrowLeft, Crown } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { sound } from '@/lib/sound'
 import DiceBox from '@/components/game/DiceBox.vue'
 import ChipSelector from '@/components/game/ChipSelector.vue'
+import CoinIcon from '@/components/common/CoinIcon.vue'
 import { rollThreeDice, calculateSicBoSettlement, POINT_ODDS } from '../engine'
 import type { SicBoBetItem, SicBoBetType, SicBoRollResult } from '../types'
 

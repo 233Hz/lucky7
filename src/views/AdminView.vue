@@ -2,7 +2,9 @@
   <div class="max-w-6xl mx-auto px-4 py-8 space-y-8">
     <!-- Non-admin protection alert -->
     <div v-if="!authStore.isAdmin" class="rounded-3xl bg-rose-950/80 border border-rose-800 p-8 text-center space-y-4">
-      <div class="text-4xl">🚫</div>
+      <div class="w-16 h-16 rounded-full bg-rose-900/40 border border-rose-700/60 text-rose-400 mx-auto flex items-center justify-center">
+        <ShieldX class="w-8 h-8" />
+      </div>
       <h2 class="text-2xl font-black text-rose-300">无权访问管理后台</h2>
       <p class="text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
         当前账号未设置管理员权限。如需成为管理员，请在 Supabase SQL Editor 中执行如下命令：
@@ -21,7 +23,8 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 class="text-2xl font-extrabold text-white flex items-center gap-2">
-            <span>🛡️ 系统管理控制台</span>
+            <Shield class="w-7 h-7 text-amber-400" />
+            <span>系统管理控制台</span>
             <span class="px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800 text-xs font-bold">
               SUPER ADMIN
             </span>
@@ -48,7 +51,10 @@
         </div>
         <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
           <div class="text-xs text-slate-400 font-semibold">全服流通虚拟币</div>
-          <div class="text-2xl font-black font-mono text-amber-400 mt-1">🪙 {{ totalCirculatingChips }}</div>
+          <div class="text-2xl font-black font-mono text-amber-400 mt-1 flex items-center gap-1.5">
+            <CoinIcon customClass="w-6 h-6" />
+            <span>{{ totalCirculatingChips }}</span>
+          </div>
         </div>
         <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800">
           <div class="text-xs text-slate-400 font-semibold">管理操作模式</div>
@@ -65,9 +71,10 @@
           <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">玩家档案与资产列表</span>
           <button
             @click="fetchPlayers"
-            class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1"
+            class="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1.5"
           >
-            <span>🔄 刷新列表</span>
+            <RotateCw class="w-3.5 h-3.5" />
+            <span>刷新列表</span>
           </button>
         </div>
 
@@ -96,14 +103,18 @@
             <div class="flex items-center space-x-4 sm:space-x-6 justify-between sm:justify-end">
               <div class="text-right">
                 <div class="text-[10px] text-slate-400 font-semibold">当前筹码</div>
-                <div class="text-sm font-black font-mono text-amber-300">🪙 {{ formatChips(p.chips) }}</div>
+                <div class="text-sm font-black font-mono text-amber-300 flex items-center justify-end gap-1">
+                  <CoinIcon customClass="w-3.5 h-3.5" />
+                  <span>{{ formatChips(p.chips) }}</span>
+                </div>
               </div>
 
               <button
                 @click="openGrantModal(p)"
-                class="px-4 py-2 rounded-xl bg-amber-600/90 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow transition-all flex items-center space-x-1"
+                class="px-4 py-2 rounded-xl bg-amber-600/90 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow transition-all flex items-center space-x-1.5"
               >
-                <span>🎁 赠送/调整筹码</span>
+                <Gift class="w-3.5 h-3.5" />
+                <span>赠送/调整筹码</span>
               </button>
             </div>
           </div>
@@ -121,7 +132,10 @@
           />
           <div>
             <div class="text-xs font-bold text-slate-200">{{ selectedTarget.nickname }} ({{ selectedTarget.email }})</div>
-            <div class="text-xs text-amber-400 font-mono font-bold">现存余额: {{ formatChips(selectedTarget.chips) }} 🪙</div>
+            <div class="text-xs text-amber-400 font-mono font-bold flex items-center gap-1">
+              <span>现存余额: {{ formatChips(selectedTarget.chips) }}</span>
+              <CoinIcon customClass="w-3.5 h-3.5" />
+            </div>
           </div>
         </div>
 
@@ -163,9 +177,10 @@
         <button
           @click="submitGrant"
           :disabled="isSubmitting || grantAmount === 0"
-          class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow transition-all disabled:opacity-50"
+          class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
         >
-          {{ isSubmitting ? '正在写入数据库...' : '确认调账并记录流水' }}
+          <Gift class="w-4 h-4" />
+          <span>{{ isSubmitting ? '正在写入数据库...' : '确认调账并记录流水' }}</span>
         </button>
       </template>
     </Modal>
@@ -174,9 +189,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { Shield, ShieldX, RotateCw, Gift } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import Modal from '@/components/common/Modal.vue'
+import CoinIcon from '@/components/common/CoinIcon.vue'
 import type { Profile } from '@/types/database'
 
 const authStore = useAuthStore()
@@ -255,7 +272,7 @@ async function submitGrant() {
     }
     showGrantModal.value = false
     isSubmitting.value = false
-    alert(`成功为 ${selectedTarget.value.nickname} 调整筹码 ${grantAmount.value} 🪙！`)
+    alert(`成功为 ${selectedTarget.value.nickname} 调整筹码 ${grantAmount.value}！`)
     return
   }
 
@@ -275,7 +292,7 @@ async function submitGrant() {
         authStore.profile.chips = selectedTarget.value.chips
       }
       showGrantModal.value = false
-      alert(`调账成功！目标玩家最新余额: ${selectedTarget.value.chips} 🪙`)
+      alert(`调账成功！目标玩家最新余额: ${selectedTarget.value.chips}`)
     } else {
       alert(res.message || '调账失败')
     }

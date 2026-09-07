@@ -13,7 +13,7 @@
     ></div>
 
     <!-- Cards Display -->
-    <div class="flex items-center -space-x-4 mb-2 min-h-[70px]">
+    <div class="flex items-center space-x-1.5 mb-2 min-h-[84px]">
       <template v-if="seat.cards && seat.cards.length > 0">
         <PlayingCard
           v-for="(c, idx) in seat.cards"
@@ -30,7 +30,7 @@
 
     <!-- Avatar & Info Card -->
     <div
-      class="w-28 sm:w-32 rounded-xl bg-slate-900/90 border p-2 text-center shadow-lg transition-colors backdrop-blur-xs relative"
+      class="w-32 sm:w-36 rounded-xl bg-slate-900/95 border p-2 text-center shadow-lg transition-colors backdrop-blur-xs relative"
       :class="[
         isCurrentTurn ? 'border-amber-400 bg-slate-800' : 'border-slate-800',
         isHero ? 'ring-1 ring-emerald-500/60' : ''
@@ -51,14 +51,14 @@
           class="w-5 h-5 rounded-full bg-slate-800 border border-slate-700"
           alt="avatar"
         />
-        <span class="text-xs font-semibold text-slate-200 truncate max-w-[70px]">
+        <span class="text-xs font-semibold text-slate-200 truncate max-w-[80px]">
           {{ seat.nickname }}
         </span>
       </div>
 
       <!-- Chips Balance -->
       <div class="text-[11px] font-mono font-bold text-amber-400 flex items-center justify-center space-x-1">
-        <span>🪙</span>
+        <CoinIcon customClass="w-3.5 h-3.5" />
         <span>{{ formattedChips }}</span>
       </div>
 
@@ -74,7 +74,7 @@
     <!-- Current Bet Pill -->
     <div
       v-if="seat.currentBet > 0"
-      class="mt-1.5 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-600/50 text-[10px] font-mono font-bold text-amber-300 shadow"
+      class="mt-1.5 flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-950/80 border border-amber-600/50 text-[10px] font-mono font-bold text-amber-300 shadow"
     >
       <span>下注:</span>
       <span>{{ seat.currentBet }}</span>
@@ -86,6 +86,7 @@
 import { computed } from 'vue'
 import type { PlayerSeatInfo } from '@/types/game'
 import PlayingCard from './PlayingCard.vue'
+import CoinIcon from '@/components/common/CoinIcon.vue'
 
 const props = withDefaults(
   defineProps<{

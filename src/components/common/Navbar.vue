@@ -75,9 +75,7 @@
 
         <!-- User Chips Balance Pill -->
         <div class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 shadow-inner">
-          <div class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs border border-amber-500/40">
-            🪙
-          </div>
+          <CoinIcon customClass="w-4 h-4" />
           <span class="text-sm font-bold tracking-tight text-amber-300 font-mono">
             {{ formattedChips }}
           </span>
@@ -146,6 +144,7 @@ import { Volume2, VolumeX, ShieldAlert } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { sound } from '@/lib/sound'
+import CoinIcon from './CoinIcon.vue'
 
 const authStore = useAuthStore()
 const walletStore = useWalletStore()

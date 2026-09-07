@@ -19,8 +19,8 @@
         <!-- Quick Status & Action Card -->
         <div class="w-full md:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-950/70 p-4 rounded-2xl border border-slate-800 backdrop-blur-md">
           <div class="flex items-center space-x-3 pr-4 sm:border-r border-slate-800">
-            <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl">
-              🪙
+            <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
+              <CoinIcon customClass="w-6 h-6" />
             </div>
             <div>
               <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">我的筹码余额</div>
@@ -31,7 +31,8 @@
             to="/checkin"
             class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm text-center shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center space-x-1.5"
           >
-            <span>📅 每日签到领币</span>
+            <CalendarCheck class="w-4 h-4" />
+            <span>每日签到领币</span>
           </router-link>
         </div>
       </div>
@@ -42,7 +43,8 @@
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <span>🎮 热门游戏大厅</span>
+            <Gamepad2 class="w-5 h-5 text-emerald-400" />
+            <span>热门游戏大厅</span>
             <span class="text-xs font-mono font-normal text-slate-400">SELECT GAME</span>
           </h2>
           <p class="text-xs text-slate-400 mt-0.5">选择心仪的经典游戏，即刻开始智勇对决</p>
@@ -54,8 +56,8 @@
         <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-emerald-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-emerald-900/20 hover:-translate-y-1">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-700/50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                🎴
+              <div class="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-700/50 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                <Layers class="w-6 h-6" />
               </div>
               <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 text-[11px] font-bold">
                 三张比拼 · 心理博弈
@@ -68,7 +70,7 @@
               三张底牌见分晓！支持闷牌（暗注）、看牌翻倍、加注与激爽比牌PK。豹子通吃，235奇袭逆转。
             </p>
             <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono text-slate-500">
-              <span>底注: 50 🪙</span>
+              <span class="flex items-center gap-1">底注: 50 <CoinIcon customClass="w-3 h-3" /></span>
               <span>•</span>
               <span>单人AI / 联机开房</span>
             </div>
@@ -87,8 +89,8 @@
         <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-amber-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-amber-900/20 hover:-translate-y-1">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-amber-950/80 border border-amber-700/50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                🃏
+              <div class="w-12 h-12 rounded-2xl bg-amber-950/80 border border-amber-700/50 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                <Sparkles class="w-6 h-6" />
               </div>
               <span class="px-2.5 py-1 rounded-full bg-amber-950 text-amber-400 border border-amber-800 text-[11px] font-bold">
                 3:2 天王赔率
@@ -120,8 +122,8 @@
         <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-indigo-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-indigo-900/20 hover:-translate-y-1">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-indigo-950/80 border border-indigo-700/50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                ♠️
+              <div class="w-12 h-12 rounded-2xl bg-indigo-950/80 border border-indigo-700/50 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                <Crown class="w-6 h-6" />
               </div>
               <span class="px-2.5 py-1 rounded-full bg-indigo-950 text-indigo-400 border border-indigo-800 text-[11px] font-bold">
                 7选5牌型评级
@@ -134,7 +136,7 @@
               国际风靡的智力竞技！翻牌前、翻牌、转牌、河牌四轮下注，过牌、跟注、加注与全下(All-in)。
             </p>
             <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono text-slate-500">
-              <span>盲注: 50/100 🪙</span>
+              <span class="flex items-center gap-1">盲注: 50/100 <CoinIcon customClass="w-3 h-3" /></span>
               <span>•</span>
               <span>皇家同花顺至高牌</span>
             </div>
@@ -153,8 +155,8 @@
         <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-rose-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-rose-900/20 hover:-translate-y-1">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-rose-950/80 border border-rose-700/50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                🎲
+              <div class="w-12 h-12 rounded-2xl bg-rose-950/80 border border-rose-700/50 flex items-center justify-center text-rose-400 group-hover:scale-110 transition-transform">
+                <Dices class="w-6 h-6" />
               </div>
               <span class="px-2.5 py-1 rounded-full bg-rose-950 text-rose-400 border border-rose-800 text-[11px] font-bold">
                 最高 60 倍
@@ -186,8 +188,8 @@
         <div class="group relative rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-sky-600/60 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:shadow-sky-900/20 hover:-translate-y-1">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-sky-950/80 border border-sky-700/50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                🎱
+              <div class="w-12 h-12 rounded-2xl bg-sky-950/80 border border-sky-700/50 flex items-center justify-center text-sky-400 group-hover:scale-110 transition-transform">
+                <Disc class="w-6 h-6" />
               </div>
               <span class="px-2.5 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-800 text-[11px] font-bold">
                 特码 47 倍
@@ -219,8 +221,8 @@
         <div class="group relative rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/40 border border-emerald-800/40 hover:border-emerald-500 transition-all duration-300 p-6 flex flex-col justify-between shadow-lg hover:-translate-y-1">
           <div>
             <div class="flex items-center justify-between mb-4">
-              <div class="w-12 h-12 rounded-2xl bg-emerald-900/60 border border-emerald-500/50 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                🌐
+              <div class="w-12 h-12 rounded-2xl bg-emerald-900/60 border border-emerald-500/50 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                <Globe class="w-6 h-6" />
               </div>
               <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600 text-[11px] font-bold">
                 Supabase 联机
@@ -255,9 +257,10 @@
           <span class="text-xs text-slate-400">选择房间即刻入座：</span>
           <button
             @click="showCreateModal = true"
-            class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all"
+            class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1"
           >
-            + 创建新房间
+            <Plus class="w-3.5 h-3.5" />
+            <span>创建新房间</span>
           </button>
         </div>
 
@@ -269,8 +272,10 @@
           >
             <div>
               <div class="text-sm font-bold text-slate-200">{{ rm.name }}</div>
-              <div class="text-xs text-slate-400 font-mono mt-0.5">
-                底注: {{ rm.min_bet }} 🪙 · 人数上限: {{ rm.max_players }}
+              <div class="text-xs text-slate-400 font-mono mt-0.5 flex items-center gap-1">
+                <span>底注: {{ rm.min_bet }}</span>
+                <CoinIcon customClass="w-3 h-3" />
+                <span>· 人数上限: {{ rm.max_players }}</span>
               </div>
             </div>
             <button
@@ -310,7 +315,10 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-400 mb-1">底注要求 (🪙)</label>
+          <label class="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
+            <span>底注要求</span>
+            <CoinIcon customClass="w-3.5 h-3.5" />
+          </label>
           <input
             v-model.number="newRoomMinBet"
             type="number"
@@ -335,9 +343,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import {
+  CalendarCheck,
+  Gamepad2,
+  Layers,
+  Sparkles,
+  Crown,
+  Dices,
+  Disc,
+  Globe,
+  Plus
+} from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useRoomStore } from '@/stores/room'
 import Modal from '@/components/common/Modal.vue'
+import CoinIcon from '@/components/common/CoinIcon.vue'
 import type { GameRoom } from '@/types/database'
 
 const router = useRouter()
