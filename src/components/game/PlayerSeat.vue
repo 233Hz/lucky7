@@ -13,7 +13,7 @@
     ></div>
 
     <!-- Cards Display -->
-    <div class="flex items-center space-x-1.5 mb-2 min-h-[84px]">
+    <div class="flex items-center justify-center -space-x-3.5 sm:-space-x-2.5 mb-2 min-h-[84px]">
       <template v-if="seat.cards && seat.cards.length > 0">
         <PlayingCard
           v-for="(c, idx) in seat.cards"
@@ -21,6 +21,7 @@
           :card="c"
           :faceDown="showCardsFaceDown"
           size="sm"
+          class="hover:z-10 hover:-translate-y-1 transition-transform"
         />
       </template>
       <div v-else-if="seat.status === 'active'" class="text-xs text-slate-500 italic">
