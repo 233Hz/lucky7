@@ -7,6 +7,7 @@
           to="/"
           @click="handleLeaveRoom"
           class="comic-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5"
+          :class="isLeaving ? 'opacity-50 pointer-events-none' : ''"
         >
           <ArrowLeft class="w-4 h-4" />
           <span>返回大厅</span>
@@ -51,6 +52,7 @@
 
         <button
           v-if="!isSupabaseConfigured() && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
+          v-prevent-reclick
           @click="handleAddTestPlayer"
           class="comic-btn-blue px-3 py-2 text-xs font-bold flex items-center gap-1"
           title="辅助本地测试：快捷添加测试对手"
@@ -60,11 +62,13 @@
         </button>
 
         <button
+          v-prevent-reclick
+          :disabled="isLeaving"
           @click="handleLeaveRoom"
-          class="comic-btn-white px-3.5 py-2 text-xs font-bold flex items-center gap-1 hover:bg-[#ef4444] hover:text-white"
+          class="comic-btn-white px-3.5 py-2 text-xs font-bold flex items-center gap-1 hover:bg-[#ef4444] hover:text-white disabled:opacity-50"
         >
           <LogOut class="w-3.5 h-3.5" />
-          <span>退出房间</span>
+          <span>{{ isLeaving ? '退出中...' : '退出房间' }}</span>
         </button>
       </div>
     </div>
@@ -102,23 +106,29 @@
             :readyStatus="gameStatus === 'waiting' ? opp.readyStatus : undefined"
           />
 
-          <!-- Quick Test Toggle Ready (Only in local test mode for simulated opponents) -->
+          <!-- Controls for opponents: Simulated toggle ready for test players, and Kick Player for Host -->
           <div
-            v-if="gameStatus === 'waiting' && opp.id.startsWith('test_player_')"
+            v-if="gameStatus === 'waiting'"
             class="mt-4 flex items-center gap-1 z-30"
           >
             <button
+              v-if="opp.id.startsWith('test_player_')"
+              v-prevent-reclick
               @click="handleToggleOpponentReady(opp.id)"
               class="px-2 py-0.5 text-[10px] font-black border-2 border-[#1a1a1a] rounded-md bg-[#fffef0] hover:bg-[#facc15]"
             >
               {{ opp.readyStatus === 'ready' ? '设为未准备' : '模拟准备' }}
             </button>
             <button
-              @click="roomStore.removePlayer(opp.id)"
-              class="px-1.5 py-0.5 text-[10px] font-black border-2 border-[#1a1a1a] rounded-md bg-[#ef4444] text-white"
-              title="移出该玩家"
+              v-if="roomStore.isHost"
+              v-prevent-reclick
+              @click="handleKickPlayer(opp.id, opp.nickname)"
+              :disabled="kickingUserId === opp.id"
+              class="px-2 py-0.5 text-[10px] font-black border-2 border-[#1a1a1a] rounded-md bg-[#ef4444] text-white hover:bg-[#dc2626] transition-colors flex items-center gap-1 shadow-[1px_1px_0px_0px_#1a1a1a] disabled:opacity-50"
+              title="将该玩家移出房间"
             >
-              ×
+              <UserX class="w-3 h-3" />
+              <span>{{ kickingUserId === opp.id ? '踢出中...' : '踢出' }}</span>
             </button>
           </div>
         </div>
@@ -225,25 +235,28 @@
         <div v-if="gameStatus === 'waiting'" class="flex items-center space-x-3 flex-wrap justify-center gap-y-2">
           <!-- 准备 / 取消准备 Button for current user -->
           <button
+            v-prevent-reclick
+            :disabled="isTogglingReady"
             @click="handleToggleReady"
-            class="comic-btn px-6 py-2.5 text-sm font-black flex items-center gap-2"
+            class="comic-btn px-6 py-2.5 text-sm font-black flex items-center gap-2 disabled:opacity-50"
             :class="roomStore.isCurrentUserReady ? 'comic-btn-white' : 'comic-btn-green'"
           >
             <CheckCircle v-if="!roomStore.isCurrentUserReady" class="w-4 h-4" />
             <XCircle v-else class="w-4 h-4" />
-            <span>{{ roomStore.isCurrentUserReady ? '取消准备' : '准备就绪' }}</span>
+            <span>{{ isTogglingReady ? '更新中...' : (roomStore.isCurrentUserReady ? '取消准备' : '准备就绪') }}</span>
           </button>
 
           <!-- 房主开始游戏 Button (Only host can see/click, enabled when all ready) -->
           <button
             v-if="roomStore.isHost"
+            v-prevent-reclick
             @click="handleStartGame"
-            :disabled="!roomStore.canStartGame"
+            :disabled="!roomStore.canStartGame || isStarting"
             class="comic-btn px-7 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-2"
-            :class="roomStore.canStartGame ? 'comic-btn-green shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]' : 'comic-btn-white cursor-not-allowed'"
+            :class="roomStore.canStartGame && !isStarting ? 'comic-btn-green shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]' : 'comic-btn-white cursor-not-allowed'"
           >
             <Play class="w-4 h-4 fill-[#1a1a1a]" />
-            <span>{{ hostStartButtonText }}</span>
+            <span>{{ isStarting ? '正在开局...' : hostStartButtonText }}</span>
           </button>
 
           <!-- Non-host Waiting status -->
@@ -263,8 +276,10 @@
           <!-- 看牌 -->
           <button
             v-if="!hero.seen"
+            v-prevent-reclick
+            :disabled="isActionBusy"
             @click="handleHeroCheck"
-            class="comic-btn-blue px-5 py-2.5 text-sm font-black flex items-center gap-1.5"
+            class="comic-btn-blue px-5 py-2.5 text-sm font-black flex items-center gap-1.5 disabled:opacity-50"
           >
             <Eye class="w-4 h-4" />
             <span>看牌</span>
@@ -272,8 +287,10 @@
 
           <!-- 弃牌 -->
           <button
+            v-prevent-reclick
+            :disabled="isActionBusy"
             @click="handleHeroFold"
-            class="comic-btn-white px-5 py-2.5 text-sm font-bold flex items-center gap-1.5"
+            class="comic-btn-white px-5 py-2.5 text-sm font-bold flex items-center gap-1.5 disabled:opacity-50"
           >
             <Flag class="w-4 h-4" />
             <span>弃牌</span>
@@ -281,8 +298,9 @@
 
           <!-- 跟注 -->
           <button
+            v-prevent-reclick
             @click="handleHeroCall"
-            :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost"
+            :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost || isActionBusy"
             class="comic-btn-green px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <PlusCircle class="w-4 h-4" />
@@ -292,8 +310,9 @@
 
           <!-- 加注 -->
           <button
+            v-prevent-reclick
             @click="handleHeroRaise"
-            :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost * 2"
+            :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost * 2 || isActionBusy"
             class="comic-btn-yellow px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <ArrowUpCircle class="w-4 h-4" />
@@ -304,8 +323,9 @@
           <!-- 比牌 -->
           <button
             v-if="currentRound >= 2 && activeOpponentCount > 0"
+            v-prevent-reclick
             @click="handleHeroCompare"
-            :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost * 2"
+            :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost * 2 || isActionBusy"
             class="comic-btn-red px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <Swords class="w-4 h-4" />
@@ -370,7 +390,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import confetti from 'canvas-confetti'
 import {
@@ -390,6 +410,7 @@ import {
   Clock,
   Users,
   UserPlus,
+  UserX,
   LogOut,
   MessageSquare
 } from 'lucide-vue-next'
@@ -521,7 +542,32 @@ const hostStartButtonText = computed(() => {
   return '开始游戏 (全员已就绪)'
 })
 
+const isStarting = ref(false)
+const isTogglingReady = ref(false)
+const isLeaving = ref(false)
+const isActionBusy = ref(false)
+const kickingUserId = ref<string | null>(null)
+
+// 关键 Bug 修复：监听房间对局状态，确保房主开局后所有玩家同步进入对局界面
+watch(
+  () => roomStore.currentRoom?.status,
+  (newStatus) => {
+    if (newStatus === 'playing' && gameStatus.value === 'waiting') {
+      startNewRound()
+    } else if (newStatus === 'waiting' && gameStatus.value !== 'waiting') {
+      returnToPreparation()
+    }
+  },
+  { immediate: true }
+)
+
+function onWindowBeforeUnload() {
+  roomStore.leaveRoom()
+}
+
 onMounted(async () => {
+  window.addEventListener('beforeunload', onWindowBeforeUnload)
+
   if (authStore.profile) {
     hero.value.id = authStore.profile.id
     hero.value.nickname = authStore.profile.nickname
@@ -547,14 +593,25 @@ onMounted(async () => {
   )
 })
 
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', onWindowBeforeUnload)
+  roomStore.leaveRoom()
+})
+
 // Toggle current player ready
 async function handleToggleReady() {
-  await roomStore.toggleReady()
-  sound.playClick()
-  chatStore.sendSystemAnnouncement(
-    roomChannel.value,
-    `【${authStore.profile?.nickname || '玩家'}】${roomStore.isCurrentUserReady ? '已准备就绪！' : '取消了准备。'}`
-  )
+  if (isTogglingReady.value) return
+  isTogglingReady.value = true
+  try {
+    await roomStore.toggleReady()
+    sound.playClick()
+    chatStore.sendSystemAnnouncement(
+      roomChannel.value,
+      `【${authStore.profile?.nickname || '玩家'}】${roomStore.isCurrentUserReady ? '已准备就绪！' : '取消了准备。'}`
+    )
+  } finally {
+    isTogglingReady.value = false
+  }
 }
 
 // 辅助本地测试：添加测试玩家
@@ -565,6 +622,25 @@ function handleAddTestPlayer() {
     roomChannel.value,
     `【${lastPlayer?.profile?.nickname || '新玩家'}】加入入座。`
   )
+}
+
+// 房主踢出玩家
+async function handleKickPlayer(userId: string, nickname: string) {
+  if (!roomStore.isHost || kickingUserId.value) return
+  if (!confirm(`确定要将玩家【${nickname}】移出房间吗？`)) return
+
+  kickingUserId.value = userId
+  try {
+    const ok = await roomStore.kickPlayer(userId)
+    if (ok) {
+      chatStore.sendSystemAnnouncement(
+        roomChannel.value,
+        `【房主】已将玩家【${nickname}】移出房间。`
+      )
+    }
+  } finally {
+    kickingUserId.value = null
+  }
 }
 
 // Toggle simulated opponent ready (for convenient 1-tab local testing)
@@ -581,25 +657,36 @@ function handleToggleOpponentReady(userId: string) {
 
 // Leave room and return to home lobby
 async function handleLeaveRoom() {
-  chatStore.sendSystemAnnouncement(
-    roomChannel.value,
-    `【${authStore.profile?.nickname || '玩家'}】离开了房间。`
-  )
-  await roomStore.leaveRoom()
-  router.push('/')
+  if (isLeaving.value) return
+  isLeaving.value = true
+  try {
+    chatStore.sendSystemAnnouncement(
+      roomChannel.value,
+      `【${authStore.profile?.nickname || '玩家'}】离开了房间。`
+    )
+    await roomStore.leaveRoom()
+    router.push('/')
+  } finally {
+    isLeaving.value = false
+  }
 }
 
 // Host starts game: all seated players must be ready and >= 2 players
 async function handleStartGame() {
-  if (!roomStore.canStartGame) return
-  const ok = await roomStore.startGame()
-  if (!ok) return
+  if (!roomStore.canStartGame || isStarting.value) return
+  isStarting.value = true
+  try {
+    const ok = await roomStore.startGame()
+    if (!ok) return
 
-  chatStore.sendSystemAnnouncement(
-    roomChannel.value,
-    `房主开启了对局，盲注与底池已扣除，正在发牌中...`
-  )
-  startNewRound()
+    chatStore.sendSystemAnnouncement(
+      roomChannel.value,
+      `房主开启了对局，盲注与底池已扣除，正在发牌中...`
+    )
+    startNewRound()
+  } finally {
+    isStarting.value = false
+  }
 }
 
 // Start dealing and playing round
@@ -657,37 +744,50 @@ function returnToPreparation() {
   hero.value.folded = false
   hero.value.currentBet = 0
   opponents.value = []
-  roomStore.resetRoomToWaiting()
+  if (roomStore.currentRoom?.status === 'playing') {
+    roomStore.resetRoomToWaiting()
+  }
 }
 
 // Hero 看牌
 function handleHeroCheck() {
+  if (isActionBusy.value || currentTurnIdx.value !== 0) return
+  isActionBusy.value = true
   hero.value.seen = true
   sound.playClick()
+  setTimeout(() => { isActionBusy.value = false }, 300)
 }
 
 // Hero 弃牌
 function handleHeroFold() {
+  if (isActionBusy.value || currentTurnIdx.value !== 0) return
+  isActionBusy.value = true
   hero.value.folded = true
   sound.playLose()
   checkRoundFinish()
   if (gameStatus.value === 'playing') {
     nextTurn()
   }
+  setTimeout(() => { isActionBusy.value = false }, 300)
 }
 
 // Hero 跟注
 function handleHeroCall() {
+  if (isActionBusy.value || currentTurnIdx.value !== 0 || hero.value.chips < heroBetCost.value) return
+  isActionBusy.value = true
   const cost = heroBetCost.value
   hero.value.chips -= cost
   hero.value.currentBet += cost
   pot.value += cost
   sound.playChip()
   nextTurn()
+  setTimeout(() => { isActionBusy.value = false }, 300)
 }
 
 // Hero 加注
 function handleHeroRaise() {
+  if (isActionBusy.value || currentTurnIdx.value !== 0 || hero.value.chips < heroBetCost.value * 2) return
+  isActionBusy.value = true
   currentBetUnit.value += minBet.value
   const cost = heroBetCost.value
   hero.value.chips -= cost
@@ -695,12 +795,18 @@ function handleHeroRaise() {
   pot.value += cost
   sound.playChip()
   nextTurn()
+  setTimeout(() => { isActionBusy.value = false }, 300)
 }
 
 // Hero 比牌
 function handleHeroCompare() {
+  if (isActionBusy.value || currentTurnIdx.value !== 0 || hero.value.chips < heroBetCost.value * 2) return
+  isActionBusy.value = true
   const activeOpponents = opponents.value.filter(a => !a.folded)
-  if (activeOpponents.length === 0) return
+  if (activeOpponents.length === 0) {
+    isActionBusy.value = false
+    return
+  }
 
   const cost = heroBetCost.value * 2
   hero.value.chips -= cost
@@ -723,6 +829,7 @@ function handleHeroCompare() {
   if (gameStatus.value === 'playing') {
     nextTurn()
   }
+  setTimeout(() => { isActionBusy.value = false }, 300)
 }
 
 // 轮流到下一个玩家

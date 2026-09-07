@@ -236,6 +236,7 @@
 
         <div class="flex items-center space-x-3 w-full sm:w-auto">
           <button
+            v-prevent-reclick
             @click="clearAllBets"
             :disabled="totalBetAmount === 0 || lotteryStore.isMarksixDrawing"
             class="comic-btn-white flex-1 sm:flex-none px-4 py-2.5 text-xs disabled:opacity-40"

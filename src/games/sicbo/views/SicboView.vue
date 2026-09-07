@@ -225,6 +225,7 @@
 
         <div class="flex items-center space-x-3 w-full sm:w-auto">
           <button
+            v-prevent-reclick
             @click="clearAllBets"
             :disabled="totalBetAmount === 0 || lotteryStore.isSicboDrawing"
             class="comic-btn-white px-4 py-2.5 text-xs flex-1 sm:flex-none disabled:opacity-40"

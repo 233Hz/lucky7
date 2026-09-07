@@ -145,12 +145,13 @@
         class="flex-1 px-3 py-2 text-xs font-mono font-bold border-2 border-black rounded-none focus:outline-none focus:bg-[#ffffeb] shadow-brutal-sm"
       />
       <button
+        v-prevent-reclick
         @click="handleSendMessage"
-        :disabled="!inputContent.trim()"
+        :disabled="!inputContent.trim() || isSending"
         class="brutal-btn-lime px-4 py-2 text-xs font-black disabled:opacity-40 flex items-center gap-1 shadow-brutal-sm flex-shrink-0"
       >
         <Send class="w-3.5 h-3.5" />
-        <span>发送</span>
+        <span>{{ isSending ? '发送中' : '发送' }}</span>
       </button>
     </div>
   </div>
@@ -255,13 +256,19 @@ onMounted(() => {
   scrollToBottom()
 })
 
-function handleSendMessage() {
-  const text = inputContent.value.trim()
-  if (!text) return
+const isSending = ref(false)
 
-  chatStore.sendMessage(props.channel, text, { isHost: props.isHost })
-  inputContent.value = ''
-  scrollToBottom()
+async function handleSendMessage() {
+  const text = inputContent.value.trim()
+  if (!text || isSending.value) return
+  isSending.value = true
+  try {
+    await chatStore.sendMessage(props.channel, text, { isHost: props.isHost })
+    inputContent.value = ''
+    scrollToBottom()
+  } finally {
+    isSending.value = false
+  }
 }
 
 function sendQuickPhrase(phrase: string) {

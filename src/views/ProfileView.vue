@@ -31,11 +31,13 @@
           </div>
 
           <button
+            v-prevent-reclick
+            :disabled="isSigningOut"
             @click="handleSignOut"
-            class="comic-btn-red px-4 py-2.5 text-xs"
+            class="comic-btn-red px-4 py-2.5 text-xs disabled:opacity-50"
           >
             <LogOut class="w-3.5 h-3.5 mr-1" />
-            <span>退出登录</span>
+            <span>{{ isSigningOut ? '退出中...' : '退出登录' }}</span>
           </button>
         </div>
       </div>
@@ -52,10 +54,12 @@
           />
         </div>
         <button
+          v-prevent-reclick
           type="submit"
-          class="comic-btn-yellow px-5 py-2 text-xs font-black"
+          :disabled="isSaving || !editNickname.trim()"
+          class="comic-btn-yellow px-5 py-2 text-xs font-black disabled:opacity-50"
         >
-          保存修改
+          {{ isSaving ? '保存中...' : '保存修改' }}
         </button>
       </form>
     </div>
@@ -68,11 +72,13 @@
           <span>筹码流水明细 · TRANSACTIONS</span>
         </h3>
         <button
-          @click="() => walletStore.fetchTransactions()"
-          class="comic-btn-white px-3 py-1 text-xs"
+          v-prevent-reclick
+          :disabled="isRefreshing || walletStore.loading"
+          @click="handleRefreshTransactions"
+          class="comic-btn-white px-3 py-1 text-xs disabled:opacity-50"
         >
-          <RotateCw class="w-3 h-3 mr-1" />
-          <span>刷新流水</span>
+          <RotateCw class="w-3 h-3 mr-1" :class="isRefreshing ? 'animate-spin' : ''" />
+          <span>{{ isRefreshing ? '刷新中...' : '刷新流水' }}</span>
         </button>
       </div>
 
@@ -131,17 +137,42 @@ onMounted(() => {
   walletStore.fetchTransactions()
 })
 
+const isSaving = ref(false)
+const isSigningOut = ref(false)
+const isRefreshing = ref(false)
+
 async function handleSaveProfile() {
-  if (!editNickname.value.trim()) return
-  const ok = await authStore.updateProfile(editNickname.value.trim(), avatarUrl.value)
-  if (ok) {
-    alert('昵称已更新！')
+  if (isSaving.value || !editNickname.value.trim()) return
+  isSaving.value = true
+  try {
+    const ok = await authStore.updateProfile(editNickname.value.trim(), avatarUrl.value)
+    if (ok) {
+      alert('昵称已更新！')
+    }
+  } finally {
+    isSaving.value = false
   }
 }
 
 async function handleSignOut() {
-  await authStore.signOut()
-  router.push('/auth')
+  if (isSigningOut.value) return
+  isSigningOut.value = true
+  try {
+    await authStore.signOut()
+    router.push('/auth')
+  } finally {
+    isSigningOut.value = false
+  }
+}
+
+async function handleRefreshTransactions() {
+  if (isRefreshing.value || walletStore.loading) return
+  isRefreshing.value = true
+  try {
+    await walletStore.fetchTransactions()
+  } finally {
+    isRefreshing.value = false
+  }
 }
 
 function getTypeName(type: string): string {

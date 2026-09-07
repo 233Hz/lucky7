@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import router from '@/router'
 import { useAuthStore } from './auth'
 import type { GameRoom, RoomPlayer } from '@/types/database'
 import type { RealtimeChannel } from '@supabase/supabase-js'
@@ -37,7 +38,42 @@ export const useRoomStore = defineStore('room', () => {
         } else if (type === 'PLAYER_LEFT') {
           if (currentRoom.value && currentRoom.value.id === payload.roomId) {
             roomPlayers.value = roomPlayers.value.filter(p => p.user_id !== payload.userId)
+            if (roomPlayers.value.length === 0) {
+              destroyRoom(payload.roomId)
+            } else if (currentRoom.value.host_id === payload.userId) {
+              currentRoom.value.host_id = roomPlayers.value[0].user_id
+            }
           }
+        } else if (type === 'PLAYER_KICKED') {
+          if (currentRoom.value && currentRoom.value.id === payload.roomId) {
+            if (authStore.profile && authStore.profile.id === payload.userId) {
+              alert('您已被房主移出房间！')
+              if (roomChannel) {
+                roomChannel.unsubscribe()
+                roomChannel = null
+              }
+              currentRoom.value = null
+              roomPlayers.value = []
+              router.push('/')
+            } else {
+              roomPlayers.value = roomPlayers.value.filter(p => p.user_id !== payload.userId)
+              if (roomPlayers.value.length === 0) {
+                destroyRoom(payload.roomId)
+              }
+            }
+          }
+        } else if (type === 'ROOM_DESTROYED') {
+          if (currentRoom.value && currentRoom.value.id === payload.roomId) {
+            alert('房间内所有玩家均已退出，房间已自动销毁！')
+            if (roomChannel) {
+              roomChannel.unsubscribe()
+              roomChannel = null
+            }
+            currentRoom.value = null
+            roomPlayers.value = []
+            router.push('/')
+          }
+          activeRooms.value = activeRooms.value.filter(r => r.id !== payload.roomId)
         } else if (type === 'GAME_STARTED') {
           if (currentRoom.value && currentRoom.value.id === payload.roomId) {
             currentRoom.value.status = 'playing'
@@ -329,7 +365,7 @@ export const useRoomStore = defineStore('room', () => {
   }
 
   // 重置回准备状态（一局结束后准备下一局）
-  function resetRoomToWaiting() {
+  async function resetRoomToWaiting() {
     if (currentRoom.value) {
       currentRoom.value.status = 'waiting'
     }
@@ -338,6 +374,23 @@ export const useRoomStore = defineStore('room', () => {
       p.current_bet = 0
       p.hand = []
     })
+
+    if (isSupabaseConfigured() && currentRoom.value) {
+      try {
+        await supabase
+          .from('game_rooms')
+          .update({ status: 'waiting' })
+          .eq('id', currentRoom.value.id)
+
+        await supabase
+          .from('room_players')
+          .update({ status: 'waiting' })
+          .eq('room_id', currentRoom.value.id)
+      } catch (err) {
+        console.error('Reset room error:', err)
+      }
+    }
+
     broadcastChannel?.postMessage({
       type: 'ROOM_STATE_UPDATE',
       payload: { room: currentRoom.value, players: roomPlayers.value }
@@ -380,13 +433,92 @@ export const useRoomStore = defineStore('room', () => {
     })
   }
 
-  // 移出玩家
-  function removePlayer(userId: string) {
+  // 销毁房间（当全员退出或无在桌玩家时自动触发）
+  async function destroyRoom(roomId: string) {
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase.from('room_players').delete().eq('room_id', roomId)
+        await supabase.from('game_rooms').delete().eq('id', roomId)
+      } catch (e) {
+        console.error('Destroy room error:', e)
+      }
+    }
+
+    activeRooms.value = activeRooms.value.filter(r => r.id !== roomId)
+
+    if (currentRoom.value?.id === roomId) {
+      if (roomChannel) {
+        roomChannel.unsubscribe()
+        roomChannel = null
+      }
+      currentRoom.value = null
+      roomPlayers.value = []
+    }
+
+    broadcastChannel?.postMessage({
+      type: 'ROOM_DESTROYED',
+      payload: { roomId }
+    })
+    broadcastChannel?.postMessage({
+      type: 'ROOM_LIST_UPDATE',
+      payload: activeRooms.value
+    })
+  }
+
+  // 房主踢出指定玩家
+  async function kickPlayer(userId: string): Promise<boolean> {
+    if (!currentRoom.value || !isHost.value) return false
+    if (authStore.profile && authStore.profile.id === userId) return false
+
+    const roomId = currentRoom.value.id
     roomPlayers.value = roomPlayers.value.filter(p => p.user_id !== userId)
+
+    if (isSupabaseConfigured()) {
+      try {
+        loading.value = true
+        await supabase
+          .from('room_players')
+          .delete()
+          .eq('room_id', roomId)
+          .eq('user_id', userId)
+      } catch (err) {
+        console.error('Kick player error:', err)
+      } finally {
+        loading.value = false
+      }
+    }
+
+    broadcastChannel?.postMessage({
+      type: 'PLAYER_KICKED',
+      payload: { roomId, userId }
+    })
     broadcastChannel?.postMessage({
       type: 'ROOM_STATE_UPDATE',
       payload: { room: currentRoom.value, players: roomPlayers.value }
     })
+
+    // 若房间已无玩家，则自动销毁
+    if (roomPlayers.value.length === 0) {
+      await destroyRoom(roomId)
+    }
+
+    return true
+  }
+
+  // 移出玩家（兼容旧调用）
+  function removePlayer(userId: string) {
+    if (isHost.value) {
+      kickPlayer(userId)
+    } else {
+      roomPlayers.value = roomPlayers.value.filter(p => p.user_id !== userId)
+      broadcastChannel?.postMessage({
+        type: 'ROOM_STATE_UPDATE',
+        payload: { room: currentRoom.value, players: roomPlayers.value }
+      })
+      if (currentRoom.value && roomPlayers.value.length === 0) {
+        destroyRoom(currentRoom.value.id)
+      }
+    }
   }
 
   // 监听并同步房间与在桌玩家状态 (Supabase Postgres Changes)
@@ -411,14 +543,35 @@ export const useRoomStore = defineStore('room', () => {
           if (payload.eventType === 'UPDATE') {
             currentRoom.value = payload.new as GameRoom
           } else if (payload.eventType === 'DELETE') {
+            alert('房间内所有玩家均已退出，房间已自动销毁！')
+            if (roomChannel) {
+              roomChannel.unsubscribe()
+              roomChannel = null
+            }
             currentRoom.value = null
+            roomPlayers.value = []
+            router.push('/')
           }
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'room_players', filter: `room_id=eq.${roomId}` },
-        () => {
+        (payload) => {
+          if (payload.eventType === 'DELETE') {
+            const deletedUserId = (payload.old as { user_id?: string })?.user_id
+            if (deletedUserId && authStore.profile?.id === deletedUserId) {
+              alert('您已被房主移出房间！')
+              if (roomChannel) {
+                roomChannel.unsubscribe()
+                roomChannel = null
+              }
+              currentRoom.value = null
+              roomPlayers.value = []
+              router.push('/')
+              return
+            }
+          }
           fetchRoomPlayers(roomId)
         }
       )
@@ -443,24 +596,81 @@ export const useRoomStore = defineStore('room', () => {
     }
   }
 
-  // 退出当前房间
+  // 退出当前房间（若房间内所有玩家均退出则自动销毁房间）
   async function leaveRoom() {
+    if (!currentRoom.value) {
+      roomPlayers.value = []
+      return
+    }
+
+    const roomId = currentRoom.value.id
+    const currentUserId = authStore.profile?.id
+
     if (roomChannel) {
       roomChannel.unsubscribe()
       roomChannel = null
     }
 
-    if (currentRoom.value && authStore.profile && isSupabaseConfigured()) {
-      await supabase
-        .from('room_players')
-        .delete()
-        .eq('room_id', currentRoom.value.id)
-        .eq('user_id', authStore.profile.id)
-    } else if (currentRoom.value && authStore.profile) {
-      broadcastChannel?.postMessage({
-        type: 'PLAYER_LEFT',
-        payload: { roomId: currentRoom.value.id, userId: authStore.profile.id }
-      })
+    if (isSupabaseConfigured() && currentUserId) {
+      try {
+        loading.value = true
+        await supabase
+          .from('room_players')
+          .delete()
+          .eq('room_id', roomId)
+          .eq('user_id', currentUserId)
+
+        // 检查房间内是否还有其他玩家
+        const { count, error } = await supabase
+          .from('room_players')
+          .select('*', { count: 'exact', head: true })
+          .eq('room_id', roomId)
+
+        if (!error && (count === null || count === 0)) {
+          // 所有玩家均已退出，自动销毁房间
+          await destroyRoom(roomId)
+        } else {
+          // 若退出者为房主，将房主权限移交给下一位在桌玩家
+          if (currentRoom.value.host_id === currentUserId) {
+            const { data: nextPlayer } = await supabase
+              .from('room_players')
+              .select('user_id')
+              .eq('room_id', roomId)
+              .order('seat', { ascending: true })
+              .limit(1)
+              .maybeSingle()
+
+            if (nextPlayer) {
+              await supabase
+                .from('game_rooms')
+                .update({ host_id: nextPlayer.user_id })
+                .eq('id', roomId)
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Leave room error:', err)
+      } finally {
+        loading.value = false
+      }
+    } else if (currentUserId) {
+      const remainingPlayers = roomPlayers.value.filter(p => p.user_id !== currentUserId)
+      if (remainingPlayers.length === 0) {
+        // 所有玩家均已退出，自动销毁房间
+        await destroyRoom(roomId)
+      } else {
+        if (currentRoom.value.host_id === currentUserId) {
+          currentRoom.value.host_id = remainingPlayers[0].user_id
+        }
+        broadcastChannel?.postMessage({
+          type: 'PLAYER_LEFT',
+          payload: { roomId, userId: currentUserId }
+        })
+        broadcastChannel?.postMessage({
+          type: 'ROOM_STATE_UPDATE',
+          payload: { room: currentRoom.value, players: remainingPlayers }
+        })
+      }
     }
 
     currentRoom.value = null
@@ -486,6 +696,8 @@ export const useRoomStore = defineStore('room', () => {
     resetRoomToWaiting,
     addTestPlayer,
     removePlayer,
+    kickPlayer,
+    destroyRoom,
     subscribeToRoom,
     leaveRoom
   }

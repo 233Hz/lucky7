@@ -90,12 +90,13 @@
 
           <!-- Submit Button -->
           <button
+            v-prevent-reclick
             type="submit"
-            :disabled="authStore.loading"
-            class="comic-btn-red w-full py-3.5 text-sm font-black mt-2 flex items-center justify-center gap-1.5"
+            :disabled="authStore.loading || isSubmitting"
+            class="comic-btn-red w-full py-3.5 text-sm font-black mt-2 flex items-center justify-center gap-1.5 disabled:opacity-50"
           >
-            <span>{{ authStore.loading ? '处理中...' : (isSignUp ? '立即注册并获取 10,000' : '登录大厅 · ENTER') }}</span>
-            <CoinIcon v-if="isSignUp && !authStore.loading" customClass="w-4 h-4" />
+            <span>{{ (authStore.loading || isSubmitting) ? '处理中...' : (isSignUp ? '立即注册并获取 10,000' : '登录大厅 · ENTER') }}</span>
+            <CoinIcon v-if="isSignUp && !authStore.loading && !isSubmitting" customClass="w-4 h-4" />
           </button>
         </form>
 
@@ -106,12 +107,14 @@
 
         <!-- Quick Guest Demo Entry -->
         <button
+          v-prevent-reclick
           type="button"
+          :disabled="authStore.loading || isGuestLoading"
           @click="handleGuestLogin"
-          class="comic-btn-yellow w-full py-3 text-xs font-black flex items-center justify-center space-x-1.5"
+          class="comic-btn-yellow w-full py-3 text-xs font-black flex items-center justify-center space-x-1.5 disabled:opacity-50"
         >
           <Zap class="w-4 h-4 mr-1 text-[#1a1a1a]" />
-          <span>一键免密快速试玩 · GUEST</span>
+          <span>{{ isGuestLoading ? '正在快捷登入...' : '一键免密快速试玩 · GUEST' }}</span>
         </button>
       </div>
     </div>
@@ -132,22 +135,38 @@ const isSignUp = ref(false)
 const email = ref('')
 const password = ref('')
 const nickname = ref('')
+const isSubmitting = ref(false)
+const isGuestLoading = ref(false)
 
 async function handleSubmit() {
-  let ok = false
-  if (isSignUp.value) {
-    ok = await authStore.signUp(email.value, password.value, nickname.value)
-  } else {
-    ok = await authStore.signIn(email.value, password.value)
-  }
+  if (isSubmitting.value || authStore.loading) return
+  isSubmitting.value = true
+  try {
+    let ok = false
+    if (isSignUp.value) {
+      ok = await authStore.signUp(email.value, password.value, nickname.value)
+    } else {
+      ok = await authStore.signIn(email.value, password.value)
+    }
 
-  if (ok) {
-    router.push('/')
+    if (ok) {
+      router.push('/')
+    }
+  } finally {
+    isSubmitting.value = false
   }
 }
 
 async function handleGuestLogin() {
-  await authStore.signIn('guest_' + Math.floor(Math.random() * 1000) + '@lucky7.game', 'guest123456')
-  router.push('/')
+  if (isGuestLoading.value || authStore.loading) return
+  isGuestLoading.value = true
+  try {
+    const ok = await authStore.signIn('guest_' + Math.floor(Math.random() * 1000) + '@lucky7.game', 'guest123456')
+    if (ok) {
+      router.push('/')
+    }
+  } finally {
+    isGuestLoading.value = false
+  }
 }
 </script>

@@ -264,6 +264,7 @@
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <button
+              v-prevent-reclick
               @click="openRoomLobby"
               class="comic-btn-black w-full py-3 text-xs"
             >
@@ -280,6 +281,7 @@
         <div class="flex items-center justify-between">
           <span class="text-xs text-[#1a1a1a] font-mono font-black">选择房间即刻入座：</span>
           <button
+            v-prevent-reclick
             @click="showCreateModal = true"
             class="comic-btn-yellow px-3.5 py-1.5 text-xs"
           >
@@ -303,10 +305,12 @@
               </div>
             </div>
             <button
+              v-prevent-reclick
+              :disabled="joiningRoomId === rm.id"
               @click="joinRoomAndEnter(rm)"
-              class="comic-btn-blue px-3.5 py-1.5 text-xs"
+              class="comic-btn-blue px-3.5 py-1.5 text-xs disabled:opacity-50"
             >
-              加入房间
+              {{ joiningRoomId === rm.id ? '加入中...' : '加入房间' }}
             </button>
           </div>
         </div>
@@ -351,10 +355,12 @@
       </div>
       <template #footer>
         <button
+          v-prevent-reclick
+          :disabled="isCreating"
           @click="submitCreateRoom"
-          class="comic-btn-yellow w-full py-2.5 text-sm"
+          class="comic-btn-yellow w-full py-2.5 text-sm disabled:opacity-50"
         >
-          立即创建并进入
+          {{ isCreating ? '创建中...' : '立即创建并进入' }}
         </button>
       </template>
     </Modal>
@@ -404,22 +410,39 @@ function openRoomLobby() {
   showRoomModal.value = true
 }
 
+const isCreating = ref(false)
+const joiningRoomId = ref<string | null>(null)
+
 async function submitCreateRoom() {
-  const room = await roomStore.createRoom(
-    newRoomType.value,
-    newRoomName.value,
-    newRoomMinBet.value
-  )
-  if (room) {
-    showCreateModal.value = false
-    showRoomModal.value = false
-    router.push(`/game/${room.game_type}`)
+  if (isCreating.value) return
+  isCreating.value = true
+  try {
+    const room = await roomStore.createRoom(
+      newRoomType.value,
+      newRoomName.value,
+      newRoomMinBet.value
+    )
+    if (room) {
+      showCreateModal.value = false
+      showRoomModal.value = false
+      router.push(`/game/${room.game_type}`)
+    }
+  } finally {
+    isCreating.value = false
   }
 }
 
 async function joinRoomAndEnter(room: GameRoom) {
-  await roomStore.joinRoom(room)
-  showRoomModal.value = false
-  router.push(`/game/${room.game_type}`)
+  if (joiningRoomId.value) return
+  joiningRoomId.value = room.id
+  try {
+    const ok = await roomStore.joinRoom(room)
+    if (ok) {
+      showRoomModal.value = false
+      router.push(`/game/${room.game_type}`)
+    }
+  } finally {
+    joiningRoomId.value = null
+  }
 }
 </script>

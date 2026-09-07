@@ -340,17 +340,21 @@ create policy "transactions_select_policy" on public.chip_transactions for selec
 create policy "records_select_policy" on public.game_records for select using (true);
 create policy "records_insert_policy" on public.game_records for insert with check (auth.uid() = user_id);
 
--- game_rooms: 房间大厅对认证用户开放查阅、创建、更新
+-- game_rooms: 房间大厅对认证用户开放查阅、创建、更新；房主或空房间允许删除
 create policy "rooms_select_policy" on public.game_rooms for select using (true);
 create policy "rooms_insert_policy" on public.game_rooms for insert with check (auth.uid() is not null);
 create policy "rooms_update_policy" on public.game_rooms for update using (auth.uid() is not null);
-create policy "rooms_delete_policy" on public.game_rooms for delete using (auth.uid() = host_id);
+create policy "rooms_delete_policy" on public.game_rooms for delete using (
+  auth.uid() = host_id or not exists (select 1 from public.room_players where room_id = game_rooms.id)
+);
 
--- room_players: 房间在桌玩家表
+-- room_players: 房间在桌玩家表；允许玩家退出自身，或房主踢人
 create policy "room_players_select_policy" on public.room_players for select using (true);
 create policy "room_players_insert_policy" on public.room_players for insert with check (auth.uid() = user_id);
 create policy "room_players_update_policy" on public.room_players for update using (auth.uid() is not null);
-create policy "room_players_delete_policy" on public.room_players for delete using (auth.uid() = user_id);
+create policy "room_players_delete_policy" on public.room_players for delete using (
+  auth.uid() = user_id or exists (select 1 from public.game_rooms where id = room_players.room_id and host_id = auth.uid())
+);
 
 -- system_configs: 允许所有玩家查阅配置，仅管理员可编辑/修改
 create policy "system_configs_select_policy" on public.system_configs for select using (true);
@@ -424,5 +428,16 @@ create policy "chat_messages_insert_policy" on public.chat_messages for insert w
 -- 4. 开启实时监听
 alter publication supabase_realtime add table public.system_configs;
 alter publication supabase_realtime add table public.chat_messages;
+
+-- 5. 更新房间与在桌玩家删除策略（支持房主踢人与空房自动销毁）
+drop policy if exists "rooms_delete_policy" on public.game_rooms;
+create policy "rooms_delete_policy" on public.game_rooms for delete using (
+  auth.uid() = host_id or not exists (select 1 from public.room_players where room_id = game_rooms.id)
+);
+
+drop policy if exists "room_players_delete_policy" on public.room_players;
+create policy "room_players_delete_policy" on public.room_players for delete using (
+  auth.uid() = user_id or exists (select 1 from public.game_rooms where id = room_players.room_id and host_id = auth.uid())
+);
 */
 

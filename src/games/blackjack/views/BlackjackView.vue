@@ -132,12 +132,13 @@
               清空下注
             </button>
             <button
+              v-prevent-reclick
               @click="dealHands"
-              :disabled="currentBet === 0 || authStore.userChips < currentBet"
-              class="comic-btn-green px-8 py-2.5 text-sm"
+              :disabled="currentBet === 0 || authStore.userChips < currentBet || isDealing"
+              class="comic-btn-green px-8 py-2.5 text-sm disabled:opacity-50"
             >
               <Play class="w-4 h-4 mr-1" />
-              <span>确认发牌</span>
+              <span>{{ isDealing ? '正在发牌...' : '确认发牌' }}</span>
             </button>
           </div>
         </div>
@@ -146,8 +147,10 @@
         <div v-else-if="phase === 'player_turn'" class="flex items-center space-x-4">
           <!-- 要牌 (Hit) -->
           <button
+            v-prevent-reclick
+            :disabled="isActionBusy"
             @click="handleHit"
-            class="comic-btn-yellow px-6 py-2.5 text-sm"
+            class="comic-btn-yellow px-6 py-2.5 text-sm disabled:opacity-50"
           >
             <Plus class="w-4 h-4 mr-1" />
             <span>要牌 (Hit)</span>
@@ -155,8 +158,10 @@
 
           <!-- 停牌 (Stand) -->
           <button
+            v-prevent-reclick
+            :disabled="isActionBusy"
             @click="handleStand"
-            class="comic-btn-red px-6 py-2.5 text-sm"
+            class="comic-btn-red px-6 py-2.5 text-sm disabled:opacity-50"
           >
             <Hand class="w-4 h-4 mr-1" />
             <span>停牌 (Stand)</span>
@@ -165,8 +170,10 @@
           <!-- 加倍 (Double) -->
           <button
             v-if="playerCards.length === 2 && authStore.userChips >= currentBet * 2"
+            v-prevent-reclick
+            :disabled="isActionBusy"
             @click="handleDouble"
-            class="comic-btn-blue px-6 py-2.5 text-sm"
+            class="comic-btn-blue px-6 py-2.5 text-sm disabled:opacity-50"
           >
             <Zap class="w-4 h-4 mr-1" />
             <span>加倍 (Double)</span>
@@ -176,6 +183,7 @@
         <!-- 3. Settled Stage -->
         <div v-else-if="phase === 'settled'" class="flex items-center space-x-4">
           <button
+            v-prevent-reclick
             @click="resetToBetting"
             class="comic-btn-green px-8 py-2.5 text-sm"
           >
@@ -228,6 +236,9 @@ const roundResult = ref<{ outcome: string; netProfit: number; description: strin
 const playerScore = computed(() => calculateHandScore(playerCards.value))
 const dealerScore = computed(() => calculateHandScore(dealerCards.value))
 
+const isDealing = ref(false)
+const isActionBusy = ref(false)
+
 function addBet(val: number) {
   if (phase.value !== 'betting') return
   currentBet.value += val
@@ -238,48 +249,58 @@ function clearBet() {
 }
 
 // 发牌
-function dealHands() {
-  if (currentBet.value <= 0 || authStore.userChips < currentBet.value) return
+async function dealHands() {
+  if (isDealing.value || currentBet.value <= 0 || authStore.userChips < currentBet.value) return
+  isDealing.value = true
+  try {
+    // 扣除下注并初始化牌局
+    roundResult.value = null
+    deck.value = createBlackjackDeck(4)
+    playerCards.value = []
+    dealerCards.value = []
 
-  // 扣除下注并初始化牌局
-  roundResult.value = null
-  deck.value = createBlackjackDeck(4)
-  playerCards.value = []
-  dealerCards.value = []
+    sound.playDealCard()
 
-  sound.playDealCard()
+    // 双方各发 2 张牌
+    playerCards.value.push(deck.value.pop()!)
+    dealerCards.value.push(deck.value.pop()!)
+    playerCards.value.push(deck.value.pop()!)
+    dealerCards.value.push(deck.value.pop()!)
 
-  // 双方各发 2 张牌
-  playerCards.value.push(deck.value.pop()!)
-  dealerCards.value.push(deck.value.pop()!)
-  playerCards.value.push(deck.value.pop()!)
-  dealerCards.value.push(deck.value.pop()!)
+    phase.value = 'player_turn'
 
-  phase.value = 'player_turn'
-
-  // 检查玩家是否起手 Blackjack
-  if (playerScore.value.isBlackjack) {
-    handleStand()
+    // 检查玩家是否起手 Blackjack
+    if (playerScore.value.isBlackjack) {
+      handleStand()
+    }
+  } finally {
+    isDealing.value = false
   }
 }
 
 // 玩家要牌
 function handleHit() {
-  if (phase.value !== 'player_turn') return
-  playerCards.value.push(deck.value.pop()!)
-  sound.playDealCard()
+  if (isActionBusy.value || phase.value !== 'player_turn') return
+  isActionBusy.value = true
+  try {
+    playerCards.value.push(deck.value.pop()!)
+    sound.playDealCard()
 
-  if (playerScore.value.isBust) {
-    sound.playLose()
-    finishRound()
-  } else if (playerScore.value.total === 21) {
-    handleStand()
+    if (playerScore.value.isBust) {
+      sound.playLose()
+      finishRound()
+    } else if (playerScore.value.total === 21) {
+      handleStand()
+    }
+  } finally {
+    setTimeout(() => { isActionBusy.value = false }, 300)
   }
 }
 
 // 玩家停牌
 function handleStand() {
-  if (phase.value !== 'player_turn') return
+  if (isActionBusy.value || phase.value !== 'player_turn') return
+  isActionBusy.value = true
   phase.value = 'dealer_turn'
 
   // 庄家暗牌翻开，如果点数小于 17 则连续要牌
@@ -292,6 +313,7 @@ function handleStand() {
       }, 600)
     } else {
       finishRound()
+      isActionBusy.value = false
     }
   }
 
@@ -300,16 +322,23 @@ function handleStand() {
 
 // 玩家加倍
 function handleDouble() {
-  if (phase.value !== 'player_turn' || playerCards.value.length !== 2) return
-  currentBet.value *= 2
-  playerCards.value.push(deck.value.pop()!)
-  sound.playDealCard()
+  if (isActionBusy.value || phase.value !== 'player_turn' || playerCards.value.length !== 2) return
+  isActionBusy.value = true
+  try {
+    currentBet.value *= 2
+    playerCards.value.push(deck.value.pop()!)
+    sound.playDealCard()
 
-  if (playerScore.value.isBust) {
-    sound.playLose()
-    finishRound()
-  } else {
-    handleStand()
+    if (playerScore.value.isBust) {
+      sound.playLose()
+      finishRound()
+      isActionBusy.value = false
+    } else {
+      isActionBusy.value = false
+      handleStand()
+    }
+  } catch {
+    isActionBusy.value = false
   }
 }
 

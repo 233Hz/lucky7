@@ -64,8 +64,9 @@
     <!-- Claim Action Button -->
     <div class="flex flex-col items-center space-y-3 pt-4">
       <button
+        v-prevent-reclick
         @click="handleClaim"
-        :disabled="walletStore.isCheckedInToday || walletStore.loading"
+        :disabled="walletStore.isCheckedInToday || walletStore.loading || isClaiming"
         class="w-full sm:w-80 py-4 rounded-lg font-mono font-black uppercase text-base transition-all disabled:opacity-50 flex items-center justify-center gap-2 border-4 border-[#1a1a1a]"
         :class="[
           walletStore.isCheckedInToday
@@ -75,8 +76,8 @@
       >
         <Check v-if="walletStore.isCheckedInToday" class="w-5 h-5" />
         <Gift v-else class="w-5 h-5" />
-        <span>{{ walletStore.isCheckedInToday ? '今日已签到，明日再来！' : '立即领取今日奖励 · CLAIM!' }}</span>
-        <CoinIcon v-if="!walletStore.isCheckedInToday" customClass="w-5 h-5" />
+        <span>{{ isClaiming ? '正在领取中...' : (walletStore.isCheckedInToday ? '今日已签到，明日再来！' : '立即领取今日奖励 · CLAIM!') }}</span>
+        <CoinIcon v-if="!walletStore.isCheckedInToday && !isClaiming" customClass="w-5 h-5" />
       </button>
 
       <span v-if="walletStore.isCheckedInToday" class="px-4 py-1.5 rounded-md border-2 border-[#1a1a1a] bg-[#22c55e] text-white font-mono font-black text-xs shadow-[2px_2px_0px_0px_#1a1a1a] flex items-center gap-1.5">
@@ -88,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import confetti from 'canvas-confetti'
 import { CalendarCheck, Flame, Gift, Check } from 'lucide-vue-next'
 import { useWalletStore } from '@/stores/wallet'
@@ -96,6 +97,7 @@ import { sound } from '@/lib/sound'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 
 const walletStore = useWalletStore()
+const isClaiming = ref(false)
 
 const currentStreakIndex = computed(() => {
   return ((walletStore.currentStreak - 1) % 7) + 1
@@ -106,12 +108,18 @@ onMounted(() => {
 })
 
 async function handleClaim() {
-  const res = await walletStore.claimDailyBonus()
-  if (res.success) {
-    sound.playWin()
-    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
-  } else {
-    alert(res.message || '签到失败')
+  if (isClaiming.value || walletStore.loading || walletStore.isCheckedInToday) return
+  isClaiming.value = true
+  try {
+    const res = await walletStore.claimDailyBonus()
+    if (res.success) {
+      sound.playWin()
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
+    } else {
+      alert(res.message || '签到失败')
+    }
+  } finally {
+    isClaiming.value = false
   }
 }
 </script>

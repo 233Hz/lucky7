@@ -153,11 +153,13 @@
           </span>
           <span v-else></span>
           <button
+            v-prevent-reclick
+            :disabled="isSavingCycles"
             @click="saveLotteryCycles"
-            class="comic-btn-yellow px-6 py-2 text-xs flex items-center gap-1.5"
+            class="comic-btn-yellow px-6 py-2 text-xs flex items-center gap-1.5 disabled:opacity-50"
           >
             <Check class="w-4 h-4" />
-            <span>保存开奖周期配置</span>
+            <span>{{ isSavingCycles ? '保存配置中...' : '保存开奖周期配置' }}</span>
           </button>
         </div>
       </div>
@@ -167,11 +169,13 @@
         <div class="px-6 py-4 border-b-3 border-[#1a1a1a] bg-[#fffef0] flex items-center justify-between">
           <span class="text-xs font-black text-[#1a1a1a] uppercase tracking-wider">玩家档案与资产列表 · PLAYER ROSTER</span>
           <button
+            v-prevent-reclick
+            :disabled="isFetchingPlayers"
             @click="fetchPlayers"
-            class="comic-btn-white px-3 py-1 text-xs"
+            class="comic-btn-white px-3 py-1 text-xs disabled:opacity-50"
           >
-            <RotateCw class="w-3.5 h-3.5 mr-1" />
-            <span>刷新列表</span>
+            <RotateCw class="w-3.5 h-3.5 mr-1" :class="isFetchingPlayers ? 'animate-spin' : ''" />
+            <span>{{ isFetchingPlayers ? '刷新中...' : '刷新列表' }}</span>
           </button>
         </div>
 
@@ -272,9 +276,10 @@
 
       <template #footer>
         <button
+          v-prevent-reclick
           @click="submitGrant"
           :disabled="isSubmitting || grantAmount === 0"
-          class="comic-btn-red w-full py-2.5 text-sm"
+          class="comic-btn-red w-full py-2.5 text-sm disabled:opacity-50"
         >
           <Gift class="w-4 h-4 mr-1.5" />
           <span>{{ isSubmitting ? '正在写入数据库...' : '确认调账并记录流水' }}</span>
@@ -309,6 +314,8 @@ const selectedTarget = ref<Profile | null>(null)
 const grantAmount = ref(10000)
 const grantReason = ref('管理员后台赠送体验金')
 const isSubmitting = ref(false)
+const isSavingCycles = ref(false)
+const isFetchingPlayers = ref(false)
 
 onMounted(() => {
   fetchPlayers()
@@ -333,18 +340,20 @@ function formatChips(val?: number): string {
 }
 
 async function fetchPlayers() {
-  if (!isSupabaseConfigured()) {
-    // 演示模式提供测试玩家列表
-    playersList.value = [
-      authStore.profile || { id: 'admin', email: 'admin@lucky7.game', nickname: '系统超级管理员', avatar_url: '', chips: 100000, is_admin: true },
-      { id: 'usr_01', email: 'stephen@lucky7.game', nickname: '阿星', avatar_url: '', chips: 10000, is_admin: false },
-      { id: 'usr_02', email: 'god@lucky7.game', nickname: '高进', avatar_url: '', chips: 88880, is_admin: false },
-      { id: 'usr_03', email: 'knife@lucky7.game', nickname: '小刀', avatar_url: '', chips: 5000, is_admin: false }
-    ]
-    return
-  }
-
+  if (isFetchingPlayers.value) return
+  isFetchingPlayers.value = true
   try {
+    if (!isSupabaseConfigured()) {
+      // 演示模式提供测试玩家列表
+      playersList.value = [
+        authStore.profile || { id: 'admin', email: 'admin@lucky7.game', nickname: '系统超级管理员', avatar_url: '', chips: 100000, is_admin: true },
+        { id: 'usr_01', email: 'stephen@lucky7.game', nickname: '阿星', avatar_url: '', chips: 10000, is_admin: false },
+        { id: 'usr_02', email: 'god@lucky7.game', nickname: '高进', avatar_url: '', chips: 88880, is_admin: false },
+        { id: 'usr_03', email: 'knife@lucky7.game', nickname: '小刀', avatar_url: '', chips: 5000, is_admin: false }
+      ]
+      return
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -355,6 +364,8 @@ async function fetchPlayers() {
     }
   } catch (err) {
     console.error('Fetch players error:', err)
+  } finally {
+    isFetchingPlayers.value = false
   }
 }
 
@@ -408,11 +419,17 @@ async function submitGrant() {
   }
 }
 
-function saveLotteryCycles() {
-  lotteryStore.updateCycles(editSicboCycle.value, editMarksixCycle.value)
-  cycleSaveSuccess.value = true
-  setTimeout(() => {
-    cycleSaveSuccess.value = false
-  }, 3000)
+async function saveLotteryCycles() {
+  if (isSavingCycles.value) return
+  isSavingCycles.value = true
+  try {
+    await lotteryStore.updateCycles(editSicboCycle.value, editMarksixCycle.value)
+    cycleSaveSuccess.value = true
+    setTimeout(() => {
+      cycleSaveSuccess.value = false
+    }, 3000)
+  } finally {
+    isSavingCycles.value = false
+  }
 }
 </script>
