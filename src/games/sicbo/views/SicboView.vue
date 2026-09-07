@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 py-6 font-mono">
+  <div class="max-w-7xl mx-auto px-4 py-6 font-mono">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 border-b-4 border-[#1a1a1a] pb-3">
       <div class="flex items-center space-x-3">
@@ -39,8 +39,10 @@
       </div>
     </div>
 
-    <!-- Main Shaker & Dice Table -->
-    <div class="rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] space-y-6 text-[#1a1a1a]">
+    <!-- Main Layout Grid (Left: Game Table, Right: Public Chat Room) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Main Shaker & Dice Table -->
+      <div class="lg:col-span-8 rounded-none bg-[#fffef0] border-4 border-[#1a1a1a] p-6 shadow-brutal-xl space-y-6 text-[#1a1a1a]">
       <!-- Top Shaker Stage & History -->
       <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b-4 border-[#1a1a1a]">
         <!-- History Roadmap -->
@@ -248,6 +250,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Right Column: Full-Server Public Chat Channel -->
+      <div class="lg:col-span-4 h-[680px] sticky top-20">
+        <ChatPanel
+          channel="global_lottery"
+          title="全服公共聊天室"
+          subtitle="全服定时开奖频道"
+          channelType="lottery"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -258,9 +271,11 @@ import { Dices, ArrowLeft, Crown, Clock, CheckCircle } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { useLotteryStore } from '@/stores/lottery'
+import { useChatStore } from '@/stores/chat'
 import { sound } from '@/lib/sound'
 import DiceBox from '@/components/game/DiceBox.vue'
 import ChipSelector from '@/components/game/ChipSelector.vue'
+import ChatPanel from '@/components/chat/ChatPanel.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 import { calculateSicBoSettlement, POINT_ODDS } from '../engine'
 import type { SicBoBetItem, SicBoBetType, SicBoRollResult } from '../types'
@@ -268,6 +283,7 @@ import type { SicBoBetItem, SicBoBetType, SicBoRollResult } from '../types'
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
 const lotteryStore = useLotteryStore()
+const chatStore = useChatStore()
 
 const pointOdds = POINT_ODDS
 const selectedChip = ref<number>(100)
@@ -376,6 +392,12 @@ async function handleScheduledDrawConclusion() {
   currentResult.value = result
   historyList.value.unshift(result)
   if (historyList.value.length > 15) historyList.value.pop()
+
+  // 广播全服公共频道开奖结果
+  chatStore.sendSystemAnnouncement(
+    'global_lottery',
+    `【猜大小】第 ${settledPeriod} 期开奖：[${result.dice.join(', ')}]，合计 ${result.sum} 点 (${result.isTriple ? '全围豹子' : result.isBig ? '大' : '小'} · ${result.isOdd ? '单' : '双'})！`
+  )
 
   if (bets.value.length > 0) {
     const { totalBet, totalPayout, netProfit } = calculateSicBoSettlement(bets.value, result)

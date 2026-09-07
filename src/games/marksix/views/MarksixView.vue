@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 py-6">
+  <div class="max-w-7xl mx-auto px-4 py-6">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-4 border-[#1a1a1a]">
       <div class="flex items-center space-x-3">
@@ -39,8 +39,10 @@
       </div>
     </div>
 
-    <!-- Main Live Draw Shaker & Table -->
-    <div class="rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] space-y-6 text-[#1a1a1a]">
+    <!-- Main Layout Grid (Left: Game Table, Right: Public Chat Room) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Main Live Draw Shaker & Table -->
+      <div class="lg:col-span-8 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] space-y-6 text-[#1a1a1a]">
       <!-- Top Draw Stage & History -->
       <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b-4 border-[#1a1a1a]">
         <!-- History Roadmap -->
@@ -259,6 +261,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Right Column: Full-Server Public Chat Channel -->
+      <div class="lg:col-span-4 h-[680px] sticky top-20">
+        <ChatPanel
+          channel="global_lottery"
+          title="全服公共聊天室"
+          subtitle="全服定时开奖频道"
+          channelType="lottery"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -269,9 +282,11 @@ import { Disc, ArrowLeft, Clock, CheckCircle } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { useLotteryStore } from '@/stores/lottery'
+import { useChatStore } from '@/stores/chat'
 import { sound } from '@/lib/sound'
 import BallShaker from '@/components/game/BallShaker.vue'
 import ChipSelector from '@/components/game/ChipSelector.vue'
+import ChatPanel from '@/components/chat/ChatPanel.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 import {
   settleMarkSixBets,
@@ -283,6 +298,7 @@ import type { MarkSixBetItem, MarkSixBetType, MarkSixDrawResult } from '../types
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
 const lotteryStore = useLotteryStore()
+const chatStore = useChatStore()
 
 const activeTab = ref<string>('two_sides')
 const tabNames: Record<string, string> = {
@@ -396,6 +412,13 @@ async function handleScheduledMarkSixConclusion() {
   currentResult.value = result
   historyList.value.unshift(result)
   if (historyList.value.length > 15) historyList.value.pop()
+
+  // 广播全服公共频道开奖结果
+  const waveName = result.waveColor === 'red' ? '红波' : result.waveColor === 'blue' ? '蓝波' : '绿波'
+  chatStore.sendSystemAnnouncement(
+    'global_lottery',
+    `【六合彩】第 ${settledPeriod} 期特码：[${result.number < 10 ? '0' + result.number : result.number}] (${waveName} · 生肖${result.zodiac} · ${result.isBig ? '大' : '小'} · ${result.isOdd ? '单' : '双'})！`
+  )
 
   if (bets.value.length > 0) {
     const { totalBet, totalPayout, netProfit } = settleMarkSixBets(bets.value, result)

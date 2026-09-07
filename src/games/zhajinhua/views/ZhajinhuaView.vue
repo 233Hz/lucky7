@@ -41,8 +41,17 @@
       <!-- Quick Actions / Room Controls -->
       <div class="flex items-center space-x-2">
         <button
+          @click="isChatOpen = !isChatOpen"
+          class="brutal-btn px-3 py-2 text-xs font-black flex items-center gap-1.5 transition-all"
+          :class="isChatOpen ? 'brutal-btn-yellow shadow-brutal-sm' : 'brutal-btn-white'"
+        >
+          <MessageSquare class="w-3.5 h-3.5" />
+          <span>{{ isChatOpen ? '收起聊天' : '房间聊天' }}</span>
+        </button>
+
+        <button
           v-if="!isSupabaseConfigured() && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
-          @click="roomStore.addTestPlayer()"
+          @click="handleAddTestPlayer"
           class="comic-btn-blue px-3 py-2 text-xs font-bold flex items-center gap-1"
           title="辅助本地测试：快捷添加测试对手"
         >
@@ -60,8 +69,11 @@
       </div>
     </div>
 
-    <!-- Table Surface -->
-    <div class="relative rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 min-h-[580px] flex flex-col justify-between shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-hidden">
+    <!-- Main Content Grid (Table + In-Room Chat) -->
+    <div class="grid grid-cols-1 gap-6 items-start" :class="isChatOpen ? 'xl:grid-cols-12' : ''">
+      <!-- Left: Table Surface -->
+      <div :class="isChatOpen ? 'xl:col-span-8' : 'w-full'">
+        <div class="relative rounded-none bg-white border-4 border-black p-6 min-h-[580px] flex flex-col justify-between shadow-brutal-xl overflow-hidden">
       <!-- Halftone Dots Texture -->
       <div class="absolute inset-0 bg-[radial-gradient(#1a1a1a_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
@@ -302,6 +314,21 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Right: In-Room Chat Channel -->
+  <div v-if="isChatOpen" class="xl:col-span-4 h-[580px] sticky top-20">
+    <ChatPanel
+      :channel="roomChannel"
+      :title="`${roomStore.currentRoom?.name || '对战'} · 房间聊天`"
+      subtitle="在桌玩家私密畅聊"
+      channelType="room"
+      :isHost="roomStore.isHost"
+      :allowClose="true"
+      @close="isChatOpen = false"
+    />
+  </div>
+</div>
 
     <!-- Settlement Result Modal -->
     <Modal v-model="showResultModal" title="对局结算">
@@ -363,17 +390,20 @@ import {
   Clock,
   Users,
   UserPlus,
-  LogOut
+  LogOut,
+  MessageSquare
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { useRoomStore } from '@/stores/room'
+import { useChatStore } from '@/stores/chat'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { sound } from '@/lib/sound'
 import PlayingCard from '@/components/game/PlayingCard.vue'
 import PlayerSeat from '@/components/game/PlayerSeat.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 import Modal from '@/components/common/Modal.vue'
+import ChatPanel from '@/components/chat/ChatPanel.vue'
 import {
   createDeck,
   shuffleDeck,
@@ -387,6 +417,10 @@ const router = useRouter()
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
 const roomStore = useRoomStore()
+const chatStore = useChatStore()
+
+const isChatOpen = ref<boolean>(true)
+const roomChannel = computed(() => 'room_' + (roomStore.currentRoom?.id || 'default'))
 
 const minBet = computed(() => roomStore.currentRoom?.min_bet || 50)
 const pot = ref<number>(0)
@@ -504,21 +538,53 @@ onMounted(async () => {
       6
     )
   }
+
+  // 初始化本房间专属聊天频道
+  chatStore.initChannel(roomChannel.value)
+  chatStore.sendSystemAnnouncement(
+    roomChannel.value,
+    `【${authStore.profile?.nickname || '玩家'}】进入了房间。`
+  )
 })
 
 // Toggle current player ready
 async function handleToggleReady() {
   await roomStore.toggleReady()
   sound.playClick()
+  chatStore.sendSystemAnnouncement(
+    roomChannel.value,
+    `【${authStore.profile?.nickname || '玩家'}】${roomStore.isCurrentUserReady ? '已准备就绪！' : '取消了准备。'}`
+  )
+}
+
+// 辅助本地测试：添加测试玩家
+function handleAddTestPlayer() {
+  roomStore.addTestPlayer()
+  const lastPlayer = roomStore.roomPlayers[roomStore.roomPlayers.length - 1]
+  chatStore.sendSystemAnnouncement(
+    roomChannel.value,
+    `【${lastPlayer?.profile?.nickname || '新玩家'}】加入入座。`
+  )
 }
 
 // Toggle simulated opponent ready (for convenient 1-tab local testing)
 function handleToggleOpponentReady(userId: string) {
   roomStore.toggleReady(userId)
+  const opp = roomStore.roomPlayers.find(p => p.user_id === userId)
+  if (opp) {
+    chatStore.sendSystemAnnouncement(
+      roomChannel.value,
+      `【${opp.profile?.nickname || '玩家'}】${opp.status === 'ready' ? '已准备就绪！' : '取消了准备。'}`
+    )
+  }
 }
 
 // Leave room and return to home lobby
 async function handleLeaveRoom() {
+  chatStore.sendSystemAnnouncement(
+    roomChannel.value,
+    `【${authStore.profile?.nickname || '玩家'}】离开了房间。`
+  )
   await roomStore.leaveRoom()
   router.push('/')
 }
@@ -529,6 +595,10 @@ async function handleStartGame() {
   const ok = await roomStore.startGame()
   if (!ok) return
 
+  chatStore.sendSystemAnnouncement(
+    roomChannel.value,
+    `房主开启了对局，盲注与底池已扣除，正在发牌中...`
+  )
   startNewRound()
 }
 
@@ -786,6 +856,11 @@ async function finishGame(survivors: ZhajinhuaPlayer[]) {
     netProfit
   }
   showResultModal.value = true
+
+  chatStore.sendSystemAnnouncement(
+    roomChannel.value,
+    `对局结束！获胜者为【${winner?.nickname || '无人'}】，赢得彩金 ${pot.value} 筹码！`
+  )
 
   await walletStore.recordGameSettlement(
     'zhajinhua',
