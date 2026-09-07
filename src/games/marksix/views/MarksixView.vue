@@ -12,10 +12,29 @@
             <Disc class="w-6 h-6 text-black" />
             <span>猜点数六合彩 (Mark Six)</span>
             <span class="brutal-badge bg-[#ccff00] text-black">
-              1-49特码 · 红蓝绿波
+              全服定时开奖
             </span>
           </h1>
           <p class="text-xs font-mono text-black/70">特码直选高达 47 倍 · 波色 · 生肖 · 两面盘</p>
+        </div>
+      </div>
+
+      <!-- Synchronized Period & Countdown Timer -->
+      <div class="flex items-center gap-3">
+        <div class="text-right">
+          <div class="text-[10px] text-black font-black uppercase">当前开奖期号</div>
+          <div class="text-sm font-black font-mono text-black bg-[#ffff00] px-2 py-0.5 border-2 border-black shadow-brutal-sm">
+            {{ lotteryStore.marksixPeriod }}
+          </div>
+        </div>
+        <div class="flex flex-col items-center">
+          <div
+            class="px-4 py-1.5 rounded-none border-2 border-black font-mono font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-brutal-sm"
+            :class="lotteryStore.isMarksixDrawing ? 'bg-[#ff006e] text-white animate-pulse' : 'bg-[#ccff00] text-black'"
+          >
+            <Clock class="w-4 h-4" />
+            <span>{{ lotteryStore.isMarksixDrawing ? '封盘·摇号开奖中' : `开奖倒计时 ${lotteryStore.marksixRemainingSeconds}s` }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -209,26 +228,34 @@
         </div>
       </div>
 
-      <!-- Bottom Controls: Chips + Draw Button -->
+      <!-- Bottom Controls: Chips + Scheduled Status -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t-3 border-black">
-        <ChipSelector v-model="selectedChip" :disabled="isDrawing" />
+        <ChipSelector v-model="selectedChip" :disabled="lotteryStore.isMarksixDrawing" />
 
         <div class="flex items-center space-x-3 w-full sm:w-auto">
           <button
             @click="clearAllBets"
-            :disabled="totalBetAmount === 0 || isDrawing"
+            :disabled="totalBetAmount === 0 || lotteryStore.isMarksixDrawing"
             class="brutal-btn brutal-btn-white flex-1 sm:flex-none px-4 py-2.5 text-xs disabled:opacity-40"
           >
             清空下注
           </button>
-          <button
-            @click="handleInstantDraw"
-            :disabled="totalBetAmount === 0 || isDrawing || authStore.userChips < totalBetAmount"
-            class="brutal-btn brutal-btn-lime flex-1 sm:flex-none px-8 py-2.5 text-sm font-black disabled:opacity-40 flex items-center justify-center gap-2"
+          <div
+            class="px-5 py-2.5 rounded-none border-2 border-black text-xs font-black font-mono flex items-center justify-center gap-2 shadow-brutal-sm flex-1 sm:flex-none"
+            :class="lotteryStore.isMarksixDrawing ? 'bg-[#ff006e] text-white' : totalBetAmount > 0 ? 'bg-[#ffff00] text-black' : 'bg-[#f4f4f0] text-black'"
           >
-            <Play class="w-4 h-4 fill-black" />
-            <span>{{ isDrawing ? '开奖中...' : '即开摇奖' }}</span>
-          </button>
+            <template v-if="lotteryStore.isMarksixDrawing">
+              <Disc class="w-4 h-4 animate-spin" />
+              <span>本期特码摇号中...</span>
+            </template>
+            <template v-else-if="totalBetAmount > 0">
+              <CheckCircle class="w-4 h-4 text-[#059669]" />
+              <span>已下注 {{ formattedTotalBet }} 币 · 待开奖</span>
+            </template>
+            <template v-else>
+              <span>请在倒计时结束前下注 ({{ lotteryStore.marksixRemainingSeconds }}s)</span>
+            </template>
+          </div>
         </div>
       </div>
     </div>
@@ -236,17 +263,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import confetti from 'canvas-confetti'
-import { Disc, ArrowLeft, Play } from 'lucide-vue-next'
+import { Disc, ArrowLeft, Clock, CheckCircle } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
+import { useLotteryStore } from '@/stores/lottery'
 import { sound } from '@/lib/sound'
 import BallShaker from '@/components/game/BallShaker.vue'
 import ChipSelector from '@/components/game/ChipSelector.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 import {
-  drawMarkSixResult,
   settleMarkSixBets,
   getBallWave,
   ZODIACS
@@ -255,6 +282,7 @@ import type { MarkSixBetItem, MarkSixBetType, MarkSixDrawResult } from '../types
 
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
+const lotteryStore = useLotteryStore()
 
 const activeTab = ref<string>('two_sides')
 const tabNames: Record<string, string> = {
@@ -270,8 +298,12 @@ const bets = ref<MarkSixBetItem[]>([])
 const isDrawing = ref<boolean>(false)
 const lastProfit = ref<number | null>(null)
 
+// 正在滚球的动效定时器与下注时所处期号
+let drawAnimInterval: ReturnType<typeof setInterval> | null = null
+let periodAtBetting = lotteryStore.marksixPeriod
+
 const currentResult = ref<MarkSixDrawResult>({
-  period: '20260907-088',
+  period: lotteryStore.marksixPeriod,
   number: 7,
   waveColor: 'red',
   isBig: false,
@@ -303,8 +335,16 @@ function getBetAmount(type: MarkSixBetType, value: string | number): number {
 }
 
 function placeBet(type: MarkSixBetType, value: string | number, name: string, odds: number) {
-  if (isDrawing.value) return
+  // 封盘摇号阶段禁止下注
+  if (lotteryStore.isMarksixDrawing || isDrawing.value) return
+
+  if (authStore.userChips < totalBetAmount.value + selectedChip.value) {
+    alert('筹码不足，请先前往签到获取筹码！')
+    return
+  }
+
   sound.playChip()
+  periodAtBetting = lotteryStore.marksixPeriod
 
   const existing = bets.value.find(b => b.type === type && b.value === value)
   if (existing) {
@@ -321,37 +361,43 @@ function placeBet(type: MarkSixBetType, value: string | number, name: string, od
 }
 
 function clearAllBets() {
-  if (isDrawing.value) return
+  if (lotteryStore.isMarksixDrawing || isDrawing.value) return
   bets.value = []
 }
 
-// 快速即开抽奖
-async function handleInstantDraw() {
-  if (totalBetAmount.value === 0 || isDrawing.value) return
-  if (authStore.userChips < totalBetAmount.value) {
-    alert('筹码不足！')
-    return
+// 监听全服定时开奖阶段变动
+watch(
+  () => lotteryStore.isMarksixDrawing,
+  (isDrawPhase) => {
+    if (isDrawPhase) {
+      // 封盘滚球阶段启动
+      isDrawing.value = true
+      sound.playDiceRoll()
+      if (drawAnimInterval) clearInterval(drawAnimInterval)
+      drawAnimInterval = setInterval(() => {
+        currentResult.value.number = Math.floor(Math.random() * 49) + 1
+      }, 90)
+    } else {
+      // 倒计时进入新一期，开奖结果揭晓并结算
+      if (drawAnimInterval) {
+        clearInterval(drawAnimInterval)
+        drawAnimInterval = null
+      }
+      isDrawing.value = false
+      handleScheduledMarkSixConclusion()
+    }
   }
+)
 
-  isDrawing.value = true
-  lastProfit.value = null
-  sound.playDiceRoll()
+// 当期开奖结束，执行结算与记录
+async function handleScheduledMarkSixConclusion() {
+  const settledPeriod = periodAtBetting || lotteryStore.marksixPeriod
+  const result = lotteryStore.getMarksixResultForPeriod(settledPeriod)
+  currentResult.value = result
+  historyList.value.unshift(result)
+  if (historyList.value.length > 15) historyList.value.pop()
 
-  // 滚球动画
-  const interval = setInterval(() => {
-    currentResult.value.number = Math.floor(Math.random() * 49) + 1
-  }, 90)
-
-  setTimeout(async () => {
-    clearInterval(interval)
-    const result = drawMarkSixResult()
-    currentResult.value = result
-    historyList.value.unshift(result)
-    if (historyList.value.length > 15) historyList.value.pop()
-
-    isDrawing.value = false
-
-    // 结算
+  if (bets.value.length > 0) {
     const { totalBet, totalPayout, netProfit } = settleMarkSixBets(bets.value, result)
     lastProfit.value = netProfit
 
@@ -362,7 +408,7 @@ async function handleInstantDraw() {
       sound.playLose()
     }
 
-    // 同步到 Supabase 战绩与流水
+    // 记录流水
     await walletStore.recordGameSettlement(
       'marksix',
       totalBet,
@@ -371,11 +417,16 @@ async function handleInstantDraw() {
         number: result.number,
         zodiac: result.zodiac,
         waveColor: result.waveColor,
-        period: result.period
+        period: settledPeriod
       }
     )
 
+    // 清空注单，准备下一期
     bets.value = []
-  }, 1400)
+  }
 }
+
+onUnmounted(() => {
+  if (drawAnimInterval) clearInterval(drawAnimInterval)
+})
 </script>

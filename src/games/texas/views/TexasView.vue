@@ -1,38 +1,64 @@
 <template>
   <div class="max-w-6xl mx-auto px-4 py-6">
-    <!-- Header -->
+    <!-- Header Controls -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-4 border-black">
       <div class="flex items-center space-x-3">
-        <router-link to="/" class="brutal-btn brutal-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5">
+        <router-link
+          to="/"
+          @click="handleLeaveRoom"
+          class="brutal-btn brutal-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5"
+        >
           <ArrowLeft class="w-4 h-4" />
           <span>返回大厅</span>
         </router-link>
         <div>
-          <h1 class="text-xl sm:text-2xl font-black text-black flex items-center gap-2 tracking-tight">
-            <Crown class="w-6 h-6 text-black" />
-            <span>德州扑克 (Texas Hold'em)</span>
-            <span class="brutal-badge bg-[#ccff00] text-black">
-              7选5牌型评估
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-black text-black flex items-center gap-2 tracking-tight">
+              <Crown class="w-6 h-6 text-black" />
+              <span>{{ roomStore.currentRoom?.name || '德州扑克对战桌' }}</span>
+            </h1>
+            <span
+              class="brutal-badge text-black font-black"
+              :class="roomStore.currentRoom?.status === 'playing' ? 'bg-[#ff006e] text-white' : 'bg-[#ccff00]'"
+            >
+              {{ roomStore.currentRoom?.status === 'playing' ? '对局进行中' : '房间准备中' }}
             </span>
-          </h1>
+            <span v-if="roomStore.isHost" class="brutal-badge bg-[#ffff00] text-black">
+              您是房主
+            </span>
+          </div>
           <p class="text-xs font-mono font-bold text-black/70 flex items-center gap-1 mt-0.5">
             <span>大盲: {{ bigBlind }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
             <span class="ml-1 text-black">| 小盲: {{ smallBlind }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
+            <span class="ml-2 bg-black text-[#ccff00] px-1.5 py-0.2 rounded-none text-[11px]">
+              在桌人数: {{ roomStore.roomPlayers.length }}/{{ roomStore.currentRoom?.max_players || 6 }}
+            </span>
           </p>
         </div>
       </div>
 
-      <button
-        @click="startNewGame"
-        :disabled="gameActive"
-        class="brutal-btn brutal-btn-lime px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center justify-center gap-2"
-      >
-        <Play v-if="!gameActive" class="w-4 h-4 fill-black" />
-        <RotateCw v-else class="w-4 h-4 animate-spin" />
-        <span>{{ gameActive ? '对局进行中' : '开始新对局' }}</span>
-      </button>
+      <!-- Quick Actions / Room Controls -->
+      <div class="flex items-center space-x-2">
+        <button
+          v-if="!isSupabaseConfigured() && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
+          @click="roomStore.addTestPlayer()"
+          class="brutal-btn brutal-btn-cyan px-3 py-2 text-xs font-bold flex items-center gap-1"
+          title="辅助本地测试：快捷添加测试对手"
+        >
+          <UserPlus class="w-3.5 h-3.5" />
+          <span>+ 邀请测试玩家</span>
+        </button>
+
+        <button
+          @click="handleLeaveRoom"
+          class="brutal-btn brutal-btn-white px-3.5 py-2 text-xs font-bold flex items-center gap-1 hover:bg-[#ff006e] hover:text-white"
+        >
+          <LogOut class="w-3.5 h-3.5" />
+          <span>退出房间</span>
+        </button>
+      </div>
     </div>
 
     <!-- Felt Poker Table -->
@@ -40,88 +66,144 @@
       <!-- Ambient Felt Pattern -->
       <div class="absolute inset-0 bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
-      <!-- Top AI Opponents -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 justify-items-center relative z-20 pt-2">
+      <!-- Top Opponents Area (Real players, zero auto-bots) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-items-center relative z-20 pt-2 min-h-[140px]">
+        <!-- Seated Opponents -->
         <div
-          v-for="(ai, idx) in aiPlayers"
-          :key="ai.id"
-          class="flex flex-col items-center"
+          v-for="(opp, idx) in opponentPlayers"
+          :key="opp.id"
+          class="flex flex-col items-center relative"
         >
           <PlayerSeat
             :seat="{
-              id: ai.id,
-              nickname: ai.nickname,
-              avatarUrl: ai.avatarUrl,
-              chips: ai.chips,
-              currentBet: ai.currentBet,
-              status: ai.folded ? 'folded' : ai.isAllIn ? 'allin' : 'active',
-              cards: ai.holeCards,
-              handName: currentRound === 'showdown' && !ai.folded ? evaluateTexas7Cards([...ai.holeCards, ...communityCards]).rankName : ''
+              id: opp.id,
+              nickname: opp.nickname,
+              avatarUrl: opp.avatarUrl,
+              chips: opp.chips,
+              currentBet: opp.currentBet,
+              status: opp.folded ? 'folded' : opp.isAllIn ? 'allin' : 'active',
+              cards: opp.holeCards,
+              handName: currentRound === 'showdown' && !opp.folded && opp.holeCards.length === 2 && communityCards.length >= 3
+                ? evaluateTexas7Cards([...opp.holeCards, ...communityCards]).rankName
+                : ''
             }"
             :isCurrentTurn="currentTurnIdx === idx + 1 && gameActive"
             :showCardsFaceDown="currentRound !== 'showdown'"
+            :isHost="opp.isHost"
+            :readyStatus="roomStore.currentRoom?.status === 'waiting' ? opp.readyStatus : undefined"
           />
-        </div>
-      </div>
 
-      <!-- Center Community Cards & Pot -->
-      <div class="flex flex-col items-center justify-center my-6 relative z-10">
-        <!-- Pot Display -->
-        <div class="px-6 py-3 rounded-none bg-[#ffff00] border-3 border-black shadow-brutal flex items-center space-x-3 mb-4">
-          <span class="text-xs font-black font-mono text-black uppercase tracking-wider">总彩池:</span>
-          <div class="flex items-center gap-1 text-2xl font-black font-mono text-black">
-            <CoinIcon customClass="w-6 h-6" />
-            <span>{{ formattedPot }}</span>
-          </div>
-          <span class="text-xs px-2.5 py-0.5 rounded-none bg-black text-[#ffff00] border border-black font-mono font-bold uppercase">
-            {{ roundName }}
-          </span>
-        </div>
-
-        <!-- 5 Community Cards Area (Clean spacing) -->
-        <div class="flex items-center space-x-2.5 sm:space-x-3.5 min-h-[116px] p-3 rounded-none bg-[#f4f4f0] border-3 border-black shadow-brutal-sm">
-          <template v-if="communityCards.length > 0">
-            <PlayingCard
-              v-for="(c, idx) in communityCards"
-              :key="idx"
-              :card="c"
-              size="md"
-            />
-          </template>
-          <!-- Placeholder card outlines if < 5 -->
+          <!-- Quick Test Toggle Ready (Only in local test mode for simulated opponents) -->
           <div
-            v-for="idx in (5 - communityCards.length)"
-            :key="'ph_' + idx"
-            class="w-20 h-28 sm:w-22 sm:h-32 rounded-none border-2 border-dashed border-black bg-white flex items-center justify-center text-black/50 text-xs font-mono font-bold"
+            v-if="roomStore.currentRoom?.status === 'waiting' && opp.id.startsWith('test_player_')"
+            class="mt-4 flex items-center gap-1 z-30"
           >
-            {{ idx === 1 && communityCards.length === 0 ? '翻牌' : idx === 4 ? '转牌' : '河牌' }}
+            <button
+              @click="handleToggleOpponentReady(opp.id)"
+              class="px-2 py-0.5 text-[10px] font-black border border-black bg-white hover:bg-[#ccff00]"
+            >
+              {{ opp.readyStatus === 'ready' ? '设为未准备' : '模拟准备' }}
+            </button>
+            <button
+              @click="roomStore.removePlayer(opp.id)"
+              class="px-1.5 py-0.5 text-[10px] font-black border border-black bg-[#ff006e] text-white"
+              title="移出该玩家"
+            >
+              ×
+            </button>
           </div>
+        </div>
+
+        <!-- Empty Seats -->
+        <div
+          v-for="idx in emptySeatsCount"
+          :key="'empty_' + idx"
+          class="w-32 sm:w-36 h-32 rounded-none border-2 border-dashed border-black/40 flex flex-col items-center justify-center p-3 text-center bg-[#fafaf9]/80"
+        >
+          <div class="w-8 h-8 rounded-none border border-black/30 bg-black/5 flex items-center justify-center mb-1 text-black/40">
+            <Users class="w-4 h-4" />
+          </div>
+          <span class="text-xs font-mono font-bold text-black/50">等待玩家入座</span>
+          <span class="text-[10px] font-mono text-black/30 mt-0.5">空闲座位</span>
         </div>
       </div>
 
-      <!-- Bottom Hero Player Area -->
-      <div class="flex flex-col items-center relative z-20 pb-2">
-        <!-- Hero Hole Cards (Spaced cleanly side-by-side) -->
-        <div class="flex flex-col items-center mb-2">
-          <div class="flex items-center space-x-3 sm:space-x-4 mb-2">
-            <template v-if="hero.holeCards.length > 0">
+      <!-- Center Community Cards & Pot / Waiting Banner -->
+      <div class="flex flex-col items-center justify-center my-6 relative z-10">
+        <!-- In-game Pot Display -->
+        <template v-if="gameActive || currentRound === 'showdown'">
+          <div class="px-6 py-3 rounded-none bg-[#ffff00] border-3 border-black shadow-brutal flex items-center space-x-3 mb-4">
+            <span class="text-xs font-black font-mono text-black uppercase tracking-wider">总彩池:</span>
+            <div class="flex items-center gap-1 text-2xl font-black font-mono text-black">
+              <CoinIcon customClass="w-6 h-6" />
+              <span>{{ formattedPot }}</span>
+            </div>
+            <span class="text-xs px-2.5 py-0.5 rounded-none bg-black text-[#ffff00] border border-black font-mono font-bold uppercase">
+              {{ roundName }}
+            </span>
+          </div>
+
+          <!-- 5 Community Cards Area -->
+          <div class="flex items-center space-x-2.5 sm:space-x-3.5 min-h-[116px] p-3 rounded-none bg-[#f4f4f0] border-3 border-black shadow-brutal-sm">
+            <template v-if="communityCards.length > 0">
               <PlayingCard
-                v-for="(card, i) in hero.holeCards"
-                :key="i"
-                :card="card"
+                v-for="(c, idx) in communityCards"
+                :key="idx"
+                :card="c"
                 size="md"
               />
             </template>
+            <div
+              v-for="idx in (5 - communityCards.length)"
+              :key="'ph_' + idx"
+              class="w-20 h-28 sm:w-22 sm:h-32 rounded-none border-2 border-dashed border-black bg-white flex items-center justify-center text-black/50 text-xs font-mono font-bold"
+            >
+              {{ idx === 1 && communityCards.length === 0 ? '翻牌' : idx === 4 ? '转牌' : '河牌' }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Waiting Stage Center Banner -->
+        <div v-else class="px-6 py-4 rounded-none bg-white border-3 border-black shadow-brutal text-center max-w-md">
+          <div class="text-xs font-mono font-black text-black uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
+            <Clock class="w-4 h-4 text-black" />
+            <span>房间等待准备就绪</span>
+          </div>
+          <div class="text-sm font-black text-black">
+            {{ waitingStatusText }}
+          </div>
+          <div class="text-[11px] font-mono font-bold text-black/70 mt-1">
+            进入房间后须先准备；所有玩家准备完毕后，房主即可开启对局
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Hero Area -->
+      <div class="flex flex-col items-center relative z-20 pb-2">
+        <!-- Hero Hole Cards & Hand Type -->
+        <div class="flex flex-col items-center mb-3">
+          <div class="flex items-center space-x-3 sm:space-x-4 mb-2">
+            <template v-if="hero.holeCards.length > 0 && gameActive">
+              <PlayingCard
+                v-for="(c, idx) in hero.holeCards"
+                :key="idx"
+                :card="c"
+                size="md"
+              />
+            </template>
+            <div v-else class="w-20 h-28 rounded-none border-2 border-dashed border-black bg-[#f4f4f0] flex items-center justify-center text-black/50 text-xs font-mono font-bold text-center px-2">
+              {{ roomStore.currentRoom?.status === 'waiting' ? (roomStore.isCurrentUserReady ? '已准备就绪' : '等待准备') : '等待发底牌' }}
+            </div>
           </div>
 
-          <!-- Hero Best 5-Card Hand Evaluation Badge -->
-          <div v-if="heroEvaluation" class="px-3.5 py-1 rounded-none bg-black text-[#ccff00] border border-black font-black font-mono text-xs shadow-brutal-sm">
-            成牌牌型: {{ heroEvaluation.rankName }}
+          <!-- Hero Hand Evaluation Rank -->
+          <div v-if="heroEvaluation && gameActive" class="px-3.5 py-1 rounded-none bg-black text-[#ccff00] border border-black font-black font-mono text-xs shadow-brutal-sm">
+            手牌等级: {{ heroEvaluation.rankName }}
           </div>
         </div>
 
-        <!-- Hero Chips & Bet Info -->
-        <div class="flex items-center space-x-3 mb-3">
+        <!-- Hero Status Pill -->
+        <div class="flex items-center space-x-4 mb-4">
           <div class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-none bg-white border-2 border-black shadow-brutal-sm">
             <img :src="hero.avatarUrl" class="w-6 h-6 rounded-none border-2 border-black" />
             <span class="text-sm font-black text-black">{{ hero.nickname }}</span>
@@ -129,15 +211,60 @@
               <CoinIcon customClass="w-4 h-4" />
               <span>{{ formattedHeroChips }}</span>
             </div>
+            <span
+              v-if="roomStore.currentRoom?.status === 'waiting'"
+              class="ml-2 px-2 py-0.5 text-[10px] font-black border border-black uppercase"
+              :class="roomStore.isCurrentUserReady ? 'bg-[#ccff00] text-black' : 'bg-[#ff9500] text-black'"
+            >
+              {{ roomStore.isCurrentUserReady ? '已准备' : '未准备' }}
+            </span>
           </div>
-          <div v-if="hero.currentBet > 0" class="text-xs font-mono font-black text-black px-3 py-1 rounded-none bg-[#ffff00] border-2 border-black shadow-brutal-sm flex items-center gap-1">
-            <span>本轮注额: {{ hero.currentBet }}</span>
+
+          <div v-if="hero.currentBet > 0 && gameActive" class="text-xs font-mono font-black text-black px-3 py-1 rounded-none bg-[#ffff00] border-2 border-black shadow-brutal-sm flex items-center gap-1">
+            <span>本轮下注: {{ hero.currentBet }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
           </div>
         </div>
 
-        <!-- Action Control Buttons -->
-        <div v-if="gameActive && !hero.folded" class="flex items-center space-x-3 flex-wrap justify-center gap-y-2">
+        <!-- A. Waiting Stage Action Controls (Ready & Host Start) -->
+        <div v-if="roomStore.currentRoom?.status === 'waiting'" class="flex items-center space-x-3 flex-wrap justify-center gap-y-2">
+          <!-- 准备 / 取消准备 Button for current user -->
+          <button
+            @click="handleToggleReady"
+            class="brutal-btn px-6 py-2.5 text-sm font-black flex items-center gap-2"
+            :class="roomStore.isCurrentUserReady ? 'brutal-btn-white' : 'brutal-btn-lime'"
+          >
+            <CheckCircle v-if="!roomStore.isCurrentUserReady" class="w-4 h-4" />
+            <XCircle v-else class="w-4 h-4" />
+            <span>{{ roomStore.isCurrentUserReady ? '取消准备' : '准备就绪' }}</span>
+          </button>
+
+          <!-- 房主开始游戏 Button (Only host can see/click, enabled when all ready) -->
+          <button
+            v-if="roomStore.isHost"
+            @click="handleStartGame"
+            :disabled="!roomStore.canStartGame"
+            class="brutal-btn px-7 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-2"
+            :class="roomStore.canStartGame ? 'brutal-btn-lime shadow-brutal' : 'brutal-btn-white cursor-not-allowed'"
+          >
+            <Play class="w-4 h-4 fill-black" />
+            <span>{{ hostStartButtonText }}</span>
+          </button>
+
+          <!-- Non-host Waiting status -->
+          <div
+            v-else
+            class="px-4 py-2 bg-white border-2 border-black font-mono text-xs font-bold shadow-brutal-sm text-black"
+          >
+            {{ roomStore.isCurrentUserReady ? '已准备完毕，请等待房主开启对局...' : '请先点击【准备就绪】' }}
+          </div>
+        </div>
+
+        <!-- B. In-Game Hero Actions -->
+        <div
+          v-else-if="gameActive && !hero.folded"
+          class="flex items-center space-x-2 sm:space-x-4 flex-wrap justify-center gap-y-2"
+        >
           <!-- 弃牌 (Fold) -->
           <button
             @click="handleHeroFold"
@@ -221,11 +348,11 @@
       </div>
       <template #footer>
         <button
-          @click="startNewGame"
+          @click="returnToPreparation"
           class="brutal-btn brutal-btn-lime w-full py-2.5 text-sm font-black flex items-center justify-center gap-1.5"
         >
           <RotateCw class="w-4 h-4" />
-          <span>开始下一局</span>
+          <span>返回准备下一局</span>
         </button>
       </template>
     </Modal>
@@ -234,6 +361,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import confetti from 'canvas-confetti'
 import {
   Crown,
@@ -246,10 +374,18 @@ import {
   ArrowUpCircle,
   Zap,
   Trophy,
-  Frown
+  Frown,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Users,
+  UserPlus,
+  LogOut
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
+import { useRoomStore } from '@/stores/room'
+import { isSupabaseConfigured } from '@/lib/supabase'
 import { sound } from '@/lib/sound'
 import PlayingCard from '@/components/game/PlayingCard.vue'
 import PlayerSeat from '@/components/game/PlayerSeat.vue'
@@ -259,21 +395,24 @@ import { createTexasDeck, evaluateTexas7Cards, getAITexasAction } from '../engin
 import type { TexasPlayer, TexasBetRound, TexasEvaluation } from '../types'
 import type { Card } from '@/types/game'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
+const roomStore = useRoomStore()
 
-const smallBlind = ref(50)
-const bigBlind = ref(100)
+const smallBlind = computed(() => Math.floor((roomStore.currentRoom?.min_bet || 50) / 2) || 25)
+const bigBlind = computed(() => roomStore.currentRoom?.min_bet || 50)
 const pot = ref(0)
 const currentRound = ref<TexasBetRound>('preflop')
 const gameActive = ref(false)
-const currentTurnIdx = ref(0) // 0 is Hero, 1..N are AIs
+const currentTurnIdx = ref(0) // 0 is Hero, 1..N are Opponents
 const showResultModal = ref(false)
 const gameResult = ref<{ isWin: boolean; winnerName: string; netProfit: number } | null>(null)
 
 let deck: Card[] = []
 const communityCards = ref<Card[]>([])
 
+// Hero (Local User)
 const hero = ref<TexasPlayer>({
   id: 'hero',
   nickname: '玩家',
@@ -286,30 +425,42 @@ const hero = ref<TexasPlayer>({
   isAI: false
 })
 
-const aiPlayers = ref<TexasPlayer[]>([
-  {
-    id: 'ai_texas_1',
-    nickname: 'Phil Ivey',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=ivey',
-    chips: 10000,
-    holeCards: [],
-    currentBet: 0,
-    folded: false,
-    isAllIn: false,
-    isAI: true
-  },
-  {
-    id: 'ai_texas_2',
-    nickname: 'Tom Dwan',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=dwan',
-    chips: 12000,
-    holeCards: [],
-    currentBet: 0,
-    folded: false,
-    isAllIn: false,
-    isAI: true
-  }
-])
+// Dynamic Opponents from roomPlayers (No hardcoded bots!)
+interface InGameTexasOpponent extends TexasPlayer {
+  readyStatus: 'ready' | 'waiting'
+  isHost: boolean
+}
+const opponents = ref<InGameTexasOpponent[]>([])
+
+// Synchronize opponents with roomPlayers
+const opponentPlayers = computed<InGameTexasOpponent[]>(() => {
+  if (!roomStore.currentRoom) return []
+  const otherRoomPlayers = roomStore.roomPlayers.filter(
+    p => p.user_id !== authStore.profile?.id
+  )
+
+  return otherRoomPlayers.map(p => {
+    const existing = opponents.value.find(op => op.id === p.user_id)
+    return {
+      id: p.user_id,
+      nickname: p.profile?.nickname || `玩家_${p.seat + 1}`,
+      avatarUrl: p.profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.user_id}`,
+      chips: existing ? existing.chips : p.chips,
+      holeCards: existing ? existing.holeCards : [],
+      folded: existing ? existing.folded : false,
+      isAllIn: existing ? existing.isAllIn : false,
+      currentBet: existing ? existing.currentBet : 0,
+      isAI: p.user_id.startsWith('test_player_'),
+      isHost: p.user_id === roomStore.currentRoom?.host_id,
+      readyStatus: p.status === 'ready' ? 'ready' : 'waiting'
+    }
+  })
+})
+
+const maxSeats = computed(() => roomStore.currentRoom?.max_players || 6)
+const emptySeatsCount = computed(() => {
+  return Math.max(0, maxSeats.value - roomStore.roomPlayers.length)
+})
 
 const formattedPot = computed(() => new Intl.NumberFormat('en-US').format(pot.value))
 const formattedHeroChips = computed(() => new Intl.NumberFormat('en-US').format(hero.value.chips))
@@ -325,8 +476,8 @@ const roundName = computed(() => {
 })
 
 const highestBet = computed(() => {
-  const all = [hero.value, ...aiPlayers.value]
-  return Math.max(...all.map(p => p.currentBet))
+  const all = [hero.value, ...opponents.value]
+  return Math.max(0, ...all.map(p => p.currentBet))
 })
 
 const heroCallAmount = computed(() => {
@@ -340,16 +491,77 @@ const heroEvaluation = computed<TexasEvaluation | null>(() => {
   return null
 })
 
-onMounted(() => {
+const waitingStatusText = computed(() => {
+  const total = roomStore.roomPlayers.length
+  const ready = roomStore.readyCount
+  if (total < 2) {
+    return `当前在桌 1 人，至少需 2 名玩家就绪后由房主开局`
+  }
+  if (ready < total) {
+    return `全员准备中 (${ready}/${total} 已准备)`
+  }
+  return `全员均已准备完毕，等待房主开启对局！`
+})
+
+const hostStartButtonText = computed(() => {
+  const total = roomStore.roomPlayers.length
+  const ready = roomStore.readyCount
+  if (total < 2) {
+    return '等待其他玩家加入 (至少2人)'
+  }
+  if (ready < total) {
+    return `等待全员准备 (${ready}/${total})`
+  }
+  return '开始游戏 (全员已就绪)'
+})
+
+onMounted(async () => {
   if (authStore.profile) {
+    hero.value.id = authStore.profile.id
     hero.value.nickname = authStore.profile.nickname
     hero.value.avatarUrl = authStore.profile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${authStore.profile.id}`
     hero.value.chips = authStore.profile.chips
   }
+
+  // Ensure room exists; if direct entry, create default room with 0 bots
+  if (!roomStore.currentRoom) {
+    await roomStore.createRoom(
+      'texas',
+      `${authStore.profile?.nickname || '玩家'}的德州扑克桌`,
+      50,
+      6
+    )
+  }
 })
 
-// 开始对局
-function startNewGame() {
+// Toggle player ready status
+async function handleToggleReady() {
+  await roomStore.toggleReady()
+  sound.playClick()
+}
+
+// Toggle simulated test opponent ready
+function handleToggleOpponentReady(userId: string) {
+  roomStore.toggleReady(userId)
+}
+
+// Leave room
+async function handleLeaveRoom() {
+  await roomStore.leaveRoom()
+  router.push('/')
+}
+
+// Host starts game
+async function handleStartGame() {
+  if (!roomStore.canStartGame) return
+  const ok = await roomStore.startGame()
+  if (!ok) return
+
+  startNewRound()
+}
+
+// Start deal & betting rounds
+function startNewRound() {
   if (authStore.profile && authStore.profile.chips < bigBlind.value) {
     alert('筹码不足，请先前往签到获取筹码！')
     return
@@ -370,27 +582,47 @@ function startNewGame() {
   hero.value.isAllIn = false
   hero.value.currentBet = 0
 
-  // 同步 AIs
-  aiPlayers.value.forEach(ai => {
-    ai.holeCards = [deck.pop()!, deck.pop()!]
-    ai.folded = false
-    ai.isAllIn = false
-    ai.currentBet = 0
+  // 同步 Opponents
+  opponents.value = opponentPlayers.value.map(opp => {
+    return {
+      ...opp,
+      holeCards: [deck.pop()!, deck.pop()!],
+      folded: false,
+      isAllIn: false,
+      currentBet: 0
+    }
   })
 
-  // 盲注投入：小盲 (Hero) + 大盲 (AI 1)
-  hero.value.chips -= smallBlind.value
-  hero.value.currentBet = smallBlind.value
-  pot.value += smallBlind.value
+  // 盲注投入：小盲 (Hero) + 大盲 (Opponent 1)
+  const sbAmt = Math.min(smallBlind.value, hero.value.chips)
+  hero.value.chips -= sbAmt
+  hero.value.currentBet = sbAmt
+  pot.value += sbAmt
 
-  const bigBlindAI = aiPlayers.value[0]
-  bigBlindAI.chips -= bigBlind.value
-  bigBlindAI.currentBet = bigBlind.value
-  pot.value += bigBlind.value
+  if (opponents.value.length > 0) {
+    const bbOpp = opponents.value[0]
+    const bbAmt = Math.min(bigBlind.value, bbOpp.chips)
+    bbOpp.chips -= bbAmt
+    bbOpp.currentBet = bbAmt
+    pot.value += bbAmt
+  }
 
   sound.playDealCard()
   gameActive.value = true
   currentTurnIdx.value = 0
+}
+
+function returnToPreparation() {
+  showResultModal.value = false
+  gameActive.value = false
+  currentRound.value = 'preflop'
+  communityCards.value = []
+  hero.value.holeCards = []
+  hero.value.folded = false
+  hero.value.isAllIn = false
+  hero.value.currentBet = 0
+  opponents.value = []
+  roomStore.resetRoomToWaiting()
 }
 
 function handleHeroFold() {
@@ -435,7 +667,7 @@ function handleHeroAllIn() {
 function advanceTurn() {
   if (checkRoundAdvancement()) return
 
-  currentTurnIdx.value = (currentTurnIdx.value + 1) % (aiPlayers.value.length + 1)
+  currentTurnIdx.value = (currentTurnIdx.value + 1) % (opponents.value.length + 1)
 
   if (currentTurnIdx.value === 0 && hero.value.folded) {
     advanceTurn()
@@ -443,39 +675,41 @@ function advanceTurn() {
   }
 
   if (currentTurnIdx.value > 0) {
-    const ai = aiPlayers.value[currentTurnIdx.value - 1]
-    if (ai.folded || ai.isAllIn) {
+    const opp = opponents.value[currentTurnIdx.value - 1]
+    if (opp.folded || opp.isAllIn) {
       advanceTurn()
       return
     }
-    setTimeout(() => {
-      runAITurn(ai)
-    }, 600)
+
+    if (opp.isAI || opp.id.startsWith('test_player_')) {
+      setTimeout(() => {
+        runOpponentTurn(opp)
+      }, 600)
+    }
   }
 }
 
-function runAITurn(ai: TexasPlayer) {
-  if (!gameActive.value || ai.folded) return
+function runOpponentTurn(opp: InGameTexasOpponent) {
+  if (!gameActive.value || opp.folded) return
 
-  const callAmt = Math.max(0, highestBet.value - ai.currentBet)
-  const action = getAITexasAction(ai.holeCards, communityCards.value, callAmt, ai.chips)
+  const callAmt = Math.max(0, highestBet.value - opp.currentBet)
+  const action = getAITexasAction(opp.holeCards, communityCards.value, callAmt, opp.chips)
 
   if (action === 'fold') {
-    ai.folded = true
-  } else if (action === 'raise' && ai.chips >= callAmt + bigBlind.value) {
+    opp.folded = true
+  } else if (action === 'raise' && opp.chips >= callAmt + bigBlind.value) {
     const raiseCost = callAmt + bigBlind.value
-    ai.chips -= raiseCost
-    ai.currentBet += raiseCost
+    opp.chips -= raiseCost
+    opp.currentBet += raiseCost
     pot.value += raiseCost
     sound.playChip()
   } else if (callAmt > 0) {
-    const actualCall = Math.min(callAmt, ai.chips)
-    ai.chips -= actualCall
-    ai.currentBet += actualCall
+    const actualCall = Math.min(callAmt, opp.chips)
+    opp.chips -= actualCall
+    opp.currentBet += actualCall
     pot.value += actualCall
     sound.playChip()
   } else {
-    // Check
     sound.playClick()
   }
 
@@ -484,7 +718,7 @@ function runAITurn(ai: TexasPlayer) {
 
 // 检查下注轮次推进或是否只剩 1 人
 function checkRoundAdvancement(): boolean {
-  const activePlayers = [hero.value, ...aiPlayers.value].filter(p => !p.folded)
+  const activePlayers = [hero.value, ...opponents.value].filter(p => !p.folded)
 
   if (activePlayers.length === 1) {
     showdownAndSettle(activePlayers[0])
@@ -494,8 +728,7 @@ function checkRoundAdvancement(): boolean {
   // 检查本轮各玩家下注是否持平
   const allBetsEqual = activePlayers.every(p => p.currentBet === highestBet.value || p.isAllIn)
 
-  if (allBetsEqual && currentTurnIdx.value === aiPlayers.value.length) {
-    // 推进下一街
+  if (allBetsEqual && currentTurnIdx.value === opponents.value.length) {
     nextStreet()
     return true
   }
@@ -518,7 +751,6 @@ function nextStreet() {
     communityCards.value.push(deck.pop()!)
   } else if (currentRound.value === 'river') {
     currentRound.value = 'showdown'
-    // 摊牌比牌
     showdownAndSettle()
     return
   }
@@ -534,7 +766,7 @@ async function showdownAndSettle(singleWinner?: TexasPlayer) {
   let winner = singleWinner
 
   if (!winner) {
-    const active = [hero.value, ...aiPlayers.value].filter(p => !p.folded)
+    const active = [hero.value, ...opponents.value].filter(p => !p.folded)
     active.sort((a, b) => {
       const evA = evaluateTexas7Cards([...a.holeCards, ...communityCards.value])
       const evB = evaluateTexas7Cards([...b.holeCards, ...communityCards.value])
@@ -543,7 +775,7 @@ async function showdownAndSettle(singleWinner?: TexasPlayer) {
     winner = active[0]
   }
 
-  const isHeroWin = winner.id === hero.value.id
+  const isHeroWin = winner?.id === hero.value.id
   let netProfit = 0
 
   if (isHeroWin) {
@@ -551,7 +783,7 @@ async function showdownAndSettle(singleWinner?: TexasPlayer) {
     hero.value.chips += pot.value
     sound.playWin()
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
-  } else {
+  } else if (winner) {
     netProfit = -hero.value.currentBet
     winner.chips += pot.value
     sound.playLose()
@@ -559,12 +791,11 @@ async function showdownAndSettle(singleWinner?: TexasPlayer) {
 
   gameResult.value = {
     isWin: isHeroWin,
-    winnerName: winner.nickname,
+    winnerName: winner?.nickname || '无人获胜',
     netProfit
   }
   showResultModal.value = true
 
-  // 同步至 Supabase
   await walletStore.recordGameSettlement(
     'texas',
     hero.value.currentBet,
@@ -573,7 +804,7 @@ async function showdownAndSettle(singleWinner?: TexasPlayer) {
       communityCards: communityCards.value,
       heroHoleCards: hero.value.holeCards,
       heroHand: heroEvaluation.value?.rankName,
-      winner: winner.nickname
+      winner: winner?.nickname
     }
   )
 }

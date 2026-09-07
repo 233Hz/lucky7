@@ -65,6 +65,103 @@
         </div>
       </div>
 
+      <!-- Lottery Draw Cycle Settings Card -->
+      <div class="rounded-none bg-white border-4 border-black p-6 shadow-brutal-lg space-y-4">
+        <div class="flex items-center justify-between border-b-2 border-black pb-3">
+          <div class="flex items-center gap-2">
+            <Timer class="w-5 h-5 text-black" />
+            <h2 class="text-base font-black text-black uppercase">全服游戏开奖周期配置</h2>
+          </div>
+          <span class="px-2 py-0.5 rounded-none bg-[#ccff00] border border-black text-xs font-black">
+            实时全服生效
+          </span>
+        </div>
+        <p class="text-xs text-black font-bold">
+          配置“猜大小”与“猜六合彩”全服定时开奖的循环周期。所有客户端将严格根据此配置同步倒计时与期号。
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <!-- 猜大小周期 -->
+          <div class="p-4 rounded-none bg-[#f4f4f0] border-2 border-black shadow-brutal-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-black">猜大小 · 骰宝 (Sic Bo)</span>
+              <span class="text-xs font-mono font-black text-black bg-[#ffff00] px-2 py-0.5 border border-black">
+                当前: {{ lotteryStore.sicboCycleSeconds }} 秒
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                v-model.number="editSicboCycle"
+                type="number"
+                min="10"
+                max="300"
+                step="5"
+                class="brutal-input flex-1 px-3 py-1.5 text-xs font-mono font-black"
+              />
+              <span class="text-xs font-black">秒</span>
+            </div>
+            <div class="flex items-center gap-1.5 pt-1">
+              <button
+                v-for="sec in [15, 30, 45, 60]"
+                :key="sec"
+                type="button"
+                @click="editSicboCycle = sec"
+                class="px-2 py-0.5 text-[11px] font-mono font-black border border-black bg-white hover:bg-[#ccff00]"
+                :class="editSicboCycle === sec ? 'bg-[#ccff00]' : ''"
+              >
+                {{ sec }}s
+              </button>
+            </div>
+          </div>
+
+          <!-- 猜六合彩周期 -->
+          <div class="p-4 rounded-none bg-[#f4f4f0] border-2 border-black shadow-brutal-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-black">猜点数六合彩 (Mark Six)</span>
+              <span class="text-xs font-mono font-black text-black bg-[#ffff00] px-2 py-0.5 border border-black">
+                当前: {{ lotteryStore.marksixCycleSeconds }} 秒
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                v-model.number="editMarksixCycle"
+                type="number"
+                min="15"
+                max="600"
+                step="10"
+                class="brutal-input flex-1 px-3 py-1.5 text-xs font-mono font-black"
+              />
+              <span class="text-xs font-black">秒</span>
+            </div>
+            <div class="flex items-center gap-1.5 pt-1">
+              <button
+                v-for="sec in [30, 60, 90, 120]"
+                :key="sec"
+                type="button"
+                @click="editMarksixCycle = sec"
+                class="px-2 py-0.5 text-[11px] font-mono font-black border border-black bg-white hover:bg-[#ccff00]"
+                :class="editMarksixCycle === sec ? 'bg-[#ccff00]' : ''"
+              >
+                {{ sec }}s
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-2">
+          <span v-if="cycleSaveSuccess" class="text-xs font-black text-[#059669] flex items-center gap-1">
+            <Check class="w-4 h-4" />
+            <span>开奖周期配置已成功更新并保存！</span>
+          </span>
+          <span v-else></span>
+          <button
+            @click="saveLotteryCycles"
+            class="brutal-btn-lime px-6 py-2 text-xs flex items-center gap-1.5"
+          >
+            <Check class="w-4 h-4" />
+            <span>保存开奖周期配置</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Players Management Table -->
       <div class="rounded-none bg-white border-4 border-black overflow-hidden shadow-brutal-lg">
         <div class="px-6 py-4 border-b-2 border-black bg-[#f4f4f0] flex items-center justify-between">
@@ -189,16 +286,23 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Shield, ShieldX, RotateCw, Gift } from 'lucide-vue-next'
+import { Shield, ShieldX, RotateCw, Gift, Timer, Check } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import { useLotteryStore } from '@/stores/lottery'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import Modal from '@/components/common/Modal.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 import type { Profile } from '@/types/database'
 
 const authStore = useAuthStore()
+const lotteryStore = useLotteryStore()
 const playersList = ref<Profile[]>([])
 const searchQuery = ref('')
+
+// 开奖周期配置响应式编辑状态
+const editSicboCycle = ref(lotteryStore.sicboCycleSeconds)
+const editMarksixCycle = ref(lotteryStore.marksixCycleSeconds)
+const cycleSaveSuccess = ref(false)
 
 const showGrantModal = ref(false)
 const selectedTarget = ref<Profile | null>(null)
@@ -302,5 +406,13 @@ async function submitGrant() {
   } finally {
     isSubmitting.value = false
   }
+}
+
+function saveLotteryCycles() {
+  lotteryStore.updateCycles(editSicboCycle.value, editMarksixCycle.value)
+  cycleSaveSuccess.value = true
+  setTimeout(() => {
+    cycleSaveSuccess.value = false
+  }, 3000)
 }
 </script>

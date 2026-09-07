@@ -308,10 +308,7 @@
             class="brutal-input w-full text-sm py-2.5 px-3 font-mono font-bold"
           >
             <option value="zhajinhua">炸金花 (Golden Flower)</option>
-            <option value="blackjack">21点 (Blackjack)</option>
             <option value="texas">德州扑克 (Texas Hold'em)</option>
-            <option value="sicbo">猜大小 (Sic Bo)</option>
-            <option value="marksix">猜点数六合彩 (Mark Six)</option>
           </select>
         </div>
         <div>
@@ -396,7 +393,8 @@ async function submitCreateRoom() {
   }
 }
 
-function joinRoomAndEnter(room: GameRoom) {
+async function joinRoomAndEnter(room: GameRoom) {
+  await roomStore.joinRoom(room)
   showRoomModal.value = false
   router.push(`/game/${room.game_type}`)
 }

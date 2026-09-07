@@ -39,6 +39,23 @@
         D
       </div>
 
+      <!-- Host Badge -->
+      <div
+        v-if="isHost || seat.isHost"
+        class="absolute -top-2.5 -left-2.5 px-1.5 py-0.5 rounded-none border-2 border-black bg-[#ffff00] text-black font-black text-[10px] shadow-brutal-sm uppercase"
+      >
+        房主
+      </div>
+
+      <!-- Ready Status Badge -->
+      <div
+        v-if="readyStatus"
+        class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-none border-2 border-black text-[10px] font-black shadow-brutal-sm uppercase whitespace-nowrap z-30"
+        :class="readyStatus === 'ready' ? 'bg-[#ccff00] text-black' : 'bg-[#ff9500] text-black'"
+      >
+        {{ readyStatus === 'ready' ? '已准备' : '未准备' }}
+      </div>
+
       <!-- Avatar & Nickname -->
       <div class="flex items-center justify-center space-x-1.5 mb-1">
         <img
@@ -90,12 +107,16 @@ const props = withDefaults(
     showCardsFaceDown?: boolean
     isDealer?: boolean
     isHero?: boolean
+    isHost?: boolean
+    readyStatus?: 'ready' | 'waiting'
   }>(),
   {
     isCurrentTurn: false,
     showCardsFaceDown: false,
     isDealer: false,
-    isHero: false
+    isHero: false,
+    isHost: false,
+    readyStatus: undefined
   }
 )
 

@@ -3,35 +3,59 @@
     <!-- Header Controls -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-4 border-black">
       <div class="flex items-center space-x-3">
-        <router-link to="/" class="brutal-btn brutal-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5">
+        <router-link
+          to="/"
+          @click="handleLeaveRoom"
+          class="brutal-btn brutal-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5"
+        >
           <ArrowLeft class="w-4 h-4" />
           <span>返回大厅</span>
         </router-link>
         <div>
-          <h1 class="text-xl sm:text-2xl font-black text-black flex items-center gap-2 tracking-tight">
-            <Layers class="w-6 h-6 text-black" />
-            <span>炸金花 (Golden Flower)</span>
-            <span class="brutal-badge bg-[#ccff00] text-black">
-              智能AI对战
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-black text-black flex items-center gap-2 tracking-tight">
+              <Layers class="w-6 h-6 text-black" />
+              <span>{{ roomStore.currentRoom?.name || '炸金花对战桌' }}</span>
+            </h1>
+            <span
+              class="brutal-badge text-black font-black"
+              :class="roomStore.currentRoom?.status === 'playing' ? 'bg-[#ff006e] text-white' : 'bg-[#ccff00]'"
+            >
+              {{ roomStore.currentRoom?.status === 'playing' ? '对局进行中' : '房间准备中' }}
             </span>
-          </h1>
+            <span v-if="roomStore.isHost" class="brutal-badge bg-[#ffff00] text-black">
+              您是房主
+            </span>
+          </div>
           <p class="text-xs font-mono font-bold text-black/70 flex items-center gap-1 mt-0.5">
             <span>底注: {{ minBet }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
             <span class="ml-1 text-black">| 闷牌 1 倍，看牌 2 倍</span>
+            <span class="ml-2 bg-black text-[#ccff00] px-1.5 py-0.2 rounded-none text-[11px]">
+              在桌人数: {{ roomStore.roomPlayers.length }}/{{ roomStore.currentRoom?.max_players || 6 }}
+            </span>
           </p>
         </div>
       </div>
 
+      <!-- Quick Actions / Room Controls -->
       <div class="flex items-center space-x-2">
         <button
-          @click="startNewGame"
-          :disabled="gameStatus === 'playing'"
-          class="brutal-btn brutal-btn-lime px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center justify-center gap-2"
+          v-if="!isSupabaseConfigured() && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
+          @click="roomStore.addTestPlayer()"
+          class="brutal-btn brutal-btn-cyan px-3 py-2 text-xs font-bold flex items-center gap-1"
+          title="辅助本地测试：快捷添加测试对手"
         >
-          <Play v-if="gameStatus !== 'playing'" class="w-4 h-4 fill-black" />
-          <RotateCw v-else class="w-4 h-4 animate-spin" />
-          <span>{{ gameStatus === 'ended' || gameStatus === 'waiting' ? '开始新对局' : '对局进行中' }}</span>
+          <UserPlus class="w-3.5 h-3.5" />
+          <span>+ 邀请测试玩家</span>
+        </button>
+
+        <button
+          @click="handleLeaveRoom"
+          class="brutal-btn brutal-btn-white px-3.5 py-2 text-xs font-bold flex items-center gap-1 hover:bg-[#ff006e] hover:text-white"
+        >
+          <LogOut class="w-3.5 h-3.5" />
+          <span>退出房间</span>
         </button>
       </div>
     </div>
@@ -41,33 +65,70 @@
       <!-- Felt Ambient Pattern -->
       <div class="absolute inset-0 bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
 
-      <!-- 1. Top Opponents Area (AI Players) -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 justify-items-center relative z-20 pt-2">
+      <!-- 1. Top Opponents Area (Real players in room, zero auto-bots) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-items-center relative z-20 pt-2 min-h-[140px]">
+        <!-- Seated Opponents -->
         <div
-          v-for="(ai, idx) in aiPlayers"
-          :key="ai.id"
+          v-for="(opp, idx) in opponentPlayers"
+          :key="opp.id"
           class="relative flex flex-col items-center"
         >
           <PlayerSeat
             :seat="{
-              id: ai.id,
-              nickname: ai.nickname,
-              avatarUrl: ai.avatarUrl,
-              chips: ai.chips,
-              currentBet: ai.currentBet,
-              status: ai.folded ? 'folded' : 'active',
-              cards: ai.cards,
-              handName: gameStatus === 'ended' && !ai.folded ? evaluateZhajinhua(ai.cards).typeName : (ai.seen ? '已看牌' : '暗牌')
+              id: opp.id,
+              nickname: opp.nickname,
+              avatarUrl: opp.avatarUrl,
+              chips: opp.chips,
+              currentBet: opp.currentBet,
+              status: opp.folded ? 'folded' : 'active',
+              cards: opp.cards,
+              handName: gameStatus === 'ended' && !opp.folded && opp.cards.length === 3 ? evaluateZhajinhua(opp.cards).typeName : (opp.seen ? '已看牌' : '')
             }"
             :isCurrentTurn="currentTurnIdx === idx + 1 && gameStatus === 'playing'"
             :showCardsFaceDown="gameStatus !== 'ended'"
+            :isHost="opp.isHost"
+            :readyStatus="gameStatus === 'waiting' ? opp.readyStatus : undefined"
           />
+
+          <!-- Quick Test Toggle Ready (Only in local test mode for simulated opponents) -->
+          <div
+            v-if="gameStatus === 'waiting' && opp.id.startsWith('test_player_')"
+            class="mt-4 flex items-center gap-1 z-30"
+          >
+            <button
+              @click="handleToggleOpponentReady(opp.id)"
+              class="px-2 py-0.5 text-[10px] font-black border border-black bg-white hover:bg-[#ccff00]"
+            >
+              {{ opp.readyStatus === 'ready' ? '设为未准备' : '模拟准备' }}
+            </button>
+            <button
+              @click="roomStore.removePlayer(opp.id)"
+              class="px-1.5 py-0.5 text-[10px] font-black border border-black bg-[#ff006e] text-white"
+              title="移出该玩家"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty Seat Placeholders -->
+        <div
+          v-for="idx in emptySeatsCount"
+          :key="'empty_' + idx"
+          class="w-32 sm:w-36 h-32 rounded-none border-2 border-dashed border-black/40 flex flex-col items-center justify-center p-3 text-center bg-[#fafaf9]/80"
+        >
+          <div class="w-8 h-8 rounded-none border border-black/30 bg-black/5 flex items-center justify-center mb-1 text-black/40">
+            <Users class="w-4 h-4" />
+          </div>
+          <span class="text-xs font-mono font-bold text-black/50">等待玩家入座</span>
+          <span class="text-[10px] font-mono text-black/30 mt-0.5">空闲座位</span>
         </div>
       </div>
 
-      <!-- 2. Middle Table Area: Pot & Round Badge -->
+      <!-- 2. Middle Table Area: Pot & Waiting Banner -->
       <div class="my-6 flex flex-col items-center justify-center relative z-10">
-        <div class="px-6 py-3 rounded-none bg-[#ffff00] border-3 border-black shadow-brutal flex items-center space-x-4">
+        <!-- In-game Pot Display -->
+        <div v-if="gameStatus === 'playing'" class="px-6 py-3 rounded-none bg-[#ffff00] border-3 border-black shadow-brutal flex items-center space-x-4">
           <div class="w-10 h-10 rounded-none bg-black text-[#ffff00] border-2 border-black flex items-center justify-center shadow-sm">
             <CoinIcon customClass="w-6 h-6" />
           </div>
@@ -83,14 +144,28 @@
           <span>当前单注: {{ currentBetUnit }}</span>
           <CoinIcon customClass="w-3.5 h-3.5" />
         </div>
+
+        <!-- Waiting Stage Center Banner -->
+        <div v-if="gameStatus === 'waiting'" class="px-6 py-4 rounded-none bg-white border-3 border-black shadow-brutal text-center max-w-md">
+          <div class="text-xs font-mono font-black text-black uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
+            <Clock class="w-4 h-4 text-black" />
+            <span>房间等待准备就绪</span>
+          </div>
+          <div class="text-sm font-black text-black">
+            {{ waitingStatusText }}
+          </div>
+          <div class="text-[11px] font-mono font-bold text-black/70 mt-1">
+            进入房间后须先准备；所有玩家准备完毕后，房主即可开启对局
+          </div>
+        </div>
       </div>
 
       <!-- 3. Bottom Hero Player Area -->
       <div class="flex flex-col items-center relative z-20 pb-2">
-        <!-- Hero Cards and Hand type (Spaced cleanly side-by-side, no collision) -->
+        <!-- Hero Cards and Hand type -->
         <div class="flex flex-col items-center mb-3">
           <div class="flex items-center space-x-3 sm:space-x-4 mb-2">
-            <template v-if="hero.cards.length > 0">
+            <template v-if="hero.cards.length > 0 && gameStatus !== 'waiting'">
               <PlayingCard
                 v-for="(card, i) in hero.cards"
                 :key="i"
@@ -99,36 +174,78 @@
                 size="md"
               />
             </template>
-            <div v-else class="w-20 h-28 rounded-none border-2 border-dashed border-black bg-[#f4f4f0] flex items-center justify-center text-black/50 text-xs font-mono font-bold">
-              等待发牌
+            <div v-else class="w-20 h-28 rounded-none border-2 border-dashed border-black bg-[#f4f4f0] flex items-center justify-center text-black/50 text-xs font-mono font-bold text-center px-2">
+              {{ gameStatus === 'waiting' ? (roomStore.isCurrentUserReady ? '已准备就绪' : '等待准备') : '等待发牌' }}
             </div>
           </div>
 
           <!-- Hero Hand Evaluation text -->
-          <div v-if="hero.seen && hero.cards.length === 3" class="px-3.5 py-1 rounded-none bg-black text-[#ccff00] border border-black font-black font-mono text-xs shadow-brutal-sm">
+          <div v-if="hero.seen && hero.cards.length === 3 && gameStatus !== 'waiting'" class="px-3.5 py-1 rounded-none bg-black text-[#ccff00] border border-black font-black font-mono text-xs shadow-brutal-sm">
             手牌: {{ heroHandEvaluation?.typeName }}
           </div>
         </div>
 
         <!-- Hero Seat summary -->
         <div class="flex items-center space-x-4 mb-4">
-          <div class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-none bg-white border-2 border-black shadow-brutal-sm">
+          <div class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-none bg-white border-2 border-black shadow-brutal-sm relative">
             <img :src="hero.avatarUrl" class="w-6 h-6 rounded-none border-2 border-black" />
             <span class="text-sm font-black text-black">{{ hero.nickname }}</span>
             <div class="flex items-center space-x-1 ml-2 text-black font-mono font-black text-sm">
               <CoinIcon customClass="w-4 h-4" />
               <span>{{ formattedHeroChips }}</span>
             </div>
+            <span
+              v-if="gameStatus === 'waiting'"
+              class="ml-2 px-2 py-0.5 text-[10px] font-black border border-black uppercase"
+              :class="roomStore.isCurrentUserReady ? 'bg-[#ccff00] text-black' : 'bg-[#ff9500] text-black'"
+            >
+              {{ roomStore.isCurrentUserReady ? '已准备' : '未准备' }}
+            </span>
           </div>
-          <div v-if="hero.currentBet > 0" class="text-xs font-mono font-black text-black px-3 py-1 rounded-none bg-[#ffff00] border-2 border-black shadow-brutal-sm flex items-center gap-1">
+
+          <div v-if="hero.currentBet > 0 && gameStatus === 'playing'" class="text-xs font-mono font-black text-black px-3 py-1 rounded-none bg-[#ffff00] border-2 border-black shadow-brutal-sm flex items-center gap-1">
             <span>本局下注: {{ hero.currentBet }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
           </div>
         </div>
 
-        <!-- Action Control Buttons (Hero Turn) -->
+        <!-- A. Waiting Stage Action Controls (Ready & Start) -->
+        <div v-if="gameStatus === 'waiting'" class="flex items-center space-x-3 flex-wrap justify-center gap-y-2">
+          <!-- 准备 / 取消准备 Button for current user -->
+          <button
+            @click="handleToggleReady"
+            class="brutal-btn px-6 py-2.5 text-sm font-black flex items-center gap-2"
+            :class="roomStore.isCurrentUserReady ? 'brutal-btn-white' : 'brutal-btn-lime'"
+          >
+            <CheckCircle v-if="!roomStore.isCurrentUserReady" class="w-4 h-4" />
+            <XCircle v-else class="w-4 h-4" />
+            <span>{{ roomStore.isCurrentUserReady ? '取消准备' : '准备就绪' }}</span>
+          </button>
+
+          <!-- 房主开始游戏 Button (Only host can see/click, enabled when all ready) -->
+          <button
+            v-if="roomStore.isHost"
+            @click="handleStartGame"
+            :disabled="!roomStore.canStartGame"
+            class="brutal-btn px-7 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-2"
+            :class="roomStore.canStartGame ? 'brutal-btn-lime shadow-brutal' : 'brutal-btn-white cursor-not-allowed'"
+          >
+            <Play class="w-4 h-4 fill-black" />
+            <span>{{ hostStartButtonText }}</span>
+          </button>
+
+          <!-- Non-host Waiting status -->
+          <div
+            v-else
+            class="px-4 py-2 bg-white border-2 border-black font-mono text-xs font-bold shadow-brutal-sm text-black"
+          >
+            {{ roomStore.isCurrentUserReady ? '已准备完毕，请等待房主开启对局...' : '请先点击【准备就绪】' }}
+          </div>
+        </div>
+
+        <!-- B. In-Game Action Controls (Hero Turn) -->
         <div
-          v-if="gameStatus === 'playing' && !hero.folded"
+          v-else-if="gameStatus === 'playing' && !hero.folded"
           class="flex items-center space-x-2 sm:space-x-4 flex-wrap justify-center gap-y-2"
         >
           <!-- 看牌 -->
@@ -158,7 +275,7 @@
           >
             <PlusCircle class="w-4 h-4" />
             <span>跟注 ({{ heroBetCost }})</span>
-            <CoinIcon customClass="w-4 h-4" />
+            <CoinIcon customClass="w-3.5 h-3.5" />
           </button>
 
           <!-- 加注 -->
@@ -169,12 +286,12 @@
           >
             <ArrowUpCircle class="w-4 h-4" />
             <span>加注 ({{ heroBetCost * 2 }})</span>
-            <CoinIcon customClass="w-4 h-4" />
+            <CoinIcon customClass="w-3.5 h-3.5" />
           </button>
 
           <!-- 比牌 -->
           <button
-            v-if="currentRound >= 2 && activeAICount > 0"
+            v-if="currentRound >= 2 && activeOpponentCount > 0"
             @click="handleHeroCompare"
             :disabled="currentTurnIdx !== 0 || hero.chips < heroBetCost * 2"
             class="brutal-btn brutal-btn-pink px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
@@ -214,11 +331,11 @@
       </div>
       <template #footer>
         <button
-          @click="startNewGame"
+          @click="returnToPreparation"
           class="brutal-btn brutal-btn-lime w-full py-2.5 text-sm font-black flex items-center justify-center gap-1.5"
         >
           <RotateCw class="w-4 h-4" />
-          <span>再来一局</span>
+          <span>返回准备下一局</span>
         </button>
       </template>
     </Modal>
@@ -227,6 +344,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import confetti from 'canvas-confetti'
 import {
   Layers,
@@ -239,10 +357,18 @@ import {
   ArrowUpCircle,
   Swords,
   Trophy,
-  Frown
+  Frown,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Users,
+  UserPlus,
+  LogOut
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
+import { useRoomStore } from '@/stores/room'
+import { isSupabaseConfigured } from '@/lib/supabase'
 import { sound } from '@/lib/sound'
 import PlayingCard from '@/components/game/PlayingCard.vue'
 import PlayerSeat from '@/components/game/PlayerSeat.vue'
@@ -257,15 +383,17 @@ import {
 } from '../engine'
 import type { ZhajinhuaPlayer, ZhajinhuaEvaluation } from '../types'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
+const roomStore = useRoomStore()
 
-const minBet = ref<number>(50)
+const minBet = computed(() => roomStore.currentRoom?.min_bet || 50)
 const pot = ref<number>(0)
 const currentRound = ref<number>(1)
 const currentBetUnit = ref<number>(50)
 const gameStatus = ref<'waiting' | 'playing' | 'ended'>('waiting')
-const currentTurnIdx = ref<number>(0) // 0 is Hero, 1..N are AIs
+const currentTurnIdx = ref<number>(0) // 0 is Hero, 1..N are Opponents
 const showResultModal = ref<boolean>(false)
 const gameResult = ref<{ isWin: boolean; winnerName: string; netProfit: number } | null>(null)
 
@@ -282,36 +410,47 @@ const hero = ref<ZhajinhuaPlayer>({
   isAI: false
 })
 
-// AI Players
-const aiPlayers = ref<ZhajinhuaPlayer[]>([
-  {
-    id: 'ai_1',
-    nickname: '赌王阿星',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=stephen',
-    chips: 10000,
-    cards: [],
-    seen: false,
-    folded: false,
-    currentBet: 0,
-    isAI: true
-  },
-  {
-    id: 'ai_2',
-    nickname: '冷静的高进',
-    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=godofgamblers',
-    chips: 15000,
-    cards: [],
-    seen: false,
-    folded: false,
-    currentBet: 0,
-    isAI: true
-  }
-])
+// Dynamic Opponents from roomPlayers (No hardcoded bots!)
+interface InGameOpponent extends ZhajinhuaPlayer {
+  readyStatus: 'ready' | 'waiting'
+  isHost: boolean
+}
+const opponents = ref<InGameOpponent[]>([])
+
+// Synchronize opponents with roomPlayers
+const opponentPlayers = computed<InGameOpponent[]>(() => {
+  if (!roomStore.currentRoom) return []
+  const otherRoomPlayers = roomStore.roomPlayers.filter(
+    p => p.user_id !== authStore.profile?.id
+  )
+
+  return otherRoomPlayers.map(p => {
+    const existing = opponents.value.find(op => op.id === p.user_id)
+    return {
+      id: p.user_id,
+      nickname: p.profile?.nickname || `玩家_${p.seat + 1}`,
+      avatarUrl: p.profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.user_id}`,
+      chips: existing ? existing.chips : p.chips,
+      cards: existing ? existing.cards : [],
+      seen: existing ? existing.seen : false,
+      folded: existing ? existing.folded : false,
+      currentBet: existing ? existing.currentBet : 0,
+      isAI: p.user_id.startsWith('test_player_'),
+      isHost: p.user_id === roomStore.currentRoom?.host_id,
+      readyStatus: p.status === 'ready' ? 'ready' : 'waiting'
+    }
+  })
+})
+
+const maxSeats = computed(() => roomStore.currentRoom?.max_players || 6)
+const emptySeatsCount = computed(() => {
+  return Math.max(0, maxSeats.value - roomStore.roomPlayers.length)
+})
 
 const formattedPot = computed(() => new Intl.NumberFormat('en-US').format(pot.value))
 const formattedHeroChips = computed(() => new Intl.NumberFormat('en-US').format(hero.value.chips))
 
-const activeAICount = computed(() => aiPlayers.value.filter(p => !p.folded).length)
+const activeOpponentCount = computed(() => opponents.value.filter(p => !p.folded).length)
 
 const heroBetCost = computed(() => {
   return hero.value.seen ? currentBetUnit.value * 2 : currentBetUnit.value
@@ -324,23 +463,83 @@ const heroHandEvaluation = computed<ZhajinhuaEvaluation | null>(() => {
   return null
 })
 
-onMounted(() => {
+const waitingStatusText = computed(() => {
+  const total = roomStore.roomPlayers.length
+  const ready = roomStore.readyCount
+  if (total < 2) {
+    return `当前在桌 1 人，至少需 2 名玩家就绪后由房主开局`
+  }
+  if (ready < total) {
+    return `全员准备中 (${ready}/${total} 已准备)`
+  }
+  return `全员均已准备完毕，等待房主开启对局！`
+})
+
+const hostStartButtonText = computed(() => {
+  const total = roomStore.roomPlayers.length
+  const ready = roomStore.readyCount
+  if (total < 2) {
+    return '等待其他玩家加入 (至少2人)'
+  }
+  if (ready < total) {
+    return `等待全员准备 (${ready}/${total})`
+  }
+  return '开始游戏 (全员已就绪)'
+})
+
+onMounted(async () => {
   if (authStore.profile) {
+    hero.value.id = authStore.profile.id
     hero.value.nickname = authStore.profile.nickname
     hero.value.avatarUrl = authStore.profile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${authStore.profile.id}`
     hero.value.chips = authStore.profile.chips
   }
+
+  // Ensure current room exists; if entered directly, create a default room with 0 bots
+  if (!roomStore.currentRoom) {
+    await roomStore.createRoom(
+      'zhajinhua',
+      `${authStore.profile?.nickname || '玩家'}的炸金花桌`,
+      50,
+      6
+    )
+  }
 })
 
-// 开始新局
-function startNewGame() {
+// Toggle current player ready
+async function handleToggleReady() {
+  await roomStore.toggleReady()
+  sound.playClick()
+}
+
+// Toggle simulated opponent ready (for convenient 1-tab local testing)
+function handleToggleOpponentReady(userId: string) {
+  roomStore.toggleReady(userId)
+}
+
+// Leave room and return to home lobby
+async function handleLeaveRoom() {
+  await roomStore.leaveRoom()
+  router.push('/')
+}
+
+// Host starts game: all seated players must be ready and >= 2 players
+async function handleStartGame() {
+  if (!roomStore.canStartGame) return
+  const ok = await roomStore.startGame()
+  if (!ok) return
+
+  startNewRound()
+}
+
+// Start dealing and playing round
+function startNewRound() {
   showResultModal.value = false
   if (authStore.profile && authStore.profile.chips < minBet.value) {
     alert('筹码不足，请先签到领取筹码！')
     return
   }
 
-  // 同步用户余额
   if (authStore.profile) {
     hero.value.chips = authStore.profile.chips
   }
@@ -358,19 +557,37 @@ function startNewGame() {
   hero.value.chips -= minBet.value
   pot.value += minBet.value
 
-  // 重置 AI
-  aiPlayers.value.forEach(ai => {
-    ai.cards = [deck.pop()!, deck.pop()!, deck.pop()!]
-    ai.seen = false
-    ai.folded = false
-    ai.currentBet = minBet.value
-    ai.chips -= minBet.value
+  // 重置对局在桌 Opponents
+  opponents.value = opponentPlayers.value.map(opp => {
+    return {
+      ...opp,
+      cards: [deck.pop()!, deck.pop()!, deck.pop()!],
+      seen: false,
+      folded: false,
+      currentBet: minBet.value,
+      chips: opp.chips - minBet.value
+    }
+  })
+
+  opponents.value.forEach(() => {
     pot.value += minBet.value
   })
 
   sound.playDealCard()
   gameStatus.value = 'playing'
-  currentTurnIdx.value = 0 // Hero takes first action
+  currentTurnIdx.value = 0 // Hero takes first turn
+}
+
+// Return to preparation stage after a round ends
+function returnToPreparation() {
+  showResultModal.value = false
+  gameStatus.value = 'waiting'
+  hero.value.cards = []
+  hero.value.seen = false
+  hero.value.folded = false
+  hero.value.currentBet = 0
+  opponents.value = []
+  roomStore.resetRoomToWaiting()
 }
 
 // Hero 看牌
@@ -412,8 +629,8 @@ function handleHeroRaise() {
 
 // Hero 比牌
 function handleHeroCompare() {
-  const activeAIs = aiPlayers.value.filter(a => !a.folded)
-  if (activeAIs.length === 0) return
+  const activeOpponents = opponents.value.filter(a => !a.folded)
+  if (activeOpponents.length === 0) return
 
   const cost = heroBetCost.value * 2
   hero.value.chips -= cost
@@ -421,15 +638,13 @@ function handleHeroCompare() {
   pot.value += cost
   sound.playChip()
 
-  // 挑选第一个在局 AI 比牌
-  const targetAI = activeAIs[0]
-  const cmp = compareZhajinhuaHands(hero.value.cards, targetAI.cards)
+  // 挑选第一个在局对手比牌
+  const targetOpp = activeOpponents[0]
+  const cmp = compareZhajinhuaHands(hero.value.cards, targetOpp.cards)
 
   if (cmp >= 0) {
-    // Hero 胜出，目标 AI 弃牌
-    targetAI.folded = true
+    targetOpp.folded = true
   } else {
-    // Hero 败，Hero 弃牌
     hero.value.folded = true
     sound.playLose()
   }
@@ -444,7 +659,7 @@ function handleHeroCompare() {
 function nextTurn() {
   if (checkRoundFinish()) return
 
-  currentTurnIdx.value = (currentTurnIdx.value + 1) % (aiPlayers.value.length + 1)
+  currentTurnIdx.value = (currentTurnIdx.value + 1) % (opponents.value.length + 1)
 
   // 如果轮到已弃牌的玩家，直接跳到下一位
   if (currentTurnIdx.value === 0 && hero.value.folded) {
@@ -453,77 +668,75 @@ function nextTurn() {
   }
 
   if (currentTurnIdx.value > 0) {
-    const ai = aiPlayers.value[currentTurnIdx.value - 1]
-    if (ai.folded) {
+    const opp = opponents.value[currentTurnIdx.value - 1]
+    if (opp.folded) {
       nextTurn()
       return
     }
-    // 触发 AI 动作
-    setTimeout(() => {
-      runAITurn(ai)
-    }, 700)
+    // 如果是模拟测试玩家，触发自动行为
+    if (opp.isAI || opp.id.startsWith('test_player_')) {
+      setTimeout(() => {
+        runOpponentTurn(opp)
+      }, 700)
+    }
   }
 }
 
-// 执行 AI 行为
-function runAITurn(ai: ZhajinhuaPlayer) {
-  if (gameStatus.value !== 'playing' || ai.folded) return
+// 执行对手行为 (支持模拟玩家决策)
+function runOpponentTurn(opp: InGameOpponent) {
+  if (gameStatus.value !== 'playing' || opp.folded) return
 
   const action = getAIZhajinhuaAction(
-    ai.cards,
-    ai.seen,
+    opp.cards,
+    opp.seen,
     currentRound.value,
     currentBetUnit.value,
-    ai.chips
+    opp.chips
   )
 
-  const betCost = ai.seen ? currentBetUnit.value * 2 : currentBetUnit.value
+  const betCost = opp.seen ? currentBetUnit.value * 2 : currentBetUnit.value
 
   if (action === 'check') {
-    ai.seen = true
-    // 看牌后自动跟注或弃牌
-    if (ai.chips >= currentBetUnit.value * 2) {
-      ai.chips -= currentBetUnit.value * 2
-      ai.currentBet += currentBetUnit.value * 2
+    opp.seen = true
+    if (opp.chips >= currentBetUnit.value * 2) {
+      opp.chips -= currentBetUnit.value * 2
+      opp.currentBet += currentBetUnit.value * 2
       pot.value += currentBetUnit.value * 2
       sound.playChip()
     } else {
-      ai.folded = true
+      opp.folded = true
     }
   } else if (action === 'fold') {
-    ai.folded = true
-  } else if (action === 'raise' && ai.chips >= betCost * 2) {
+    opp.folded = true
+  } else if (action === 'raise' && opp.chips >= betCost * 2) {
     currentBetUnit.value += minBet.value
-    const cost = ai.seen ? currentBetUnit.value * 2 : currentBetUnit.value
-    ai.chips -= cost
-    ai.currentBet += cost
+    const cost = opp.seen ? currentBetUnit.value * 2 : currentBetUnit.value
+    opp.chips -= cost
+    opp.currentBet += cost
     pot.value += cost
     sound.playChip()
   } else if (action === 'compare') {
-    // AI 选择与 Hero 比牌
     if (!hero.value.folded) {
-      const cmp = compareZhajinhuaHands(ai.cards, hero.value.cards)
+      const cmp = compareZhajinhuaHands(opp.cards, hero.value.cards)
       if (cmp > 0) {
         hero.value.folded = true
         sound.playLose()
       } else {
-        ai.folded = true
+        opp.folded = true
       }
     } else {
-      ai.chips -= betCost
-      ai.currentBet += betCost
+      opp.chips -= betCost
+      opp.currentBet += betCost
       pot.value += betCost
     }
   } else {
-    // 默认跟注
-    ai.chips -= betCost
-    ai.currentBet += betCost
+    opp.chips -= betCost
+    opp.currentBet += betCost
     pot.value += betCost
     sound.playChip()
   }
 
-  // 轮次增加
-  if (currentTurnIdx.value === aiPlayers.value.length) {
+  if (currentTurnIdx.value === opponents.value.length) {
     currentRound.value++
   }
 
@@ -534,7 +747,7 @@ function runAITurn(ai: ZhajinhuaPlayer) {
 
 // 检查是否仅剩 1 名在局玩家，或者到达封顶轮次进行开牌
 function checkRoundFinish(): boolean {
-  const activeAll = [hero.value, ...aiPlayers.value].filter(p => !p.folded)
+  const activeAll = [hero.value, ...opponents.value].filter(p => !p.folded)
 
   if (activeAll.length <= 1 || currentRound.value > 15) {
     finishGame(activeAll)
@@ -549,12 +762,11 @@ async function finishGame(survivors: ZhajinhuaPlayer[]) {
   let winner = survivors[0]
 
   if (survivors.length > 1) {
-    // 比较幸存者手牌决出冠军
     survivors.sort((a, b) => compareZhajinhuaHands(b.cards, a.cards))
     winner = survivors[0]
   }
 
-  const isHeroWin = winner.id === hero.value.id
+  const isHeroWin = winner?.id === hero.value.id
   let netProfit = 0
 
   if (isHeroWin) {
@@ -562,7 +774,7 @@ async function finishGame(survivors: ZhajinhuaPlayer[]) {
     hero.value.chips += pot.value
     sound.playWin()
     confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } })
-  } else {
+  } else if (winner) {
     netProfit = -hero.value.currentBet
     winner.chips += pot.value
     sound.playLose()
@@ -570,12 +782,11 @@ async function finishGame(survivors: ZhajinhuaPlayer[]) {
 
   gameResult.value = {
     isWin: isHeroWin,
-    winnerName: winner.nickname,
+    winnerName: winner?.nickname || '无人获胜',
     netProfit
   }
   showResultModal.value = true
 
-  // 同步记录至 Supabase
   await walletStore.recordGameSettlement(
     'zhajinhua',
     hero.value.currentBet,
@@ -583,7 +794,7 @@ async function finishGame(survivors: ZhajinhuaPlayer[]) {
     {
       hand: hero.value.cards,
       eval: heroHandEvaluation.value?.typeName,
-      winner: winner.nickname
+      winner: winner?.nickname
     }
   )
 }
