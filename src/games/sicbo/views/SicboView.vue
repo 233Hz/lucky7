@@ -43,36 +43,46 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- Main Shaker & Dice Table -->
       <div class="lg:col-span-8 rounded-none bg-[#fffef0] border-4 border-[#1a1a1a] p-6 shadow-brutal-xl space-y-6 text-[#1a1a1a]">
-      <!-- Top Shaker Stage & History -->
-      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b-4 border-[#1a1a1a]">
-        <!-- History Roadmap -->
-        <div class="w-full md:w-auto flex flex-col items-center md:items-start space-y-1.5">
-          <span class="text-xs font-black text-[#1a1a1a] uppercase tracking-wider">近期开奖走势</span>
+      <!-- Top Shaker Stage & History (3-Column Layout: History | Center Shaker | Bet Status) -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center pb-6 border-b-4 border-[#1a1a1a]">
+        <!-- 1. Left: History Roadmap (Recent 10 Draws) -->
+        <div class="md:col-span-5 flex flex-col items-center md:items-start min-w-0 w-full space-y-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-black text-[#1a1a1a] uppercase tracking-wider">近期开奖走势</span>
+            <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 bg-[#facc15] border border-[#1a1a1a] rounded text-[#1a1a1a]">近10期</span>
+          </div>
+          <!-- 走势列表：单行自适应滑动，杜绝挤出容器 -->
           <div class="flex items-center space-x-1.5 overflow-x-auto max-w-full py-1">
             <div
               v-for="(hist, idx) in historyList"
               :key="idx"
-              class="flex flex-col items-center justify-center w-8 h-8 rounded-md font-mono font-black text-xs border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
+              class="flex flex-col items-center justify-center w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-md font-mono font-black text-xs border-2 border-[#1a1a1a] flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
               :class="[
                 hist.isTriple ? 'bg-[#facc15] text-[#1a1a1a]' :
                 hist.isBig ? 'bg-[#ef4444] text-white' :
                 'bg-[#3b82f6] text-white'
               ]"
+              :title="`第${idx + 1}期前：${hist.sum}点 (${hist.isTriple ? '全围' : hist.isBig ? '大' : '小'})`"
             >
               <span>{{ hist.sum }}</span>
             </div>
           </div>
+          <div class="flex items-center gap-3 text-[10px] font-mono font-bold text-[#1a1a1a]/70">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-[#ef4444] border border-[#1a1a1a]"></span>大(11-17)</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-[#3b82f6] border border-[#1a1a1a]"></span>小(4-10)</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-[#facc15] border border-[#1a1a1a]"></span>全围</span>
+          </div>
         </div>
 
-        <!-- Shaker Center Dome -->
-        <div class="flex flex-col items-center">
-          <div class="p-4 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex flex-col items-center">
+        <!-- 2. Middle: Shaker Center Dome -->
+        <div class="md:col-span-4 flex flex-col items-center justify-center">
+          <div class="p-3 sm:p-4 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex flex-col items-center">
             <DiceBox :dice="currentResult.dice" :rolling="isRolling" />
-            <div class="mt-2 flex items-center space-x-2 text-xs font-mono font-black">
+            <div class="mt-2 flex items-center space-x-1.5 text-xs font-mono font-black">
               <span class="text-[#1a1a1a]">结果点数:</span>
-              <span class="text-[#1a1a1a] text-base">{{ currentResult.sum }} 点</span>
+              <span class="text-[#1a1a1a] text-sm sm:text-base font-black">{{ currentResult.sum }} 点</span>
               <span
-                class="px-2 py-0.5 rounded-md border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
+                class="px-1.5 py-0.5 rounded-md border-2 border-[#1a1a1a] text-[11px] shadow-[1px_1px_0px_0px_rgba(26,26,26,1)]"
                 :class="currentResult.isTriple ? 'bg-[#facc15] text-[#1a1a1a]' : currentResult.isBig ? 'bg-[#ef4444] text-white' : 'bg-[#3b82f6] text-white'"
               >
                 {{ currentResult.isTriple ? '全围(豹子)' : currentResult.isBig ? '大' : '小' }}
@@ -83,14 +93,14 @@
           </div>
         </div>
 
-        <!-- Current Total Bet & Payout Status -->
-        <div class="w-full md:w-auto flex flex-col items-center md:items-end space-y-1">
+        <!-- 3. Right: Current Total Bet & Profit -->
+        <div class="md:col-span-3 flex flex-col items-center md:items-end justify-center space-y-1 w-full">
           <div class="text-xs text-[#1a1a1a] font-black uppercase">本局累计下注</div>
-          <div class="text-2xl font-black font-mono text-[#1a1a1a] flex items-center gap-1.5">
-            <CoinIcon customClass="w-5 h-5" />
+          <div class="text-xl sm:text-2xl font-black font-mono text-[#1a1a1a] flex items-center gap-1.5 bg-[#facc15] px-2.5 py-1 rounded-lg border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
+            <CoinIcon customClass="w-4 h-4 sm:w-5 sm:h-5" />
             <span>{{ formattedTotalBet }}</span>
           </div>
-          <div v-if="lastProfit !== null" class="text-xs font-mono font-black flex items-center gap-1" :class="lastProfit >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'">
+          <div v-if="lastProfit !== null" class="text-xs font-mono font-black flex items-center gap-1 px-2 py-0.5 rounded border-2 border-[#1a1a1a] shadow-[1px_1px_0px_0px_rgba(26,26,26,1)]" :class="lastProfit >= 0 ? 'bg-[#22c55e] text-[#1a1a1a]' : 'bg-[#ef4444] text-white'">
             <span>上一局: {{ lastProfit >= 0 ? '+' : '' }}{{ lastProfit }}</span>
             <CoinIcon customClass="w-3 h-3" />
           </div>
@@ -100,16 +110,19 @@
       <!-- Betting Table Felt Areas -->
       <div class="space-y-4">
         <!-- 1. Primary Bets (Small, Triple, Big, Odd, Even) -->
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
           <!-- 小 (Small) -->
           <div
             @click="placeBet('small', undefined, '小 (4-10)', 1)"
-            class="p-4 rounded-xl border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative"
+            class="p-2.5 sm:p-3 rounded-xl border-3 sm:border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative text-center min-h-[96px]"
             :class="getBetAmount('small') > 0 ? 'bg-[#3b82f6] text-white shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] text-[#1a1a1a] hover:bg-[#e0f2fe] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
           >
-            <span class="text-xl font-black">小 (4-10)</span>
-            <span class="text-xs font-bold mt-1">1 赔 1 (全围通吃)</span>
-            <div v-if="getBetAmount('small') > 0" class="mt-2 px-2.5 py-0.5 rounded-md bg-[#1a1a1a] text-[#fffef0] text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
+            <div class="flex flex-col items-center">
+              <span class="text-xl sm:text-2xl font-black">小</span>
+              <span class="text-[11px] sm:text-xs font-bold font-mono">4 - 10 点</span>
+            </div>
+            <span class="text-[10px] sm:text-xs font-bold mt-1 opacity-80 whitespace-nowrap">1 赔 1 (全围吃)</span>
+            <div v-if="getBetAmount('small') > 0" class="mt-1.5 px-2 py-0.5 rounded-md bg-[#1a1a1a] text-[#fffef0] text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
               <CoinIcon customClass="w-3 h-3" />
               <span>{{ getBetAmount('small') }}</span>
             </div>
@@ -118,15 +131,18 @@
           <!-- 全围 (Any Triple) -->
           <div
             @click="placeBet('any_triple', undefined, '全围 (任意豹子)', 30)"
-            class="p-4 rounded-xl border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative col-span-2 sm:col-span-1"
+            class="p-2.5 sm:p-3 rounded-xl border-3 sm:border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative col-span-2 sm:col-span-1 text-center min-h-[96px]"
             :class="getBetAmount('any_triple') > 0 ? 'bg-[#facc15] text-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] text-[#1a1a1a] hover:bg-[#fef9c3] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
           >
-            <span class="text-xl font-black flex items-center gap-1">
-              <Crown class="w-4 h-4 text-[#1a1a1a]" />
-              <span>全 围</span>
-            </span>
-            <span class="text-xs font-bold mt-1">1 赔 30 (高额彩金)</span>
-            <div v-if="getBetAmount('any_triple') > 0" class="mt-2 px-2.5 py-0.5 rounded-md bg-[#1a1a1a] text-[#facc15] text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
+            <div class="flex flex-col items-center">
+              <span class="text-xl sm:text-2xl font-black flex items-center gap-1">
+                <Crown class="w-4 h-4 text-[#1a1a1a]" />
+                <span>全 围</span>
+              </span>
+              <span class="text-[11px] sm:text-xs font-bold font-mono">任意三同号</span>
+            </div>
+            <span class="text-[10px] sm:text-xs font-bold mt-1 opacity-80 whitespace-nowrap">1 赔 30 (高彩)</span>
+            <div v-if="getBetAmount('any_triple') > 0" class="mt-1.5 px-2 py-0.5 rounded-md bg-[#1a1a1a] text-[#facc15] text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
               <CoinIcon customClass="w-3 h-3" />
               <span>{{ getBetAmount('any_triple') }}</span>
             </div>
@@ -135,12 +151,15 @@
           <!-- 大 (Big) -->
           <div
             @click="placeBet('big', undefined, '大 (11-17)', 1)"
-            class="p-4 rounded-xl border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative"
+            class="p-2.5 sm:p-3 rounded-xl border-3 sm:border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative text-center min-h-[96px]"
             :class="getBetAmount('big') > 0 ? 'bg-[#ef4444] text-white shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] text-[#1a1a1a] hover:bg-[#fee2e2] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
           >
-            <span class="text-xl font-black">大 (11-17)</span>
-            <span class="text-xs font-bold mt-1">1 赔 1 (全围通吃)</span>
-            <div v-if="getBetAmount('big') > 0" class="mt-2 px-2.5 py-0.5 rounded-md bg-[#1a1a1a] text-white text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
+            <div class="flex flex-col items-center">
+              <span class="text-xl sm:text-2xl font-black">大</span>
+              <span class="text-[11px] sm:text-xs font-bold font-mono">11 - 17 点</span>
+            </div>
+            <span class="text-[10px] sm:text-xs font-bold mt-1 opacity-80 whitespace-nowrap">1 赔 1 (全围吃)</span>
+            <div v-if="getBetAmount('big') > 0" class="mt-1.5 px-2 py-0.5 rounded-md bg-[#1a1a1a] text-white text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
               <CoinIcon customClass="w-3 h-3" />
               <span>{{ getBetAmount('big') }}</span>
             </div>
@@ -149,12 +168,15 @@
           <!-- 单 (Odd) -->
           <div
             @click="placeBet('odd', undefined, '单 (Odd)', 1)"
-            class="p-4 rounded-xl border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative"
+            class="p-2.5 sm:p-3 rounded-xl border-3 sm:border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative text-center min-h-[96px]"
             :class="getBetAmount('odd') > 0 ? 'bg-[#22c55e] text-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] text-[#1a1a1a] hover:bg-[#dcfce7] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
           >
-            <span class="text-xl font-black">单 (Odd)</span>
-            <span class="text-xs font-bold mt-1">1 赔 1</span>
-            <div v-if="getBetAmount('odd') > 0" class="mt-2 px-2.5 py-0.5 rounded-md bg-[#1a1a1a] text-[#22c55e] text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
+            <div class="flex flex-col items-center">
+              <span class="text-xl sm:text-2xl font-black">单</span>
+              <span class="text-[11px] sm:text-xs font-bold font-mono">Odd</span>
+            </div>
+            <span class="text-[10px] sm:text-xs font-bold mt-1 opacity-80 whitespace-nowrap">1 赔 1</span>
+            <div v-if="getBetAmount('odd') > 0" class="mt-1.5 px-2 py-0.5 rounded-md bg-[#1a1a1a] text-[#22c55e] text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
               <CoinIcon customClass="w-3 h-3" />
               <span>{{ getBetAmount('odd') }}</span>
             </div>
@@ -163,12 +185,15 @@
           <!-- 双 (Even) -->
           <div
             @click="placeBet('even', undefined, '双 (Even)', 1)"
-            class="p-4 rounded-xl border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative"
+            class="p-2.5 sm:p-3 rounded-xl border-3 sm:border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none relative text-center min-h-[96px]"
             :class="getBetAmount('even') > 0 ? 'bg-[#facc15] text-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] text-[#1a1a1a] hover:bg-[#fef08a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
           >
-            <span class="text-xl font-black">双 (Even)</span>
-            <span class="text-xs font-bold mt-1">1 赔 1</span>
-            <div v-if="getBetAmount('even') > 0" class="mt-2 px-2.5 py-0.5 rounded-md bg-[#1a1a1a] text-[#facc15] text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
+            <div class="flex flex-col items-center">
+              <span class="text-xl sm:text-2xl font-black">双</span>
+              <span class="text-[11px] sm:text-xs font-bold font-mono">Even</span>
+            </div>
+            <span class="text-[10px] sm:text-xs font-bold mt-1 opacity-80 whitespace-nowrap">1 赔 1</span>
+            <div v-if="getBetAmount('even') > 0" class="mt-1.5 px-2 py-0.5 rounded-md bg-[#1a1a1a] text-[#facc15] text-xs font-mono font-black flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
               <CoinIcon customClass="w-3 h-3" />
               <span>{{ getBetAmount('even') }}</span>
             </div>

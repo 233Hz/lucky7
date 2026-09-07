@@ -221,12 +221,12 @@ export const useLotteryStore = defineStore('lottery', () => {
     return getSicboResultForPeriod(sicboLastDrawnPeriod.value)
   })
 
-  // 全服统一的历史开奖记录列表（最近 15 期，开箱即同）
+  // 全服统一的历史开奖记录列表（最近 10 期，开箱即同）
   const sicboHistory = computed<SicBoRollResult[]>(() => {
     const cycle = Math.max(10, sicboCycleSeconds.value)
     const currentIdx = sicboCurrentIndex.value
     const list: SicBoRollResult[] = []
-    for (let i = 1; i <= 15; i++) {
+    for (let i = 1; i <= 10; i++) {
       const p = getUtcPeriodString(currentIdx - i, cycle)
       list.push(getSicboResultForPeriod(p))
     }
@@ -295,7 +295,7 @@ export const useLotteryStore = defineStore('lottery', () => {
     const cycle = Math.max(15, marksixCycleSeconds.value)
     const currentIdx = marksixCurrentIndex.value
     const list: MarkSixDrawResult[] = []
-    for (let i = 1; i <= 15; i++) {
+    for (let i = 1; i <= 10; i++) {
       const p = getUtcPeriodString(currentIdx - i, cycle)
       list.push(getMarksixResultForPeriod(p))
     }

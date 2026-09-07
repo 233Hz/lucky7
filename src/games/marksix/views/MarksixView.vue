@@ -43,54 +43,58 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- Main Live Draw Shaker & Table -->
       <div class="lg:col-span-8 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] space-y-6 text-[#1a1a1a]">
-      <!-- Top Draw Stage & History -->
-      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b-4 border-[#1a1a1a]">
-        <!-- History Roadmap -->
-        <div class="w-full md:w-auto flex flex-col items-center md:items-start space-y-2">
-          <span class="text-xs font-black font-mono text-[#1a1a1a] uppercase tracking-wider bg-[#facc15] px-2 py-0.5 rounded-md border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">历史开出特码</span>
+      <!-- Top Draw Stage & History (3-Column Layout: History | Center Ball | Bet Status) -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center pb-6 border-b-4 border-[#1a1a1a]">
+        <!-- 1. Left: History Roadmap (Recent 10 Draws) -->
+        <div class="md:col-span-5 flex flex-col items-center md:items-start min-w-0 w-full space-y-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-black font-mono text-[#1a1a1a] uppercase tracking-wider bg-[#facc15] px-2 py-0.5 rounded-md border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">历史开出特码</span>
+            <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 bg-white border border-[#1a1a1a] rounded text-[#1a1a1a]">近10期</span>
+          </div>
           <div class="flex items-center space-x-2 overflow-x-auto max-w-full py-1">
             <div
               v-for="(hist, idx) in historyList"
               :key="idx"
-              class="flex flex-col items-center"
+              class="flex flex-col items-center flex-shrink-0"
+              :title="`第${hist.period}期：${hist.number}号 (${hist.zodiac} · ${hist.isBig ? '大' : '小'})`"
             >
               <div
-                class="w-8 h-8 rounded-full border-2 border-[#1a1a1a] flex items-center justify-center font-mono font-black text-xs shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
+                class="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-full border-2 border-[#1a1a1a] flex items-center justify-center font-mono font-black text-xs shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
                 :class="hist.waveColor === 'red' ? 'bg-[#ef4444] text-white' : hist.waveColor === 'blue' ? 'bg-[#3b82f6] text-white' : 'bg-[#22c55e] text-[#1a1a1a]'"
               >
                 {{ hist.number < 10 ? '0' + hist.number : hist.number }}
               </div>
-              <span class="text-[10px] font-mono font-black text-[#1a1a1a] mt-1">{{ hist.zodiac }}</span>
+              <span class="text-[10px] font-mono font-black text-[#1a1a1a] mt-0.5">{{ hist.zodiac }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Shaker Center Stage -->
-        <div class="flex flex-col items-center">
-          <div class="p-4 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex flex-col items-center">
+        <!-- 2. Middle: Shaker Center Stage -->
+        <div class="md:col-span-4 flex flex-col items-center justify-center">
+          <div class="p-3 sm:p-4 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex flex-col items-center">
             <BallShaker
               :number="currentResult.number"
               :rolling="isDrawing"
               :zodiac="currentResult.zodiac"
             />
-            <div class="mt-2 text-xs font-mono text-[#1a1a1a] font-bold flex items-center space-x-2">
+            <div class="mt-2 text-xs font-mono text-[#1a1a1a] font-bold flex items-center space-x-1.5">
               <span>期号: {{ currentResult.period }}</span>
               <span>|</span>
-              <span class="font-black px-2 py-0.5 rounded-md bg-[#facc15] border-2 border-[#1a1a1a]">{{ currentResult.isBig ? '大' : '小' }}</span>
+              <span class="font-black px-1.5 py-0.5 rounded-md bg-[#facc15] border border-[#1a1a1a] text-[11px]">{{ currentResult.isBig ? '大' : '小' }}</span>
               <span>|</span>
-              <span class="font-black px-2 py-0.5 rounded-md bg-[#3b82f6] text-white border-2 border-[#1a1a1a]">{{ currentResult.isOdd ? '单' : '双' }}</span>
+              <span class="font-black px-1.5 py-0.5 rounded-md bg-[#3b82f6] text-white border border-[#1a1a1a] text-[11px]">{{ currentResult.isOdd ? '单' : '双' }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Current Total Bet & Profit -->
-        <div class="w-full md:w-auto flex flex-col items-center md:items-end space-y-1.5">
+        <!-- 3. Right: Current Total Bet & Profit -->
+        <div class="md:col-span-3 flex flex-col items-center md:items-end justify-center space-y-1 w-full">
           <div class="text-xs font-black font-mono text-[#1a1a1a]/70 uppercase">本局累计下注</div>
-          <div class="text-2xl font-black font-mono text-[#1a1a1a] flex items-center gap-1.5 bg-[#facc15] px-3 py-1 rounded-md border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
-            <CoinIcon customClass="w-5 h-5" />
+          <div class="text-xl sm:text-2xl font-black font-mono text-[#1a1a1a] flex items-center gap-1.5 bg-[#facc15] px-2.5 py-1 rounded-md border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
+            <CoinIcon customClass="w-4 h-4 sm:w-5 sm:h-5" />
             <span>{{ formattedTotalBet }}</span>
           </div>
-          <div v-if="lastProfit !== null" class="text-xs font-mono font-black flex items-center gap-1 border-2 border-[#1a1a1a] rounded-md px-2 py-0.5 shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]" :class="lastProfit >= 0 ? 'bg-[#22c55e] text-[#1a1a1a]' : 'bg-[#ef4444] text-white'">
+          <div v-if="lastProfit !== null" class="text-xs font-mono font-black flex items-center gap-1 border-2 border-[#1a1a1a] rounded-md px-2 py-0.5 shadow-[1px_1px_0px_0px_rgba(26,26,26,1)]" :class="lastProfit >= 0 ? 'bg-[#22c55e] text-[#1a1a1a]' : 'bg-[#ef4444] text-white'">
             <span>上期盈亏: {{ lastProfit >= 0 ? '+' : '' }}{{ lastProfit }}</span>
             <CoinIcon customClass="w-3 h-3" />
           </div>
