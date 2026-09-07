@@ -12,17 +12,17 @@
       ]"
       :disabled="disabled"
     >
-      <!-- Circular Chip Design with Solid Outline & Hard Shadow -->
+      <!-- Circular Chip Design with Solid Comic Ink Outline & Hard Shadow -->
       <div
         class="w-11 h-11 sm:w-13 sm:h-13 rounded-full flex items-center justify-center font-mono font-black text-xs sm:text-sm transition-all"
         :class="[
-          chipStyles[chip] || 'bg-white text-black',
+          chipStyles[chip] || 'bg-white text-[#1a1a1a]',
           modelValue === chip
-            ? [selectedBorderStyles[chip] || 'border-[#ff006e]', 'border-4 shadow-brutal']
-            : 'border-3 border-black shadow-brutal-sm'
+            ? 'border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] ring-2 ring-[#facc15]'
+            : 'border-3 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'
         ]"
       >
-        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/25 flex items-center justify-center border border-black/40">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 flex items-center justify-center border border-[#1a1a1a]/40 font-black">
           {{ chip }}
         </div>
       </div>
@@ -52,21 +52,12 @@ const emit = defineEmits<{
 }>()
 
 const chipStyles: Record<number, string> = {
-  10: 'bg-white text-black',
-  50: 'bg-[#ff006e] text-white',
-  100: 'bg-[#ccff00] text-black',
-  500: 'bg-[#00d9ff] text-black',
-  1000: 'bg-[#ffff00] text-black',
-  5000: 'bg-[#ff9500] text-black'
-}
-
-const selectedBorderStyles: Record<number, string> = {
-  10: 'border-[#ff006e]',
-  50: 'border-[#ccff00]',
-  100: 'border-[#ff006e]',
-  500: 'border-[#ff9500]',
-  1000: 'border-[#00d9ff]',
-  5000: 'border-[#00d9ff]'
+  10: 'bg-white text-[#1a1a1a]',
+  50: 'bg-[#ef4444] text-white',
+  100: 'bg-[#facc15] text-[#1a1a1a]',
+  500: 'bg-[#3b82f6] text-white',
+  1000: 'bg-[#22c55e] text-white',
+  5000: 'bg-[#1a1a1a] text-[#facc15]'
 }
 
 function selectChip(val: number) {

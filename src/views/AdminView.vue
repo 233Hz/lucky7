@@ -1,35 +1,35 @@
 <template>
   <div class="max-w-6xl mx-auto px-4 py-8 space-y-8 font-mono">
     <!-- Non-admin protection alert -->
-    <div v-if="!authStore.isAdmin" class="rounded-none bg-white border-4 border-black p-8 text-center space-y-4 shadow-brutal-xl text-black">
-      <div class="w-16 h-16 rounded-none bg-[#ff006e] border-3 border-black text-white mx-auto flex items-center justify-center shadow-brutal">
+    <div v-if="!authStore.isAdmin" class="rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] p-8 text-center space-y-4 shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] text-[#1a1a1a]">
+      <div class="w-16 h-16 rounded-lg bg-[#ef4444] border-3 border-[#1a1a1a] text-white mx-auto flex items-center justify-center shadow-[4px_4px_0px_0px_#1a1a1a]">
         <ShieldX class="w-9 h-9" />
       </div>
-      <h2 class="text-3xl font-black text-black uppercase">无权访问管理后台</h2>
-      <p class="text-xs sm:text-sm text-black max-w-lg mx-auto leading-relaxed font-bold">
+      <h2 class="text-3xl font-black text-[#1a1a1a] uppercase">无权访问管理后台 · ACCESS DENIED</h2>
+      <p class="text-xs sm:text-sm text-[#4a4a4a] max-w-lg mx-auto leading-relaxed font-bold">
         当前账号未具备管理员访问权限。如需开通后台权限，请在后台控制台中执行如下授权命令：
       </p>
-      <div class="p-3 rounded-none bg-[#ffffea] border-2 border-black font-mono text-xs text-black font-black max-w-md mx-auto overflow-x-auto shadow-brutal-sm">
+      <div class="p-3 rounded-md bg-white border-3 border-[#1a1a1a] font-mono text-xs text-[#1a1a1a] font-black max-w-md mx-auto overflow-x-auto shadow-[3px_3px_0px_0px_#1a1a1a]">
         update public.profiles set is_admin = true where email = '{{ authStore.user?.email || '你的邮箱' }}';
       </div>
-      <router-link to="/" class="brutal-btn-lime px-6 py-2.5 text-xs inline-block">
-        返回大厅首页
+      <router-link to="/" class="comic-btn-yellow px-6 py-2.5 text-xs inline-block">
+        返回大厅首页 · HOME
       </router-link>
     </div>
 
     <!-- Admin Panel -->
     <div v-else class="space-y-6">
       <!-- Admin Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 border-black pb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-4 border-[#1a1a1a] pb-4">
         <div>
-          <h1 class="text-3xl font-black text-black uppercase flex items-center gap-2">
-            <Shield class="w-8 h-8 text-black" />
-            <span>系统管理控制台</span>
-            <span class="px-2.5 py-0.5 rounded-none bg-[#ff9500] text-black border-2 border-black text-xs font-black shadow-brutal-sm">
-              SUPER ADMIN
+          <h1 class="text-3xl font-black text-[#1a1a1a] uppercase flex items-center gap-2">
+            <Shield class="w-8 h-8 text-[#1a1a1a]" />
+            <span>系统管理控制台 · SUPER ADMIN</span>
+            <span class="px-2.5 py-0.5 rounded-md bg-[#ef4444] text-white border-2 border-[#1a1a1a] text-xs font-black shadow-[2px_2px_0px_0px_#1a1a1a]">
+              AUTHORIZED
             </span>
           </h1>
-          <p class="text-xs text-black font-bold mt-1">支持全服玩家资产调账、赠送筹码与账户管理</p>
+          <p class="text-xs text-[#4a4a4a] font-bold mt-1">支持全服玩家资产调账、赠送筹码与开奖周期调度</p>
         </div>
 
         <!-- Search Input -->
@@ -38,53 +38,53 @@
             v-model="searchQuery"
             type="text"
             placeholder="搜索玩家昵称或邮箱..."
-            class="brutal-input w-full px-3.5 py-2 text-xs"
+            class="comic-input w-full px-3.5 py-2 text-xs"
           />
         </div>
       </div>
 
       <!-- Quick Metrics Summary -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="p-5 rounded-none bg-white border-4 border-black shadow-brutal">
-          <div class="text-xs text-black font-black uppercase">注册玩家总数</div>
-          <div class="text-2xl font-black text-black mt-1">{{ playersList.length }} 位</div>
+        <div class="p-5 rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">
+          <div class="text-xs text-[#1a1a1a] font-black uppercase">注册玩家总数</div>
+          <div class="text-2xl font-black text-[#1a1a1a] mt-1">{{ playersList.length }} 位</div>
         </div>
-        <div class="p-5 rounded-none bg-white border-4 border-black shadow-brutal">
-          <div class="text-xs text-black font-black uppercase">全服流通虚拟币</div>
-          <div class="text-2xl font-black text-black mt-1 flex items-center gap-1.5">
+        <div class="p-5 rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">
+          <div class="text-xs text-[#1a1a1a] font-black uppercase">全服流通虚拟币</div>
+          <div class="text-2xl font-black text-[#1a1a1a] mt-1 flex items-center gap-1.5">
             <CoinIcon customClass="w-6 h-6" />
             <span>{{ totalCirculatingChips }}</span>
           </div>
         </div>
-        <div class="p-5 rounded-none bg-white border-4 border-black shadow-brutal">
-          <div class="text-xs text-black font-black uppercase">管理操作模式</div>
-          <div class="text-base font-black text-[#059669] mt-2 flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-none bg-[#059669] border border-black"></span>
+        <div class="p-5 rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">
+          <div class="text-xs text-[#1a1a1a] font-black uppercase">管理操作模式</div>
+          <div class="text-base font-black text-[#22c55e] mt-2 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#22c55e] border-2 border-[#1a1a1a]"></span>
             <span>数据库原子 RPC 事务</span>
           </div>
         </div>
       </div>
 
       <!-- Lottery Draw Cycle Settings Card -->
-      <div class="rounded-none bg-white border-4 border-black p-6 shadow-brutal-lg space-y-4">
-        <div class="flex items-center justify-between border-b-2 border-black pb-3">
+      <div class="rounded-lg bg-white border-4 border-[#1a1a1a] p-6 shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] space-y-4">
+        <div class="flex items-center justify-between border-b-3 border-[#1a1a1a] pb-3">
           <div class="flex items-center gap-2">
-            <Timer class="w-5 h-5 text-black" />
-            <h2 class="text-base font-black text-black uppercase">全服游戏开奖周期配置</h2>
+            <Timer class="w-5 h-5 text-[#1a1a1a]" />
+            <h2 class="text-base font-black text-[#1a1a1a] uppercase">全服游戏开奖周期配置 · LOTTERY TIMER</h2>
           </div>
-          <span class="px-2 py-0.5 rounded-none bg-[#ccff00] border border-black text-xs font-black">
+          <span class="px-2.5 py-0.5 rounded-md bg-[#facc15] border-2 border-[#1a1a1a] text-xs font-black shadow-[2px_2px_0px_0px_#1a1a1a]">
             实时全服生效
           </span>
         </div>
-        <p class="text-xs text-black font-bold">
+        <p class="text-xs text-[#4a4a4a] font-bold">
           配置“猜大小”与“猜六合彩”全服定时开奖的循环周期。所有客户端将严格根据此配置同步倒计时与期号。
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           <!-- 猜大小周期 -->
-          <div class="p-4 rounded-none bg-[#f4f4f0] border-2 border-black shadow-brutal-sm space-y-2">
+          <div class="p-4 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_#1a1a1a] space-y-2">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-black">猜大小 · 骰宝 (Sic Bo)</span>
-              <span class="text-xs font-mono font-black text-black bg-[#ffff00] px-2 py-0.5 border border-black">
+              <span class="text-xs font-black text-[#1a1a1a]">猜大小 · 骰宝 (Sic Bo)</span>
+              <span class="text-xs font-mono font-black text-[#1a1a1a] bg-[#facc15] px-2 py-0.5 rounded-md border-2 border-[#1a1a1a]">
                 当前: {{ lotteryStore.sicboCycleSeconds }} 秒
               </span>
             </div>
@@ -95,7 +95,7 @@
                 min="10"
                 max="300"
                 step="5"
-                class="brutal-input flex-1 px-3 py-1.5 text-xs font-mono font-black"
+                class="comic-input flex-1 px-3 py-1.5 text-xs font-mono font-black"
               />
               <span class="text-xs font-black">秒</span>
             </div>
@@ -105,8 +105,8 @@
                 :key="sec"
                 type="button"
                 @click="editSicboCycle = sec"
-                class="px-2 py-0.5 text-[11px] font-mono font-black border border-black bg-white hover:bg-[#ccff00]"
-                :class="editSicboCycle === sec ? 'bg-[#ccff00]' : ''"
+                class="px-2.5 py-1 text-[11px] font-mono font-black border-2 border-[#1a1a1a] rounded-md transition-all"
+                :class="editSicboCycle === sec ? 'bg-[#facc15] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'bg-white hover:bg-[#fffef0]'"
               >
                 {{ sec }}s
               </button>
@@ -114,10 +114,10 @@
           </div>
 
           <!-- 猜六合彩周期 -->
-          <div class="p-4 rounded-none bg-[#f4f4f0] border-2 border-black shadow-brutal-sm space-y-2">
+          <div class="p-4 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_#1a1a1a] space-y-2">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-black">猜点数六合彩 (Mark Six)</span>
-              <span class="text-xs font-mono font-black text-black bg-[#ffff00] px-2 py-0.5 border border-black">
+              <span class="text-xs font-black text-[#1a1a1a]">猜点数六合彩 (Mark Six)</span>
+              <span class="text-xs font-mono font-black text-[#1a1a1a] bg-[#facc15] px-2 py-0.5 rounded-md border-2 border-[#1a1a1a]">
                 当前: {{ lotteryStore.marksixCycleSeconds }} 秒
               </span>
             </div>
@@ -128,7 +128,7 @@
                 min="15"
                 max="600"
                 step="10"
-                class="brutal-input flex-1 px-3 py-1.5 text-xs font-mono font-black"
+                class="comic-input flex-1 px-3 py-1.5 text-xs font-mono font-black"
               />
               <span class="text-xs font-black">秒</span>
             </div>
@@ -138,8 +138,8 @@
                 :key="sec"
                 type="button"
                 @click="editMarksixCycle = sec"
-                class="px-2 py-0.5 text-[11px] font-mono font-black border border-black bg-white hover:bg-[#ccff00]"
-                :class="editMarksixCycle === sec ? 'bg-[#ccff00]' : ''"
+                class="px-2.5 py-1 text-[11px] font-mono font-black border-2 border-[#1a1a1a] rounded-md transition-all"
+                :class="editMarksixCycle === sec ? 'bg-[#facc15] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'bg-white hover:bg-[#fffef0]'"
               >
                 {{ sec }}s
               </button>
@@ -147,14 +147,14 @@
           </div>
         </div>
         <div class="flex items-center justify-between pt-2">
-          <span v-if="cycleSaveSuccess" class="text-xs font-black text-[#059669] flex items-center gap-1">
+          <span v-if="cycleSaveSuccess" class="text-xs font-black text-[#22c55e] flex items-center gap-1">
             <Check class="w-4 h-4" />
             <span>开奖周期配置已成功更新并保存！</span>
           </span>
           <span v-else></span>
           <button
             @click="saveLotteryCycles"
-            class="brutal-btn-lime px-6 py-2 text-xs flex items-center gap-1.5"
+            class="comic-btn-yellow px-6 py-2 text-xs flex items-center gap-1.5"
           >
             <Check class="w-4 h-4" />
             <span>保存开奖周期配置</span>
@@ -163,44 +163,44 @@
       </div>
 
       <!-- Players Management Table -->
-      <div class="rounded-none bg-white border-4 border-black overflow-hidden shadow-brutal-lg">
-        <div class="px-6 py-4 border-b-2 border-black bg-[#f4f4f0] flex items-center justify-between">
-          <span class="text-xs font-black text-black uppercase tracking-wider">玩家档案与资产列表</span>
+      <div class="rounded-lg bg-white border-4 border-[#1a1a1a] overflow-hidden shadow-[6px_6px_0px_0px_rgba(26,26,26,1)]">
+        <div class="px-6 py-4 border-b-3 border-[#1a1a1a] bg-[#fffef0] flex items-center justify-between">
+          <span class="text-xs font-black text-[#1a1a1a] uppercase tracking-wider">玩家档案与资产列表 · PLAYER ROSTER</span>
           <button
             @click="fetchPlayers"
-            class="brutal-btn-lime px-3 py-1 text-xs"
+            class="comic-btn-white px-3 py-1 text-xs"
           >
             <RotateCw class="w-3.5 h-3.5 mr-1" />
             <span>刷新列表</span>
           </button>
         </div>
 
-        <div class="divide-y-2 divide-black">
+        <div class="divide-y-3 divide-[#1a1a1a]">
           <div
             v-for="p in filteredPlayers"
             :key="p.id"
-            class="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#ffffea] transition-colors"
+            class="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#fffef0] transition-colors"
           >
             <div class="flex items-center space-x-3.5">
               <img
                 :src="p.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + p.id"
-                class="w-10 h-10 rounded-none border-2 border-black bg-slate-100 shadow-brutal-sm"
+                class="w-10 h-10 rounded-md border-2 border-[#1a1a1a] bg-white shadow-[2px_2px_0px_0px_#1a1a1a]"
               />
               <div>
                 <div class="flex items-center space-x-2">
-                  <span class="text-sm font-black text-black">{{ p.nickname }}</span>
-                  <span v-if="p.is_admin" class="px-1.5 py-0.5 rounded-none text-[10px] font-black bg-[#ff9500] text-black border border-black shadow-brutal-sm">
+                  <span class="text-sm font-black text-[#1a1a1a]">{{ p.nickname }}</span>
+                  <span v-if="p.is_admin" class="px-2 py-0.5 rounded-md text-[10px] font-black bg-[#ef4444] text-white border border-[#1a1a1a] shadow-[1px_1px_0px_0px_#1a1a1a]">
                     管理员
                   </span>
                 </div>
-                <div class="text-xs text-slate-600 font-bold mt-0.5">{{ p.email }}</div>
+                <div class="text-xs text-[#4a4a4a] font-bold mt-0.5">{{ p.email }}</div>
               </div>
             </div>
 
             <div class="flex items-center space-x-4 sm:space-x-6 justify-between sm:justify-end">
               <div class="text-right">
-                <div class="text-[10px] text-black font-black uppercase">当前筹码</div>
-                <div class="text-sm font-black text-black flex items-center justify-end gap-1">
+                <div class="text-[10px] text-[#1a1a1a] font-black uppercase">当前筹码</div>
+                <div class="text-sm font-black text-[#1a1a1a] flex items-center justify-end gap-1">
                   <CoinIcon customClass="w-3.5 h-3.5" />
                   <span>{{ formatChips(p.chips) }}</span>
                 </div>
@@ -208,7 +208,7 @@
 
               <button
                 @click="openGrantModal(p)"
-                class="brutal-btn-orange px-4 py-2 text-xs"
+                class="comic-btn-yellow px-4 py-2 text-xs"
               >
                 <Gift class="w-3.5 h-3.5 mr-1.5" />
                 <span>赠送/调整筹码</span>
@@ -222,14 +222,14 @@
     <!-- Grant Chips Modal -->
     <Modal v-model="showGrantModal" title="后台赠送 / 调整筹码">
       <div v-if="selectedTarget" class="space-y-4">
-        <div class="p-3.5 rounded-none bg-[#ffffea] border-2 border-black flex items-center space-x-3 shadow-brutal-sm">
+        <div class="p-3.5 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] flex items-center space-x-3 shadow-[3px_3px_0px_0px_#1a1a1a]">
           <img
             :src="selectedTarget.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + selectedTarget.id"
-            class="w-8 h-8 rounded-none border border-black bg-white"
+            class="w-8 h-8 rounded-md border-2 border-[#1a1a1a] bg-white"
           />
           <div>
-            <div class="text-xs font-black text-black">{{ selectedTarget.nickname }} ({{ selectedTarget.email }})</div>
-            <div class="text-xs text-black font-black flex items-center gap-1 mt-0.5">
+            <div class="text-xs font-black text-[#1a1a1a]">{{ selectedTarget.nickname }} ({{ selectedTarget.email }})</div>
+            <div class="text-xs text-[#1a1a1a] font-black flex items-center gap-1 mt-0.5">
               <span>现存余额: {{ formatChips(selectedTarget.chips) }}</span>
               <CoinIcon customClass="w-3.5 h-3.5" />
             </div>
@@ -237,12 +237,12 @@
         </div>
 
         <div>
-          <label class="block text-xs font-black text-black uppercase mb-1">调整额度 (正数为赠送，负数为划扣)</label>
+          <label class="block text-xs font-black text-[#1a1a1a] uppercase mb-1">调整额度 (正数为赠送，负数为划扣)</label>
           <input
             v-model.number="grantAmount"
             type="number"
             step="1000"
-            class="brutal-input w-full px-3.5 py-2.5 text-sm font-black"
+            class="comic-input w-full px-3.5 py-2.5 text-sm font-black"
           />
         </div>
 
@@ -253,19 +253,19 @@
             :key="amt"
             type="button"
             @click="grantAmount = amt"
-            class="brutal-btn-white px-3 py-1 text-xs font-mono font-bold"
+            class="comic-btn-white px-3 py-1 text-xs font-mono font-bold"
           >
             +{{ amt / 1000 }}k
           </button>
         </div>
 
         <div>
-          <label class="block text-xs font-black text-black uppercase mb-1">赠送事由 / 备注说明</label>
+          <label class="block text-xs font-black text-[#1a1a1a] uppercase mb-1">赠送事由 / 备注说明</label>
           <input
             v-model="grantReason"
             type="text"
             placeholder="例如: VIP玩家专享体验金"
-            class="brutal-input w-full px-3.5 py-2 text-xs"
+            class="comic-input w-full px-3.5 py-2 text-xs"
           />
         </div>
       </div>
@@ -274,7 +274,7 @@
         <button
           @click="submitGrant"
           :disabled="isSubmitting || grantAmount === 0"
-          class="brutal-btn-lime w-full py-2.5 text-sm"
+          class="comic-btn-red w-full py-2.5 text-sm"
         >
           <Gift class="w-4 h-4 mr-1.5" />
           <span>{{ isSubmitting ? '正在写入数据库...' : '确认调账并记录流水' }}</span>

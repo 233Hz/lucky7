@@ -25,16 +25,16 @@
 
     <!-- Avatar & Info Card -->
     <div
-      class="w-32 sm:w-36 rounded-none border-2 border-black p-2 text-center transition-all relative font-mono"
+      class="w-32 sm:w-36 rounded-lg border-3 border-[#1a1a1a] p-2.5 text-center transition-all relative font-mono"
       :class="[
-        isCurrentTurn ? 'bg-[#ffff00] shadow-brutal !border-3' : 'bg-white shadow-brutal-sm',
-        isHero ? 'ring-2 ring-black' : ''
+        isCurrentTurn ? 'bg-[#facc15] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]',
+        isHero ? 'ring-2 ring-[#ef4444]' : ''
       ]"
     >
       <!-- Dealer Button Badge -->
       <div
         v-if="isDealer"
-        class="absolute -top-2.5 -right-2.5 w-6 h-6 rounded-none border-2 border-black bg-[#ff006e] text-white font-black text-xs flex items-center justify-center shadow-brutal-sm"
+        class="absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full border-2 border-[#1a1a1a] bg-[#ef4444] text-white font-black text-xs flex items-center justify-center shadow-[2px_2px_0px_0px_#1a1a1a]"
       >
         D
       </div>
@@ -42,7 +42,7 @@
       <!-- Host Badge -->
       <div
         v-if="isHost || seat.isHost"
-        class="absolute -top-2.5 -left-2.5 px-1.5 py-0.5 rounded-none border-2 border-black bg-[#ffff00] text-black font-black text-[10px] shadow-brutal-sm uppercase"
+        class="absolute -top-2.5 -left-2.5 px-2 py-0.5 rounded-md border-2 border-[#1a1a1a] bg-[#facc15] text-[#1a1a1a] font-black text-[10px] shadow-[2px_2px_0px_0px_#1a1a1a] uppercase"
       >
         房主
       </div>
@@ -50,8 +50,8 @@
       <!-- Ready Status Badge -->
       <div
         v-if="readyStatus"
-        class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-none border-2 border-black text-[10px] font-black shadow-brutal-sm uppercase whitespace-nowrap z-30"
-        :class="readyStatus === 'ready' ? 'bg-[#ccff00] text-black' : 'bg-[#ff9500] text-black'"
+        class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-md border-2 border-[#1a1a1a] text-[10px] font-black shadow-[2px_2px_0px_0px_#1a1a1a] uppercase whitespace-nowrap z-30"
+        :class="readyStatus === 'ready' ? 'bg-[#22c55e] text-white' : 'bg-[#f59e0b] text-[#1a1a1a]'"
       >
         {{ readyStatus === 'ready' ? '已准备' : '未准备' }}
       </div>
@@ -60,25 +60,25 @@
       <div class="flex items-center justify-center space-x-1.5 mb-1">
         <img
           :src="seat.avatarUrl || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + seat.id"
-          class="w-5 h-5 rounded-none border border-black bg-slate-100"
+          class="w-5 h-5 rounded-md border border-[#1a1a1a] bg-white"
           alt="avatar"
         />
-        <span class="text-xs font-black text-black truncate max-w-[80px]">
+        <span class="text-xs font-black text-[#1a1a1a] truncate max-w-[80px]">
           {{ seat.nickname }}
         </span>
       </div>
 
       <!-- Chips Balance -->
-      <div class="text-[11px] font-mono font-black text-black flex items-center justify-center space-x-1">
+      <div class="text-[11px] font-mono font-black text-[#1a1a1a] flex items-center justify-center space-x-1">
         <CoinIcon customClass="w-3.5 h-3.5" />
         <span>{{ formattedChips }}</span>
       </div>
 
       <!-- Status or Hand Rank Badge -->
-      <div v-if="seat.handName" class="mt-1 text-[10px] font-black text-black bg-[#ccff00] border border-black px-1 py-0.5 rounded-none shadow-brutal-sm">
+      <div v-if="seat.handName" class="mt-1 text-[10px] font-black text-white bg-[#22c55e] border-2 border-[#1a1a1a] px-1.5 py-0.5 rounded-md shadow-[2px_2px_0px_0px_#1a1a1a]">
         {{ seat.handName }}
       </div>
-      <div v-else-if="statusLabel" class="mt-1 text-[10px] font-black px-1 py-0.5 rounded-none border border-black" :class="statusClass">
+      <div v-else-if="statusLabel" class="mt-1 text-[10px] font-black px-1.5 py-0.5 rounded-md border-2 border-[#1a1a1a]" :class="statusClass">
         {{ statusLabel }}
       </div>
     </div>
@@ -86,7 +86,7 @@
     <!-- Current Bet Pill -->
     <div
       v-if="seat.currentBet > 0"
-      class="mt-1.5 flex items-center space-x-1 px-2.5 py-0.5 rounded-none bg-[#00d9ff] border-2 border-black text-[10px] font-mono font-black text-black shadow-brutal-sm"
+      class="mt-1.5 flex items-center space-x-1 px-2.5 py-0.5 rounded-md bg-[#3b82f6] border-2 border-[#1a1a1a] text-[10px] font-mono font-black text-white shadow-[2px_2px_0px_0px_#1a1a1a]"
     >
       <span>下注:</span>
       <span>{{ seat.currentBet }}</span>
@@ -136,10 +136,10 @@ const statusLabel = computed(() => {
 
 const statusClass = computed(() => {
   switch (props.seat.status) {
-    case 'folded': return 'text-slate-600 bg-slate-200'
-    case 'allin': return 'text-white bg-[#ff006e]'
-    case 'bust': return 'text-white bg-[#ff006e]'
-    default: return 'text-black bg-slate-100'
+    case 'folded': return 'text-[#1a1a1a] bg-white'
+    case 'allin': return 'text-white bg-[#ef4444]'
+    case 'bust': return 'text-white bg-[#ef4444]'
+    default: return 'text-[#1a1a1a] bg-white'
   }
 })
 </script>

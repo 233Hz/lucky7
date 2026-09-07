@@ -1,24 +1,24 @@
 <template>
   <div
-    class="relative select-none transition-all duration-200 font-sans rounded-none overflow-hidden flex items-center justify-center aspect-[224/313] border-2 border-black bg-white"
+    class="relative select-none transition-all duration-200 font-sans rounded-lg overflow-hidden flex items-center justify-center aspect-[224/313] border-3 border-[#1a1a1a] bg-white"
     :class="[
       sizeClasses[size],
-      faceDown || !card ? 'shadow-brutal-sm' : 'shadow-brutal-sm sm:shadow-brutal',
-      highlight ? 'ring-4 ring-black -translate-y-2 !shadow-brutal-hover' : ''
+      faceDown || !card ? 'shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]' : 'shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] sm:shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]',
+      highlight ? 'ring-4 ring-[#ef4444] -translate-y-2 !shadow-[6px_6px_0px_0px_rgba(26,26,26,1)]' : ''
     ]"
   >
-    <!-- Card Back (Face Down) - Neo-Brutalist Geometric Block -->
+    <!-- Card Back (Face Down) - Comic Halftone Panel -->
     <div
       v-if="faceDown || !card"
-      class="w-full h-full p-1 flex items-center justify-center select-none bg-[#ffff00]"
+      class="w-full h-full p-1 flex items-center justify-center select-none bg-[#ef4444]"
     >
-      <div class="w-full h-full rounded-none border-2 border-black bg-[#ffff00] flex flex-col items-center justify-center relative overflow-hidden">
-        <!-- Diagonal Brutal Crosshatch Texture -->
-        <div class="absolute inset-0 bg-[linear-gradient(45deg,#000_12.5%,transparent_12.5%,transparent_50%,#000_50%,#000_62.5%,transparent_62.5%,transparent_100%)] [background-size:8px_8px] opacity-15"></div>
-        <!-- Inner Frame -->
-        <div class="absolute inset-1 rounded-none border border-black pointer-events-none"></div>
+      <div class="w-full h-full rounded-md border-2 border-[#1a1a1a] bg-[#ef4444] flex flex-col items-center justify-center relative overflow-hidden">
+        <!-- Comic Halftone Dots -->
+        <div class="absolute inset-0 bg-[radial-gradient(circle,#1a1a1a_1.2px,transparent_1.2px)] [background-size:6px_6px] opacity-25"></div>
+        <!-- Inner Comic Frame -->
+        <div class="absolute inset-1 rounded-sm border border-white/60 pointer-events-none"></div>
         <!-- Center Emblem -->
-        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-none border-2 border-black bg-black text-[#ccff00] flex items-center justify-center shadow-brutal-sm relative z-10">
+        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-[#1a1a1a] bg-[#facc15] text-[#1a1a1a] flex items-center justify-center shadow-[2px_2px_0px_0px_#1a1a1a] relative z-10">
           <span class="text-xs sm:text-sm font-black font-mono tracking-wider">7</span>
         </div>
       </div>

@@ -1,38 +1,38 @@
 <template>
   <div class="max-w-6xl mx-auto px-4 py-6">
     <!-- Header Controls -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-4 border-black">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-4 border-[#1a1a1a]">
       <div class="flex items-center space-x-3">
         <router-link
           to="/"
           @click="handleLeaveRoom"
-          class="brutal-btn brutal-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5"
+          class="comic-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5"
         >
           <ArrowLeft class="w-4 h-4" />
           <span>返回大厅</span>
         </router-link>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-xl sm:text-2xl font-black text-black flex items-center gap-2 tracking-tight">
-              <Crown class="w-6 h-6 text-black" />
+            <h1 class="text-xl sm:text-2xl font-black text-[#1a1a1a] flex items-center gap-2 tracking-tight">
+              <Crown class="w-6 h-6 text-[#1a1a1a]" />
               <span>{{ roomStore.currentRoom?.name || '德州扑克对战桌' }}</span>
             </h1>
             <span
-              class="brutal-badge text-black font-black"
-              :class="roomStore.currentRoom?.status === 'playing' ? 'bg-[#ff006e] text-white' : 'bg-[#ccff00]'"
+              class="comic-badge font-black"
+              :class="roomStore.currentRoom?.status === 'playing' ? 'bg-[#ef4444] text-white' : 'bg-[#22c55e] text-[#1a1a1a]'"
             >
               {{ roomStore.currentRoom?.status === 'playing' ? '对局进行中' : '房间准备中' }}
             </span>
-            <span v-if="roomStore.isHost" class="brutal-badge bg-[#ffff00] text-black">
+            <span v-if="roomStore.isHost" class="comic-badge bg-[#facc15] text-[#1a1a1a]">
               您是房主
             </span>
           </div>
-          <p class="text-xs font-mono font-bold text-black/70 flex items-center gap-1 mt-0.5">
+          <p class="text-xs font-mono font-bold text-[#1a1a1a]/70 flex items-center gap-1 mt-0.5">
             <span>大盲: {{ bigBlind }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
-            <span class="ml-1 text-black">| 小盲: {{ smallBlind }}</span>
+            <span class="ml-1 text-[#1a1a1a]">| 小盲: {{ smallBlind }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
-            <span class="ml-2 bg-black text-[#ccff00] px-1.5 py-0.2 rounded-none text-[11px]">
+            <span class="ml-2 bg-[#1a1a1a] text-[#facc15] px-2 py-0.5 rounded-md text-[11px] font-black border border-[#1a1a1a]">
               在桌人数: {{ roomStore.roomPlayers.length }}/{{ roomStore.currentRoom?.max_players || 6 }}
             </span>
           </p>
@@ -44,7 +44,7 @@
         <button
           v-if="!isSupabaseConfigured() && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
           @click="roomStore.addTestPlayer()"
-          class="brutal-btn brutal-btn-cyan px-3 py-2 text-xs font-bold flex items-center gap-1"
+          class="comic-btn-blue px-3 py-2 text-xs font-bold flex items-center gap-1"
           title="辅助本地测试：快捷添加测试对手"
         >
           <UserPlus class="w-3.5 h-3.5" />
@@ -53,7 +53,7 @@
 
         <button
           @click="handleLeaveRoom"
-          class="brutal-btn brutal-btn-white px-3.5 py-2 text-xs font-bold flex items-center gap-1 hover:bg-[#ff006e] hover:text-white"
+          class="comic-btn-white px-3.5 py-2 text-xs font-bold flex items-center gap-1 hover:bg-[#ef4444] hover:text-white"
         >
           <LogOut class="w-3.5 h-3.5" />
           <span>退出房间</span>
@@ -62,9 +62,9 @@
     </div>
 
     <!-- Felt Poker Table -->
-    <div class="relative rounded-none bg-white border-4 border-black p-6 min-h-[580px] flex flex-col justify-between shadow-brutal-xl overflow-hidden">
-      <!-- Ambient Felt Pattern -->
-      <div class="absolute inset-0 bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
+    <div class="relative rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 min-h-[580px] flex flex-col justify-between shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-hidden">
+      <!-- Halftone Dots Texture -->
+      <div class="absolute inset-0 bg-[radial-gradient(#1a1a1a_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
       <!-- Top Opponents Area (Real players, zero auto-bots) -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-items-center relative z-20 pt-2 min-h-[140px]">
@@ -100,13 +100,13 @@
           >
             <button
               @click="handleToggleOpponentReady(opp.id)"
-              class="px-2 py-0.5 text-[10px] font-black border border-black bg-white hover:bg-[#ccff00]"
+              class="px-2 py-0.5 text-[10px] font-black border-2 border-[#1a1a1a] rounded-md bg-[#fffef0] hover:bg-[#facc15]"
             >
               {{ opp.readyStatus === 'ready' ? '设为未准备' : '模拟准备' }}
             </button>
             <button
               @click="roomStore.removePlayer(opp.id)"
-              class="px-1.5 py-0.5 text-[10px] font-black border border-black bg-[#ff006e] text-white"
+              class="px-1.5 py-0.5 text-[10px] font-black border-2 border-[#1a1a1a] rounded-md bg-[#ef4444] text-white"
               title="移出该玩家"
             >
               ×
@@ -118,13 +118,13 @@
         <div
           v-for="idx in emptySeatsCount"
           :key="'empty_' + idx"
-          class="w-32 sm:w-36 h-32 rounded-none border-2 border-dashed border-black/40 flex flex-col items-center justify-center p-3 text-center bg-[#fafaf9]/80"
+          class="w-32 sm:w-36 h-32 rounded-lg border-2 border-dashed border-[#1a1a1a]/40 flex flex-col items-center justify-center p-3 text-center bg-[#fffef0]/60"
         >
-          <div class="w-8 h-8 rounded-none border border-black/30 bg-black/5 flex items-center justify-center mb-1 text-black/40">
+          <div class="w-8 h-8 rounded-md border border-[#1a1a1a]/30 bg-[#1a1a1a]/5 flex items-center justify-center mb-1 text-[#1a1a1a]/40">
             <Users class="w-4 h-4" />
           </div>
-          <span class="text-xs font-mono font-bold text-black/50">等待玩家入座</span>
-          <span class="text-[10px] font-mono text-black/30 mt-0.5">空闲座位</span>
+          <span class="text-xs font-mono font-bold text-[#1a1a1a]/50">等待玩家入座</span>
+          <span class="text-[10px] font-mono text-[#1a1a1a]/30 mt-0.5">空闲座位</span>
         </div>
       </div>
 
@@ -132,19 +132,19 @@
       <div class="flex flex-col items-center justify-center my-6 relative z-10">
         <!-- In-game Pot Display -->
         <template v-if="gameActive || currentRound === 'showdown'">
-          <div class="px-6 py-3 rounded-none bg-[#ffff00] border-3 border-black shadow-brutal flex items-center space-x-3 mb-4">
-            <span class="text-xs font-black font-mono text-black uppercase tracking-wider">总彩池:</span>
-            <div class="flex items-center gap-1 text-2xl font-black font-mono text-black">
+          <div class="px-6 py-3 rounded-xl bg-[#facc15] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex items-center space-x-3 mb-4">
+            <span class="text-xs font-black font-mono text-[#1a1a1a] uppercase tracking-wider">总彩池:</span>
+            <div class="flex items-center gap-1 text-2xl font-black font-mono text-[#1a1a1a]">
               <CoinIcon customClass="w-6 h-6" />
               <span>{{ formattedPot }}</span>
             </div>
-            <span class="text-xs px-2.5 py-0.5 rounded-none bg-black text-[#ffff00] border border-black font-mono font-bold uppercase">
+            <span class="text-xs px-2.5 py-0.5 rounded-md bg-[#1a1a1a] text-[#facc15] border-2 border-[#1a1a1a] font-mono font-bold uppercase shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
               {{ roundName }}
             </span>
           </div>
 
           <!-- 5 Community Cards Area -->
-          <div class="flex items-center space-x-2.5 sm:space-x-3.5 min-h-[116px] p-3 rounded-none bg-[#f4f4f0] border-3 border-black shadow-brutal-sm">
+          <div class="flex items-center space-x-2.5 sm:space-x-3.5 min-h-[116px] p-3 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">
             <template v-if="communityCards.length > 0">
               <PlayingCard
                 v-for="(c, idx) in communityCards"
@@ -156,7 +156,7 @@
             <div
               v-for="idx in (5 - communityCards.length)"
               :key="'ph_' + idx"
-              class="w-20 h-28 sm:w-22 sm:h-32 rounded-none border-2 border-dashed border-black bg-white flex items-center justify-center text-black/50 text-xs font-mono font-bold"
+              class="w-20 h-28 sm:w-22 sm:h-32 rounded-lg border-2 border-dashed border-[#1a1a1a] bg-[#fffef0] flex items-center justify-center text-[#1a1a1a]/50 text-xs font-mono font-bold"
             >
               {{ idx === 1 && communityCards.length === 0 ? '翻牌' : idx === 4 ? '转牌' : '河牌' }}
             </div>
@@ -164,15 +164,15 @@
         </template>
 
         <!-- Waiting Stage Center Banner -->
-        <div v-else class="px-6 py-4 rounded-none bg-white border-3 border-black shadow-brutal text-center max-w-md">
-          <div class="text-xs font-mono font-black text-black uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
-            <Clock class="w-4 h-4 text-black" />
+        <div v-else class="px-6 py-4 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] text-center max-w-md">
+          <div class="text-xs font-mono font-black text-[#1a1a1a] uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
+            <Clock class="w-4 h-4 text-[#1a1a1a]" />
             <span>房间等待准备就绪</span>
           </div>
-          <div class="text-sm font-black text-black">
+          <div class="text-sm font-black text-[#1a1a1a]">
             {{ waitingStatusText }}
           </div>
-          <div class="text-[11px] font-mono font-bold text-black/70 mt-1">
+          <div class="text-[11px] font-mono font-bold text-[#1a1a1a]/70 mt-1">
             进入房间后须先准备；所有玩家准备完毕后，房主即可开启对局
           </div>
         </div>
@@ -191,36 +191,36 @@
                 size="md"
               />
             </template>
-            <div v-else class="w-20 h-28 rounded-none border-2 border-dashed border-black bg-[#f4f4f0] flex items-center justify-center text-black/50 text-xs font-mono font-bold text-center px-2">
+            <div v-else class="w-20 h-28 rounded-lg border-2 border-dashed border-[#1a1a1a] bg-[#fffef0] flex items-center justify-center text-[#1a1a1a]/50 text-xs font-mono font-bold text-center px-2">
               {{ roomStore.currentRoom?.status === 'waiting' ? (roomStore.isCurrentUserReady ? '已准备就绪' : '等待准备') : '等待发底牌' }}
             </div>
           </div>
 
           <!-- Hero Hand Evaluation Rank -->
-          <div v-if="heroEvaluation && gameActive" class="px-3.5 py-1 rounded-none bg-black text-[#ccff00] border border-black font-black font-mono text-xs shadow-brutal-sm">
+          <div v-if="heroEvaluation && gameActive" class="px-3.5 py-1 rounded-md bg-[#1a1a1a] text-[#facc15] border-2 border-[#1a1a1a] font-black font-mono text-xs shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
             手牌等级: {{ heroEvaluation.rankName }}
           </div>
         </div>
 
         <!-- Hero Status Pill -->
         <div class="flex items-center space-x-4 mb-4">
-          <div class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-none bg-white border-2 border-black shadow-brutal-sm">
-            <img :src="hero.avatarUrl" class="w-6 h-6 rounded-none border-2 border-black" />
-            <span class="text-sm font-black text-black">{{ hero.nickname }}</span>
-            <div class="flex items-center space-x-1 ml-2 text-black font-mono font-black text-sm">
+          <div class="flex items-center space-x-2.5 px-3.5 py-1.5 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]">
+            <img :src="hero.avatarUrl" class="w-6 h-6 rounded-md border-2 border-[#1a1a1a]" />
+            <span class="text-sm font-black text-[#1a1a1a]">{{ hero.nickname }}</span>
+            <div class="flex items-center space-x-1 ml-2 text-[#1a1a1a] font-mono font-black text-sm">
               <CoinIcon customClass="w-4 h-4" />
               <span>{{ formattedHeroChips }}</span>
             </div>
             <span
               v-if="roomStore.currentRoom?.status === 'waiting'"
-              class="ml-2 px-2 py-0.5 text-[10px] font-black border border-black uppercase"
-              :class="roomStore.isCurrentUserReady ? 'bg-[#ccff00] text-black' : 'bg-[#ff9500] text-black'"
+              class="ml-2 px-2 py-0.5 text-[10px] font-black border-2 border-[#1a1a1a] rounded-md uppercase"
+              :class="roomStore.isCurrentUserReady ? 'bg-[#22c55e] text-[#1a1a1a]' : 'bg-[#ef4444] text-white'"
             >
               {{ roomStore.isCurrentUserReady ? '已准备' : '未准备' }}
             </span>
           </div>
 
-          <div v-if="hero.currentBet > 0 && gameActive" class="text-xs font-mono font-black text-black px-3 py-1 rounded-none bg-[#ffff00] border-2 border-black shadow-brutal-sm flex items-center gap-1">
+          <div v-if="hero.currentBet > 0 && gameActive" class="text-xs font-mono font-black text-[#1a1a1a] px-3 py-1 rounded-md bg-[#facc15] border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] flex items-center gap-1">
             <span>本轮下注: {{ hero.currentBet }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
           </div>
@@ -231,8 +231,8 @@
           <!-- 准备 / 取消准备 Button for current user -->
           <button
             @click="handleToggleReady"
-            class="brutal-btn px-6 py-2.5 text-sm font-black flex items-center gap-2"
-            :class="roomStore.isCurrentUserReady ? 'brutal-btn-white' : 'brutal-btn-lime'"
+            class="comic-btn px-6 py-2.5 text-sm font-black flex items-center gap-2"
+            :class="roomStore.isCurrentUserReady ? 'comic-btn-white' : 'comic-btn-green'"
           >
             <CheckCircle v-if="!roomStore.isCurrentUserReady" class="w-4 h-4" />
             <XCircle v-else class="w-4 h-4" />
@@ -244,17 +244,17 @@
             v-if="roomStore.isHost"
             @click="handleStartGame"
             :disabled="!roomStore.canStartGame"
-            class="brutal-btn px-7 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-2"
-            :class="roomStore.canStartGame ? 'brutal-btn-lime shadow-brutal' : 'brutal-btn-white cursor-not-allowed'"
+            class="comic-btn px-7 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-2"
+            :class="roomStore.canStartGame ? 'comic-btn-green shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]' : 'comic-btn-white cursor-not-allowed'"
           >
-            <Play class="w-4 h-4 fill-black" />
+            <Play class="w-4 h-4 fill-[#1a1a1a]" />
             <span>{{ hostStartButtonText }}</span>
           </button>
 
           <!-- Non-host Waiting status -->
           <div
             v-else
-            class="px-4 py-2 bg-white border-2 border-black font-mono text-xs font-bold shadow-brutal-sm text-black"
+            class="px-4 py-2 bg-[#fffef0] border-2 border-[#1a1a1a] rounded-md font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] text-[#1a1a1a]"
           >
             {{ roomStore.isCurrentUserReady ? '已准备完毕，请等待房主开启对局...' : '请先点击【准备就绪】' }}
           </div>
@@ -269,7 +269,7 @@
           <button
             @click="handleHeroFold"
             :disabled="currentTurnIdx !== 0"
-            class="brutal-btn brutal-btn-white px-5 py-2.5 text-sm font-bold disabled:opacity-40 flex items-center gap-1.5"
+            class="comic-btn-white px-5 py-2.5 text-sm font-bold disabled:opacity-40 flex items-center gap-1.5"
           >
             <Flag class="w-4 h-4" />
             <span>弃牌 (Fold)</span>
@@ -280,7 +280,7 @@
             v-if="heroCallAmount === 0"
             @click="handleHeroCheck"
             :disabled="currentTurnIdx !== 0"
-            class="brutal-btn brutal-btn-cyan px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
+            class="comic-btn-blue px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <Check class="w-4 h-4" />
             <span>过牌 (Check)</span>
@@ -289,7 +289,7 @@
             v-else
             @click="handleHeroCall"
             :disabled="currentTurnIdx !== 0 || hero.chips < heroCallAmount"
-            class="brutal-btn brutal-btn-lime px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
+            class="comic-btn-green px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <PlusCircle class="w-4 h-4" />
             <span>跟注 (Call: {{ heroCallAmount }})</span>
@@ -300,7 +300,7 @@
           <button
             @click="handleHeroRaise"
             :disabled="currentTurnIdx !== 0 || hero.chips < highestBet + bigBlind"
-            class="brutal-btn brutal-btn-orange px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
+            class="comic-btn-yellow px-6 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <ArrowUpCircle class="w-4 h-4" />
             <span>加注 (+{{ bigBlind }})</span>
@@ -311,7 +311,7 @@
           <button
             @click="handleHeroAllIn"
             :disabled="currentTurnIdx !== 0 || hero.chips <= 0"
-            class="brutal-btn brutal-btn-pink px-5 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
+            class="comic-btn-red px-5 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-1.5"
           >
             <Zap class="w-4 h-4" />
             <span>全下 (All-In)</span>
@@ -325,22 +325,22 @@
       <div class="text-center py-4 space-y-4">
         <div class="flex justify-center">
           <div
-            class="w-16 h-16 rounded-none border-3 border-black flex items-center justify-center shadow-brutal"
-            :class="gameResult?.isWin ? 'bg-[#ccff00] text-black' : 'bg-[#ff006e] text-white'"
+            class="w-16 h-16 rounded-xl border-3 border-[#1a1a1a] flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]"
+            :class="gameResult?.isWin ? 'bg-[#22c55e] text-[#1a1a1a]' : 'bg-[#ef4444] text-white'"
           >
             <Trophy v-if="gameResult?.isWin" class="w-9 h-9" />
             <Frown v-else class="w-9 h-9" />
           </div>
         </div>
-        <h2 class="text-2xl font-black text-black">
+        <h2 class="text-2xl font-black text-[#1a1a1a]">
           {{ gameResult?.isWin ? '胜利赢得底池！' : '本局遗憾失利' }}
         </h2>
-        <p class="text-black font-bold text-sm">
-          最终胜者: <span class="bg-[#ffff00] px-2 py-0.5 border border-black text-black font-black">{{ gameResult?.winnerName }}</span>
+        <p class="text-[#1a1a1a] font-bold text-sm">
+          最终胜者: <span class="bg-[#facc15] px-2 py-0.5 border-2 border-[#1a1a1a] rounded-md text-[#1a1a1a] font-black">{{ gameResult?.winnerName }}</span>
         </p>
-        <div class="px-4 py-3 rounded-none bg-[#f4f4f0] border-2 border-black text-sm font-mono font-bold flex items-center justify-between shadow-brutal-sm">
-          <span class="text-black/70 uppercase">净盈亏筹码:</span>
-          <span class="flex items-center gap-1 font-black" :class="gameResult?.netProfit && gameResult.netProfit >= 0 ? 'text-black bg-[#ccff00] px-2 py-0.5 border border-black' : 'text-white bg-[#ff006e] px-2 py-0.5 border border-black'">
+        <div class="px-4 py-3 rounded-lg bg-[#fffef0] border-2 border-[#1a1a1a] text-sm font-mono font-bold flex items-center justify-between shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
+          <span class="text-[#1a1a1a]/70 uppercase">净盈亏筹码:</span>
+          <span class="flex items-center gap-1 font-black" :class="gameResult?.netProfit && gameResult.netProfit >= 0 ? 'text-[#1a1a1a] bg-[#22c55e] px-2 py-0.5 border border-[#1a1a1a] rounded-md' : 'text-white bg-[#ef4444] px-2 py-0.5 border border-[#1a1a1a] rounded-md'">
             <span>{{ (gameResult?.netProfit ?? 0) >= 0 ? '+' : '' }}{{ gameResult?.netProfit }}</span>
             <CoinIcon customClass="w-4 h-4" />
           </span>
@@ -349,7 +349,7 @@
       <template #footer>
         <button
           @click="returnToPreparation"
-          class="brutal-btn brutal-btn-lime w-full py-2.5 text-sm font-black flex items-center justify-center gap-1.5"
+          class="comic-btn-green w-full py-2.5 text-sm font-black flex items-center justify-center gap-1.5"
         >
           <RotateCw class="w-4 h-4" />
           <span>返回准备下一局</span>

@@ -1,11 +1,11 @@
 <template>
   <div class="flex flex-col items-center select-none">
-    <!-- Lottery Ball Sphere with Solid Black Border & Hard Shadow -->
+    <!-- Lottery Ball Sphere with Solid Ink Border & Hard Shadow -->
     <div
-      class="w-13 h-13 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center font-black text-lg sm:text-xl border-3 border-black relative overflow-hidden transition-all duration-200"
+      class="w-13 h-13 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center font-black text-lg sm:text-xl border-3 border-[#1a1a1a] relative overflow-hidden transition-all duration-200"
       :class="[
         colorWaveClass,
-        rolling ? 'animate-spin scale-110 shadow-brutal' : 'shadow-brutal hover:-translate-y-0.5'
+        rolling ? 'animate-spin scale-110 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]' : 'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:-translate-y-0.5'
       ]"
     >
       <span class="font-mono font-black tracking-tighter">
@@ -14,9 +14,9 @@
     </div>
 
     <!-- Zodiac & Info badge -->
-    <div v-if="zodiac && !rolling" class="mt-2 flex items-center space-x-1 px-2.5 py-0.5 rounded-none bg-white border-2 border-black text-xs font-black font-mono shadow-brutal-sm text-black">
-      <span class="text-[#ff9500]">{{ zodiac }}</span>
-      <span class="text-black">·</span>
+    <div v-if="zodiac && !rolling" class="mt-2 flex items-center space-x-1.5 px-3 py-0.5 rounded-md bg-white border-2 border-[#1a1a1a] text-xs font-black font-mono shadow-[2px_2px_0px_0px_#1a1a1a] text-[#1a1a1a]">
+      <span class="text-[#f59e0b]">{{ zodiac }}</span>
+      <span class="text-[#1a1a1a]">·</span>
       <span :class="colorWaveText">{{ waveName }}</span>
     </div>
   </div>
@@ -62,17 +62,17 @@ const waveName = computed(() => {
 
 const colorWaveClass = computed(() => {
   switch (waveColor.value) {
-    case 'red': return 'bg-[#ff006e] text-white'
-    case 'blue': return 'bg-[#00d9ff] text-black'
-    case 'green': return 'bg-[#ccff00] text-black'
+    case 'red': return 'bg-[#ef4444] text-white'
+    case 'blue': return 'bg-[#3b82f6] text-white'
+    case 'green': return 'bg-[#22c55e] text-white'
   }
 })
 
 const colorWaveText = computed(() => {
   switch (waveColor.value) {
-    case 'red': return 'text-[#ff006e]'
-    case 'blue': return 'text-[#0088cc]'
-    case 'green': return 'text-[#059669]'
+    case 'red': return 'text-[#ef4444]'
+    case 'blue': return 'text-[#3b82f6]'
+    case 'green': return 'text-[#22c55e]'
   }
 })
 </script>

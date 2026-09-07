@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-[#fbfbfa] text-black selection:bg-[#ccff00] selection:text-black">
+  <div class="min-h-screen flex flex-col bg-[#fffef0] text-[#1a1a1a] selection:bg-[#facc15] selection:text-[#1a1a1a]">
     <!-- Main Top Navbar -->
     <Navbar />
 
