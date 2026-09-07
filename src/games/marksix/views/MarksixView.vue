@@ -317,26 +317,18 @@ const lastProfit = ref<number | null>(null)
 
 // 正在滚球的动效定时器与下注时所处期号
 let drawAnimInterval: ReturnType<typeof setInterval> | null = null
-let periodAtBetting = lotteryStore.marksixPeriod
 
-const currentResult = ref<MarkSixDrawResult>({
-  period: lotteryStore.marksixPeriod,
-  number: 7,
-  waveColor: 'red',
-  isBig: false,
-  isSmall: true,
-  isOdd: true,
-  isEven: false,
-  zodiac: '马',
-  drawnAt: '12:00:00'
-})
+const currentResult = ref<MarkSixDrawResult>(lotteryStore.marksixLastResult)
+const historyList = computed(() => lotteryStore.marksixHistory)
 
-const historyList = ref<MarkSixDrawResult[]>([
-  { period: '20260907-087', number: 18, waveColor: 'red', isBig: false, isSmall: true, isOdd: false, isEven: true, zodiac: '狗', drawnAt: '11:58' },
-  { period: '20260907-086', number: 33, waveColor: 'green', isBig: true, isSmall: false, isOdd: true, isEven: false, zodiac: '龙', drawnAt: '11:56' },
-  { period: '20260907-085', number: 42, waveColor: 'blue', isBig: true, isSmall: false, isOdd: false, isEven: true, zodiac: '羊', drawnAt: '11:54' },
-  { period: '20260907-084', number: 9, waveColor: 'blue', isBig: false, isSmall: true, isOdd: true, isEven: false, zodiac: '鸡', drawnAt: '11:52' }
-])
+watch(
+  () => lotteryStore.marksixLastResult,
+  (newRes) => {
+    if (!isDrawing.value) {
+      currentResult.value = newRes
+    }
+  }
+)
 
 const totalBetAmount = computed(() => {
   return bets.value.reduce((acc, b) => acc + b.amount, 0)
@@ -361,7 +353,6 @@ function placeBet(type: MarkSixBetType, value: string | number, name: string, od
   }
 
   sound.playChip()
-  periodAtBetting = lotteryStore.marksixPeriod
 
   const existing = bets.value.find(b => b.type === type && b.value === value)
   if (existing) {
@@ -392,7 +383,12 @@ watch(
       sound.playDiceRoll()
       if (drawAnimInterval) clearInterval(drawAnimInterval)
       drawAnimInterval = setInterval(() => {
-        currentResult.value.number = Math.floor(Math.random() * 49) + 1
+        const randNum = Math.floor(Math.random() * 49) + 1
+        currentResult.value = {
+          ...currentResult.value,
+          number: randNum,
+          waveColor: getBallWave(randNum)
+        }
       }, 90)
     } else {
       // 倒计时进入新一期，开奖结果揭晓并结算
@@ -408,17 +404,16 @@ watch(
 
 // 当期开奖结束，执行结算与记录
 async function handleScheduledMarkSixConclusion() {
-  const settledPeriod = periodAtBetting || lotteryStore.marksixPeriod
-  const result = lotteryStore.getMarksixResultForPeriod(settledPeriod)
+  const settledPeriod = lotteryStore.marksixLastDrawnPeriod
+  const result = lotteryStore.marksixLastResult
   currentResult.value = result
-  historyList.value.unshift(result)
-  if (historyList.value.length > 15) historyList.value.pop()
 
-  // 广播全服公共频道开奖结果
+  // 广播全服公共频道开奖结果（去重ID保证全服仅通报一条）
   const waveName = result.waveColor === 'red' ? '红波' : result.waveColor === 'blue' ? '蓝波' : '绿波'
   chatStore.sendSystemAnnouncement(
     'global_lottery',
-    `【六合彩】第 ${settledPeriod} 期特码：[${result.number < 10 ? '0' + result.number : result.number}] (${waveName} · 生肖${result.zodiac} · ${result.isBig ? '大' : '小'} · ${result.isOdd ? '单' : '双'})！`
+    `【六合彩】第 ${settledPeriod} 期特码：[${result.number < 10 ? '0' + result.number : result.number}] (${waveName} · 生肖${result.zodiac} · ${result.isBig ? '大' : '小'} · ${result.isOdd ? '单' : '双'})！`,
+    `ann_marksix_${settledPeriod}`
   )
 
   if (bets.value.length > 0) {

@@ -1,76 +1,93 @@
 <template>
   <div class="max-w-6xl mx-auto px-4 py-6">
-    <!-- Header Controls -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-4 border-[#1a1a1a]">
-      <div class="flex items-center space-x-3">
+    <!-- Header Controls (Mobile-first 2-row clean layout) -->
+    <div class="mb-4 pb-3 border-b-4 border-[#1a1a1a] flex flex-col gap-2.5">
+      <!-- Row 1: Back to Lobby + Quick Action Buttons -->
+      <div class="flex items-center justify-between gap-2 flex-wrap">
         <router-link
           to="/"
           @click="handleLeaveRoom"
-          class="comic-btn-white px-3 py-1.5 text-xs inline-flex items-center gap-1.5"
+          class="comic-btn-white px-2.5 sm:px-3 py-1.5 text-xs inline-flex items-center gap-1.5 flex-shrink-0"
           :class="isLeaving ? 'opacity-50 pointer-events-none' : ''"
         >
           <ArrowLeft class="w-4 h-4" />
           <span>返回大厅</span>
         </router-link>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl sm:text-2xl font-black text-[#1a1a1a] flex items-center gap-2 tracking-tight">
-              <Crown class="w-6 h-6 text-[#1a1a1a]" />
-              <span>{{ roomStore.currentRoom?.name || '德州扑克对战桌' }}</span>
-            </h1>
-            <span
-              class="comic-badge font-black"
-              :class="roomStore.currentRoom?.status === 'playing' ? 'bg-[#ef4444] text-white' : 'bg-[#22c55e] text-[#1a1a1a]'"
-            >
-              {{ roomStore.currentRoom?.status === 'playing' ? '对局进行中' : '房间准备中' }}
-            </span>
-            <span v-if="roomStore.isHost" class="comic-badge bg-[#facc15] text-[#1a1a1a]">
-              您是房主
-            </span>
-          </div>
-          <p class="text-xs font-mono font-bold text-[#1a1a1a]/70 flex items-center gap-1 mt-0.5">
-            <span>大盲: {{ bigBlind }}</span>
-            <CoinIcon customClass="w-3.5 h-3.5" />
-            <span class="ml-1 text-[#1a1a1a]">| 小盲: {{ smallBlind }}</span>
-            <CoinIcon customClass="w-3.5 h-3.5" />
-            <span class="ml-2 bg-[#1a1a1a] text-[#facc15] px-2 py-0.5 rounded-md text-[11px] font-black border border-[#1a1a1a]">
-              在桌人数: {{ roomStore.roomPlayers.length }}/{{ roomStore.currentRoom?.max_players || 6 }}
-            </span>
-          </p>
+
+        <!-- Quick Actions Row -->
+        <div class="flex items-center space-x-1.5 sm:space-x-2 flex-wrap justify-end">
+          <button
+            @click="isChatOpen = !isChatOpen"
+            class="brutal-btn px-2.5 sm:px-3 py-1.5 text-xs font-black flex items-center gap-1 transition-all"
+            :class="isChatOpen ? 'brutal-btn-yellow shadow-brutal-sm' : 'brutal-btn-white'"
+          >
+            <MessageSquare class="w-3.5 h-3.5" />
+            <span class="hidden sm:inline">{{ isChatOpen ? '收起聊天' : '房间聊天' }}</span>
+            <span class="sm:hidden">聊天</span>
+          </button>
+
+          <!-- 👥 房间成员列表与踢人管理 -->
+          <button
+            @click="showMembersModal = true"
+            class="brutal-btn px-2.5 sm:px-3 py-1.5 text-xs font-black flex items-center gap-1 transition-all bg-[#fffef0] hover:bg-[#facc15]"
+            :class="roomStore.isHost ? 'border-[#ef4444]' : ''"
+            title="查看所有在桌成员并进行踢人管理"
+          >
+            <Users class="w-3.5 h-3.5" />
+            <span>成员 ({{ roomStore.roomPlayers.length }}/{{ roomStore.currentRoom?.max_players || 6 }})</span>
+          </button>
+
+          <button
+            v-if="!isSupabaseConfigured() && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
+            v-prevent-reclick
+            @click="handleAddTestPlayer"
+            class="comic-btn-blue px-2.5 sm:px-3 py-1.5 text-xs font-bold flex items-center gap-1"
+            title="辅助本地测试：快捷添加测试对手"
+          >
+            <UserPlus class="w-3.5 h-3.5" />
+            <span class="hidden sm:inline">+ 邀请测试</span>
+          </button>
+
+          <button
+            v-prevent-reclick
+            :disabled="isLeaving"
+            @click="handleLeaveRoom"
+            class="comic-btn-white px-2.5 sm:px-3.5 py-1.5 text-xs font-bold flex items-center gap-1 hover:bg-[#ef4444] hover:text-white disabled:opacity-50 flex-shrink-0"
+          >
+            <LogOut class="w-3.5 h-3.5" />
+            <span>{{ isLeaving ? '退出中...' : '退出' }}</span>
+          </button>
         </div>
       </div>
 
-      <!-- Quick Actions / Room Controls -->
-      <div class="flex items-center space-x-2">
-        <button
-          @click="isChatOpen = !isChatOpen"
-          class="brutal-btn px-3 py-2 text-xs font-black flex items-center gap-1.5 transition-all"
-          :class="isChatOpen ? 'brutal-btn-yellow shadow-brutal-sm' : 'brutal-btn-white'"
-        >
-          <MessageSquare class="w-3.5 h-3.5" />
-          <span>{{ isChatOpen ? '收起聊天' : '房间聊天' }}</span>
-        </button>
+      <!-- Row 2: Room Info Card (Avoid text overlaps) -->
+      <div class="flex flex-wrap items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]">
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <h1 class="text-sm sm:text-lg font-black text-[#1a1a1a] flex items-center gap-1.5 tracking-tight font-mono">
+            <Crown class="w-4 h-4 sm:w-5 sm:h-5 text-[#1a1a1a] flex-shrink-0" />
+            <span class="truncate max-w-[140px] sm:max-w-xs">{{ roomStore.currentRoom?.name || '德州扑克对战桌' }}</span>
+          </h1>
+          <span
+            class="comic-badge font-black text-[10px] sm:text-xs py-0.5 px-2"
+            :class="roomStore.currentRoom?.status === 'playing' ? 'bg-[#ef4444] text-white' : 'bg-[#22c55e] text-[#1a1a1a]'"
+          >
+            {{ roomStore.currentRoom?.status === 'playing' ? '对局中' : '准备中' }}
+          </span>
+          <span v-if="roomStore.isHost" class="comic-badge bg-[#facc15] text-[#1a1a1a] text-[10px] sm:text-xs py-0.5 px-2">
+            您是房主
+          </span>
+        </div>
 
-        <button
-          v-if="!isSupabaseConfigured() && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
-          v-prevent-reclick
-          @click="handleAddTestPlayer"
-          class="comic-btn-blue px-3 py-2 text-xs font-bold flex items-center gap-1"
-          title="辅助本地测试：快捷添加测试对手"
-        >
-          <UserPlus class="w-3.5 h-3.5" />
-          <span>+ 邀请测试玩家</span>
-        </button>
-
-        <button
-          v-prevent-reclick
-          :disabled="isLeaving"
-          @click="handleLeaveRoom"
-          class="comic-btn-white px-3.5 py-2 text-xs font-bold flex items-center gap-1 hover:bg-[#ef4444] hover:text-white disabled:opacity-50"
-        >
-          <LogOut class="w-3.5 h-3.5" />
-          <span>{{ isLeaving ? '退出中...' : '退出房间' }}</span>
-        </button>
+        <div class="text-[11px] sm:text-xs font-mono font-bold text-[#1a1a1a]/80 flex flex-wrap items-center gap-1.5">
+          <span class="bg-white px-2 py-0.5 rounded border border-[#1a1a1a] flex items-center gap-1 shadow-[1px_1px_0px_0px_#1a1a1a]">
+            大盲: {{ bigBlind }}
+            <CoinIcon customClass="w-3 h-3" />
+          </span>
+          <span class="bg-white px-2 py-0.5 rounded border border-[#1a1a1a] flex items-center gap-1 shadow-[1px_1px_0px_0px_#1a1a1a]">
+            小盲: {{ smallBlind }}
+            <CoinIcon customClass="w-3 h-3" />
+          </span>
+        </div>
       </div>
     </div>
 
@@ -78,12 +95,12 @@
     <div class="grid grid-cols-1 gap-6 items-start" :class="isChatOpen ? 'xl:grid-cols-12' : ''">
       <!-- Left: Felt Poker Table -->
       <div :class="isChatOpen ? 'xl:col-span-8' : 'w-full'">
-        <div class="relative rounded-none bg-white border-4 border-black p-6 min-h-[580px] flex flex-col justify-between shadow-brutal-xl overflow-hidden">
+        <div class="relative rounded-none bg-white border-4 border-black p-3 sm:p-6 min-h-[520px] sm:min-h-[580px] flex flex-col justify-between shadow-brutal-xl overflow-hidden">
           <!-- Halftone Dots Texture -->
           <div class="absolute inset-0 bg-[radial-gradient(#1a1a1a_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
       <!-- Top Opponents Area (Real players, zero auto-bots) -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-items-center relative z-20 pt-2 min-h-[140px]">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 justify-items-center relative z-20 pt-2 min-h-[140px]">
         <!-- Seated Opponents -->
         <div
           v-for="(opp, idx) in opponentPlayers"
@@ -111,11 +128,11 @@
 
           <!-- Controls for opponents: Simulated toggle ready for test players, and Kick Player for Host -->
           <div
-            v-if="roomStore.currentRoom?.status === 'waiting'"
-            class="mt-4 flex items-center gap-1 z-30"
+            v-if="roomStore.currentRoom?.status === 'waiting' || roomStore.isHost"
+            class="mt-3 flex items-center gap-1 z-30"
           >
             <button
-              v-if="opp.id.startsWith('test_player_')"
+              v-if="opp.id.startsWith('test_player_') && roomStore.currentRoom?.status === 'waiting'"
               v-prevent-reclick
               @click="handleToggleOpponentReady(opp.id)"
               class="px-2 py-0.5 text-[10px] font-black border-2 border-[#1a1a1a] rounded-md bg-[#fffef0] hover:bg-[#facc15]"
@@ -136,17 +153,17 @@
           </div>
         </div>
 
-        <!-- Empty Seats -->
+        <!-- Empty Seats (Responsive width for 2-column mobile) -->
         <div
           v-for="idx in emptySeatsCount"
           :key="'empty_' + idx"
-          class="w-32 sm:w-36 h-32 rounded-lg border-2 border-dashed border-[#1a1a1a]/40 flex flex-col items-center justify-center p-3 text-center bg-[#fffef0]/60"
+          class="w-28 xs:w-32 sm:w-36 h-28 xs:h-32 rounded-lg border-2 border-dashed border-[#1a1a1a]/40 flex flex-col items-center justify-center p-2 sm:p-3 text-center bg-[#fffef0]/60"
         >
-          <div class="w-8 h-8 rounded-md border border-[#1a1a1a]/30 bg-[#1a1a1a]/5 flex items-center justify-center mb-1 text-[#1a1a1a]/40">
-            <Users class="w-4 h-4" />
+          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-md border border-[#1a1a1a]/30 bg-[#1a1a1a]/5 flex items-center justify-center mb-1 text-[#1a1a1a]/40">
+            <Users class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
-          <span class="text-xs font-mono font-bold text-[#1a1a1a]/50">等待玩家入座</span>
-          <span class="text-[10px] font-mono text-[#1a1a1a]/30 mt-0.5">空闲座位</span>
+          <span class="text-[11px] sm:text-xs font-mono font-bold text-[#1a1a1a]/50">等待玩家入座</span>
+          <span class="text-[9px] sm:text-[10px] font-mono text-[#1a1a1a]/30 mt-0.5">空闲座位</span>
         </div>
       </div>
 
@@ -401,6 +418,83 @@
         </button>
       </template>
     </Modal>
+
+    <!-- Room Members Management Modal -->
+    <Modal v-model="showMembersModal" title="在桌成员与管理">
+      <div class="space-y-4 py-2 font-mono">
+        <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-[#fffef0] border-2 border-[#1a1a1a] text-xs">
+          <div class="flex items-center gap-1.5 font-black">
+            <Users class="w-4 h-4 text-[#1a1a1a]" />
+            <span>在桌人数: {{ roomStore.roomPlayers.length }} / {{ roomStore.currentRoom?.max_players || 6 }}</span>
+          </div>
+          <div v-if="roomStore.isHost" class="text-[11px] font-black text-[#ef4444] bg-[#fee2e2] px-2 py-0.5 rounded border border-[#ef4444]">
+            ★ 您拥有踢人管理权限
+          </div>
+        </div>
+
+        <div class="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+          <div
+            v-for="p in roomStore.roomPlayers"
+            :key="p.user_id"
+            class="flex items-center justify-between p-2.5 rounded-lg border-2 border-[#1a1a1a] transition-colors"
+            :class="p.user_id === authStore.profile?.id ? 'bg-[#fffef0]' : 'bg-white'"
+          >
+            <div class="flex items-center space-x-2.5">
+              <img
+                :src="p.profile?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + p.user_id"
+                class="w-8 h-8 rounded-md border-2 border-[#1a1a1a] bg-white object-cover"
+              />
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-black text-[#1a1a1a] max-w-[100px] sm:max-w-[140px] truncate">
+                    {{ p.profile?.nickname || `玩家_${p.seat + 1}` }}
+                  </span>
+                  <span v-if="p.user_id === roomStore.currentRoom?.host_id" class="px-1.5 py-0.2 rounded text-[9px] font-black bg-[#facc15] border border-[#1a1a1a]">
+                    房主
+                  </span>
+                  <span v-if="p.user_id === authStore.profile?.id" class="px-1.5 py-0.2 rounded text-[9px] font-black bg-[#3b82f6] text-white border border-[#1a1a1a]">
+                    我
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 mt-0.5 text-[10px] text-[#1a1a1a]/70">
+                  <span class="flex items-center gap-0.5 font-bold">
+                    <CoinIcon customClass="w-3 h-3" />
+                    {{ new Intl.NumberFormat('en-US').format(p.chips) }}
+                  </span>
+                  <span>•</span>
+                  <span :class="p.status === 'ready' ? 'text-[#22c55e] font-black' : 'text-[#f59e0b] font-bold'">
+                    {{ p.status === 'ready' ? '已准备' : '未准备' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action: Kick (for host only) -->
+            <div class="flex items-center gap-1">
+              <button
+                v-if="roomStore.isHost && p.user_id !== authStore.profile?.id"
+                v-prevent-reclick
+                @click="handleKickPlayer(p.user_id, p.profile?.nickname || '玩家')"
+                :disabled="kickingUserId === p.user_id"
+                class="comic-btn-red px-2.5 py-1 text-[11px] font-black flex items-center gap-1 disabled:opacity-50"
+                title="将该成员移出房间"
+              >
+                <UserX class="w-3 h-3" />
+                <span>{{ kickingUserId === p.user_id ? '踢出中...' : '移出' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <button
+          @click="showMembersModal = false"
+          class="comic-btn-white w-full py-2 text-xs font-black"
+        >
+          关闭列表
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -460,6 +554,7 @@ const currentRound = ref<TexasBetRound>('preflop')
 const gameActive = ref(false)
 const currentTurnIdx = ref(0) // 0 is Hero, 1..N are Opponents
 const showResultModal = ref(false)
+const showMembersModal = ref(false)
 const gameResult = ref<{ isWin: boolean; winnerName: string; netProfit: number } | null>(null)
 
 let deck: Card[] = []
@@ -659,6 +754,8 @@ async function handleKickPlayer(userId: string, nickname: string) {
   try {
     const ok = await roomStore.kickPlayer(userId)
     if (ok) {
+      opponents.value = opponents.value.filter(op => op.id !== userId)
+      sound.playClick()
       chatStore.sendSystemAnnouncement(
         roomChannel.value,
         `【房主】已将玩家【${nickname}】移出房间。`

@@ -3,15 +3,15 @@
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
       <!-- Logo -->
       <div class="flex items-center space-x-6">
-        <router-link to="/" class="flex items-center space-x-2.5 group">
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#facc15] text-[#1a1a1a] border-3 border-[#1a1a1a] font-black text-2xl shadow-[3px_3px_0px_0px_#1a1a1a] group-hover:-rotate-6 group-hover:scale-110 transition-transform">
+        <router-link to="/" class="flex items-center space-x-2 sm:space-x-2.5 group flex-shrink-0">
+          <div class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-[#facc15] text-[#1a1a1a] border-3 border-[#1a1a1a] font-black text-xl sm:text-2xl shadow-[2px_2px_0px_0px_#1a1a1a] sm:shadow-[3px_3px_0px_0px_#1a1a1a] group-hover:-rotate-6 group-hover:scale-110 transition-transform flex-shrink-0">
             7
           </div>
           <div class="flex flex-col">
-            <span class="text-xl font-black tracking-wider text-[#1a1a1a]">
+            <span class="text-base sm:text-xl font-black tracking-wider text-[#1a1a1a] leading-none">
               LUCKY 7
             </span>
-            <span class="text-[10px] -mt-1 text-[#1a1a1a] font-mono font-black tracking-widest">COMIC ARCADE</span>
+            <span class="hidden sm:block text-[10px] text-[#1a1a1a] font-mono font-black tracking-widest mt-0.5">COMIC ARCADE</span>
           </div>
         </router-link>
 
@@ -59,40 +59,40 @@
       </div>
 
       <!-- Right Action Area -->
-      <div class="flex items-center space-x-2.5">
+      <div class="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0">
         <!-- Sound Mute Toggle -->
         <button
           @click="toggleSound"
-          class="p-2 rounded-lg border-3 border-[#1a1a1a] bg-white text-[#1a1a1a] shadow-[3px_3px_0px_0px_#1a1a1a] hover:bg-[#facc15] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+          class="p-1.5 sm:p-2 rounded-lg border-2 sm:border-3 border-[#1a1a1a] bg-white text-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a] sm:shadow-[3px_3px_0px_0px_#1a1a1a] hover:bg-[#facc15] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex-shrink-0"
           :title="isMuted ? '取消静音' : '静音'"
         >
-          <VolumeX v-if="isMuted" class="w-4 h-4 text-[#ef4444]" />
-          <Volume2 v-else class="w-4 h-4" />
+          <VolumeX v-if="isMuted" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#ef4444]" />
+          <Volume2 v-else class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
 
         <!-- User Chips Balance Box -->
-        <div class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-[#facc15] border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_#1a1a1a]">
-          <CoinIcon customClass="w-4 h-4" />
-          <span class="text-sm font-black tracking-tight text-[#1a1a1a] font-mono">
+        <div class="flex items-center space-x-1 sm:space-x-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-[#facc15] border-2 sm:border-3 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a] sm:shadow-[3px_3px_0px_0px_#1a1a1a] flex-shrink-0">
+          <CoinIcon customClass="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <span class="text-xs sm:text-sm font-black tracking-tight text-[#1a1a1a] font-mono">
             {{ formattedChips }}
           </span>
           <router-link
             to="/checkin"
-            class="text-[11px] font-black text-white bg-[#ef4444] px-2 py-0.5 rounded-md border-2 border-[#1a1a1a] hover:bg-[#ff3333] shadow-[1px_1px_0px_0px_#1a1a1a] transition-colors"
+            class="text-[10px] sm:text-[11px] font-black text-white bg-[#ef4444] px-1.5 sm:px-2 py-0.5 rounded border border-[#1a1a1a] hover:bg-[#ff3333] shadow-[1px_1px_0px_0px_#1a1a1a] transition-colors ml-0.5"
           >
             领币
           </router-link>
         </div>
 
         <!-- User Profile Dropdown or Login -->
-        <div v-if="authStore.isAuthenticated" class="relative">
+        <div v-if="authStore.isAuthenticated" class="relative flex-shrink-0">
           <router-link
             to="/profile"
-            class="flex items-center space-x-2 px-2.5 py-1.5 rounded-lg border-3 border-[#1a1a1a] bg-white hover:bg-[#3b82f6] hover:text-white shadow-[3px_3px_0px_0px_#1a1a1a] transition-colors group"
+            class="flex items-center space-x-1 sm:space-x-2 px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg border-2 sm:border-3 border-[#1a1a1a] bg-white hover:bg-[#3b82f6] hover:text-white shadow-[2px_2px_0px_0px_#1a1a1a] sm:shadow-[3px_3px_0px_0px_#1a1a1a] transition-colors group"
           >
             <img
               :src="avatarUrl"
-              class="w-6 h-6 rounded-md border-2 border-[#1a1a1a] bg-white object-cover"
+              class="w-5 h-5 sm:w-6 sm:h-6 rounded-md border border-[#1a1a1a] bg-white object-cover"
               alt="avatar"
             />
             <span class="hidden sm:inline-block text-xs font-black text-[#1a1a1a] group-hover:text-white max-w-[90px] truncate font-mono">
@@ -100,10 +100,10 @@
             </span>
           </router-link>
         </div>
-        <div v-else>
+        <div v-else class="flex-shrink-0">
           <router-link
             to="/auth"
-            class="comic-btn-red px-3.5 py-1.5 text-xs"
+            class="comic-btn-red px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-xs"
           >
             登录 / 注册
           </router-link>
@@ -112,23 +112,23 @@
     </div>
 
     <!-- Mobile Navigation Subbar -->
-    <div class="md:hidden flex items-center justify-around border-t-3 border-[#1a1a1a] py-2 px-1 bg-[#fffef0] text-xs font-black text-[#1a1a1a]">
-      <router-link to="/" class="px-2.5 py-1 rounded-md border-2" :class="$route.path === '/' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
+    <div class="md:hidden flex items-center justify-around border-t-2 sm:border-t-3 border-[#1a1a1a] py-1.5 px-1 bg-[#fffef0] text-[11px] font-black text-[#1a1a1a]">
+      <router-link to="/" class="px-2 py-0.5 rounded-md border-2" :class="$route.path === '/' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
         大厅
       </router-link>
-      <router-link to="/checkin" class="px-2.5 py-1 rounded-md border-2" :class="$route.path === '/checkin' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
+      <router-link to="/checkin" class="px-2 py-0.5 rounded-md border-2" :class="$route.path === '/checkin' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
         签到
       </router-link>
-      <router-link to="/leaderboard" class="px-2.5 py-1 rounded-md border-2" :class="$route.path === '/leaderboard' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
+      <router-link to="/leaderboard" class="px-2 py-0.5 rounded-md border-2" :class="$route.path === '/leaderboard' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
         排行
       </router-link>
-      <router-link to="/records" class="px-2.5 py-1 rounded-md border-2" :class="$route.path === '/records' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
+      <router-link to="/records" class="px-2 py-0.5 rounded-md border-2" :class="$route.path === '/records' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
         战绩
       </router-link>
-      <router-link v-if="authStore.isAdmin" to="/admin" class="px-2.5 py-1 rounded-md border-2 border-[#1a1a1a] bg-[#ef4444] text-white shadow-[2px_2px_0px_0px_#1a1a1a]">
+      <router-link v-if="authStore.isAdmin" to="/admin" class="px-2 py-0.5 rounded-md border-2 border-[#1a1a1a] bg-[#ef4444] text-white shadow-[2px_2px_0px_0px_#1a1a1a]">
         后台
       </router-link>
-      <router-link to="/profile" class="px-2.5 py-1 rounded-md border-2" :class="$route.path === '/profile' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
+      <router-link to="/profile" class="px-2 py-0.5 rounded-md border-2" :class="$route.path === '/profile' ? 'bg-[#facc15] border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'border-transparent'">
         我的
       </router-link>
     </div>

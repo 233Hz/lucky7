@@ -290,7 +290,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Shield, ShieldX, RotateCw, Gift, Timer, Check } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useLotteryStore } from '@/stores/lottery'
@@ -304,10 +304,26 @@ const lotteryStore = useLotteryStore()
 const playersList = ref<Profile[]>([])
 const searchQuery = ref('')
 
-// 开奖周期配置响应式编辑状态
+// 开奖周期配置响应式编辑状态（自动与 Store 保持双向秒级同步，免去刷新）
 const editSicboCycle = ref(lotteryStore.sicboCycleSeconds)
 const editMarksixCycle = ref(lotteryStore.marksixCycleSeconds)
 const cycleSaveSuccess = ref(false)
+
+watch(
+  () => lotteryStore.sicboCycleSeconds,
+  (newVal) => {
+    editSicboCycle.value = newVal
+  },
+  { immediate: true }
+)
+
+watch(
+  () => lotteryStore.marksixCycleSeconds,
+  (newVal) => {
+    editMarksixCycle.value = newVal
+  },
+  { immediate: true }
+)
 
 const showGrantModal = ref(false)
 const selectedTarget = ref<Profile | null>(null)

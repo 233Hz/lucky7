@@ -220,12 +220,12 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   // 发送系统通报/开奖通知/房间事件
-  function sendSystemAnnouncement(channel: string, content: string) {
+  function sendSystemAnnouncement(channel: string, content: string, customId?: string) {
     const text = content.trim()
     if (!text) return
 
     const msg: ChatMessage = {
-      id: `sys_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      id: customId || `sys_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       channel,
       senderId: 'system',
       senderName: '系统通报',

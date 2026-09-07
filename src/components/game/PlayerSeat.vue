@@ -7,7 +7,7 @@
     ]"
   >
     <!-- Cards Display -->
-    <div class="flex items-center justify-center -space-x-3.5 sm:-space-x-2.5 mb-2 min-h-[84px]">
+    <div class="flex items-center justify-center -space-x-3.5 sm:-space-x-2.5 mb-1.5 sm:mb-2 min-h-[70px] sm:min-h-[84px]">
       <template v-if="seat.cards && seat.cards.length > 0">
         <PlayingCard
           v-for="(c, idx) in seat.cards"
@@ -25,9 +25,9 @@
 
     <!-- Avatar & Info Card -->
     <div
-      class="w-32 sm:w-36 rounded-lg border-3 border-[#1a1a1a] p-2.5 text-center transition-all relative font-mono"
+      class="w-28 xs:w-32 sm:w-36 rounded-lg border-2 sm:border-3 border-[#1a1a1a] p-2 sm:p-2.5 text-center transition-all relative font-mono"
       :class="[
-        isCurrentTurn ? 'bg-[#facc15] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]',
+        isCurrentTurn ? 'bg-[#facc15] shadow-[3px_3px_0px_0px_#1a1a1a] sm:shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] shadow-[2px_2px_0px_0px_#1a1a1a] sm:shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]',
         isHero ? 'ring-2 ring-[#ef4444]' : ''
       ]"
     >

@@ -294,25 +294,18 @@ const lastProfit = ref<number | null>(null)
 
 // 正在进行的骰子动效定时器
 let rollAnimInterval: ReturnType<typeof setInterval> | null = null
-let periodAtBetting = lotteryStore.sicboPeriod
 
-const currentResult = ref<SicBoRollResult>({
-  dice: [3, 4, 5],
-  sum: 12,
-  isBig: true,
-  isSmall: false,
-  isOdd: false,
-  isEven: true,
-  isTriple: false
-})
+const currentResult = ref<SicBoRollResult>(lotteryStore.sicboLastResult)
+const historyList = computed(() => lotteryStore.sicboHistory)
 
-const historyList = ref<SicBoRollResult[]>([
-  { dice: [4, 5, 6], sum: 15, isBig: true, isSmall: false, isOdd: true, isEven: false, isTriple: false },
-  { dice: [2, 3, 4], sum: 9, isBig: false, isSmall: true, isOdd: true, isEven: false, isTriple: false },
-  { dice: [5, 5, 5], sum: 15, isBig: false, isSmall: false, isOdd: true, isEven: false, isTriple: true },
-  { dice: [1, 2, 5], sum: 8, isBig: false, isSmall: true, isOdd: false, isEven: true, isTriple: false },
-  { dice: [3, 4, 5], sum: 12, isBig: true, isSmall: false, isOdd: false, isEven: true, isTriple: false }
-])
+watch(
+  () => lotteryStore.sicboLastResult,
+  (newRes) => {
+    if (!isRolling.value) {
+      currentResult.value = newRes
+    }
+  }
+)
 
 const totalBetAmount = computed(() => {
   return bets.value.reduce((acc, b) => acc + b.amount, 0)
@@ -337,7 +330,6 @@ function placeBet(type: SicBoBetType, value: number | undefined, name: string, o
   }
 
   sound.playChip()
-  periodAtBetting = lotteryStore.sicboPeriod
 
   const existing = bets.value.find(b => b.type === type && b.value === value)
   if (existing) {
@@ -388,16 +380,15 @@ watch(
 
 // 当期开奖结束，执行结算与记录
 async function handleScheduledDrawConclusion() {
-  const settledPeriod = periodAtBetting || lotteryStore.sicboPeriod
-  const result = lotteryStore.getSicboResultForPeriod(settledPeriod)
+  const settledPeriod = lotteryStore.sicboLastDrawnPeriod
+  const result = lotteryStore.sicboLastResult
   currentResult.value = result
-  historyList.value.unshift(result)
-  if (historyList.value.length > 15) historyList.value.pop()
 
-  // 广播全服公共频道开奖结果
+  // 广播全服公共频道开奖结果（去重ID保证全服仅通报一条）
   chatStore.sendSystemAnnouncement(
     'global_lottery',
-    `【猜大小】第 ${settledPeriod} 期开奖：[${result.dice.join(', ')}]，合计 ${result.sum} 点 (${result.isTriple ? '全围豹子' : result.isBig ? '大' : '小'} · ${result.isOdd ? '单' : '双'})！`
+    `【猜大小】第 ${settledPeriod} 期开奖：[${result.dice.join(', ')}]，合计 ${result.sum} 点 (${result.isTriple ? '全围豹子' : result.isBig ? '大' : '小'} · ${result.isOdd ? '单' : '双'})！`,
+    `ann_sicbo_${settledPeriod}`
   )
 
   if (bets.value.length > 0) {
