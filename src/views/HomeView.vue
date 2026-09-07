@@ -9,10 +9,10 @@
             <span>LUCKY 7 ARCADE · 现已开放 5 大热门玩法</span>
           </div>
           <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-black uppercase">
-            硬派工业竞技，<span class="bg-black text-[#ccff00] px-2 py-0.5 inline-block -rotate-1">极致纯粹爽快</span>
+            经典街机棋牌，<span class="bg-black text-[#ccff00] px-2 py-0.5 inline-block -rotate-1">畅享即刻开局</span>
           </h1>
           <p class="text-xs sm:text-sm text-black font-mono font-bold leading-relaxed">
-            涵盖炸金花、21点、德州扑克、猜大小与六合彩。支持 Supabase 行级联机对决、智能 AI 陪练与全服财富排行榜。
+            涵盖炸金花、21点、德州扑克、猜大小与六合彩。支持多人实时联机对决、智能 AI 陪练与全服财富排行榜。
           </p>
         </div>
 
@@ -47,7 +47,7 @@
             <span>热门游戏大厅</span>
             <span class="text-xs font-mono font-bold px-2 py-0.5 bg-black text-[#ccff00]">SELECT GAME</span>
           </h2>
-          <p class="text-xs text-black font-mono font-bold mt-1">选择经典游戏模式，开启硬派智勇对决</p>
+          <p class="text-xs text-black font-mono font-bold mt-1">选择经典游戏模式，开启精彩智勇博弈</p>
         </div>
       </div>
 
@@ -225,17 +225,17 @@
                 <Globe class="w-6 h-6" />
               </div>
               <span class="px-2.5 py-1 rounded-none bg-[#ccff00] text-black border-2 border-black text-[11px] font-black uppercase font-mono shadow-brutal-sm">
-                Supabase 联机
+                实时联机
               </span>
             </div>
             <h3 class="text-xl font-black text-black">
               在线联机房间大厅
             </h3>
             <p class="text-xs text-black font-mono mt-2 leading-relaxed font-medium">
-              全数据库行驱动（Database-driven）实时对战！创建房间、自定义底注、邀请好友实时落座同台较量。
+              支持多人在线即时匹配！自由创建专属对战房间、自定义底注门槛，随时邀请好友入座同台较量。
             </p>
             <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-black text-black bg-[#ccff00] p-2 border border-black">
-              <span>■ Supabase Realtime 活跃</span>
+              <span>■ 联机网络服务正常</span>
             </div>
           </div>
           <div class="mt-6 pt-4 border-t-2 border-black">

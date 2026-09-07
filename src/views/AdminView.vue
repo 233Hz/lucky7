@@ -7,7 +7,7 @@
       </div>
       <h2 class="text-3xl font-black text-black uppercase">无权访问管理后台</h2>
       <p class="text-xs sm:text-sm text-black max-w-lg mx-auto leading-relaxed font-bold">
-        当前账号未设置管理员权限。如需成为管理员，请在 Supabase SQL Editor 中执行如下命令：
+        当前账号未具备管理员访问权限。如需开通后台权限，请在后台控制台中执行如下授权命令：
       </p>
       <div class="p-3 rounded-none bg-[#ffffea] border-2 border-black font-mono text-xs text-black font-black max-w-md mx-auto overflow-x-auto shadow-brutal-sm">
         update public.profiles set is_admin = true where email = '{{ authStore.user?.email || '你的邮箱' }}';
