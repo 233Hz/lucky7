@@ -65,3 +65,22 @@ export interface RoomPlayer {
   joined_at?: string
   profile?: Profile
 }
+
+export interface SystemConfig {
+  key: string
+  value: Record<string, unknown>
+  updated_at?: string
+}
+
+export interface ChatMessageRow {
+  id: string
+  channel: string
+  sender_id: string
+  sender_name: string
+  sender_avatar?: string
+  is_system: boolean
+  is_host: boolean
+  content: string
+  created_at: string
+}
+

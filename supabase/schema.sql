@@ -74,13 +74,41 @@ create table if not exists public.room_players (
   user_id uuid references public.profiles(id) on delete cascade not null,
   seat int not null,
   chips bigint not null default 0,
-  status text not null default 'ready', -- 'ready', 'playing', 'folded', 'waiting'
+  status text not null default 'waiting', -- 'waiting' (须先准备), 'ready', 'playing', 'folded'
   hand jsonb default '[]'::jsonb,
   current_bet bigint not null default 0,
   joined_at timestamptz default now(),
   constraint unique_room_seat unique (room_id, seat),
   constraint unique_room_user unique (room_id, user_id)
 );
+
+-- 8. 系统全局配置表 (system_configs) - 存储全服开奖周期、运营参数等
+create table if not exists public.system_configs (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz default now()
+);
+
+-- 初始化默认开奖周期配置
+insert into public.system_configs (key, value)
+values ('lottery_cycles', '{"sicbo_seconds": 30, "marksix_seconds": 60}'::jsonb)
+on conflict (key) do nothing;
+
+-- 9. 聊天消息表 (chat_messages) - 支持全服公共开奖频道与房间专属私密聊天
+create table if not exists public.chat_messages (
+  id uuid default gen_random_uuid() primary key,
+  channel text not null, -- 'global_lottery' 或 'room_{room_id}'
+  sender_id text not null, -- user_id 或 'system'
+  sender_name text not null,
+  sender_avatar text default '',
+  is_system boolean not null default false,
+  is_host boolean not null default false,
+  content text not null,
+  created_at timestamptz default now()
+);
+
+-- 索引加速按频道与时间拉取最新消息
+create index if not exists idx_chat_messages_channel_created on public.chat_messages (channel, created_at desc);
 
 -- ==========================================================
 -- 触发器：用户注册时自动同步创建 profiles 记录并赠送初始金币
@@ -292,6 +320,8 @@ alter table public.chip_transactions enable row level security;
 alter table public.game_records enable row level security;
 alter table public.game_rooms enable row level security;
 alter table public.room_players enable row level security;
+alter table public.system_configs enable row level security;
+alter table public.chat_messages enable row level security;
 
 -- profiles: 允许公开读取排行榜与玩家基础信息，允许本人修改昵称/头像
 create policy "profiles_select_policy" on public.profiles for select using (true);
@@ -322,6 +352,18 @@ create policy "room_players_insert_policy" on public.room_players for insert wit
 create policy "room_players_update_policy" on public.room_players for update using (auth.uid() is not null);
 create policy "room_players_delete_policy" on public.room_players for delete using (auth.uid() = user_id);
 
+-- system_configs: 允许所有玩家查阅配置，仅管理员可编辑/修改
+create policy "system_configs_select_policy" on public.system_configs for select using (true);
+create policy "system_configs_write_policy" on public.system_configs for all using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
+
+-- chat_messages: 允许查阅所有频道聊天，允许登录玩家或系统发送消息
+create policy "chat_messages_select_policy" on public.chat_messages for select using (true);
+create policy "chat_messages_insert_policy" on public.chat_messages for insert with check (
+  auth.uid() is not null or is_system = true
+);
+
 -- ==========================================================
 -- 开启 Supabase 实时广播 Realtime 复制
 -- ==========================================================
@@ -329,9 +371,58 @@ alter publication supabase_realtime add table public.game_rooms;
 alter publication supabase_realtime add table public.room_players;
 alter publication supabase_realtime add table public.game_records;
 alter publication supabase_realtime add table public.profiles;
+alter publication supabase_realtime add table public.system_configs;
+alter publication supabase_realtime add table public.chat_messages;
 
 -- ==========================================================
 -- 便捷管理命令说明：
 -- 若需将某个注册账号设置为管理员，可在 SQL Editor 中执行：
 -- update public.profiles set is_admin = true where email = '你的注册邮箱@xxx.com';
 -- ==========================================================
+
+-- ==========================================================
+-- 增量升级迁移脚本（针对已有运行中旧数据库，复制以下代码直接执行即可）
+-- ==========================================================
+/*
+-- 1. 调整 room_players 默认状态为 waiting（未准备）
+alter table if exists public.room_players alter column status set default 'waiting';
+
+-- 2. 创建系统全局配置表
+create table if not exists public.system_configs (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz default now()
+);
+insert into public.system_configs (key, value)
+values ('lottery_cycles', '{"sicbo_seconds": 30, "marksix_seconds": 60}'::jsonb)
+on conflict (key) do nothing;
+alter table public.system_configs enable row level security;
+create policy "system_configs_select_policy" on public.system_configs for select using (true);
+create policy "system_configs_write_policy" on public.system_configs for all using (
+  exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)
+);
+
+-- 3. 创建聊天消息持久化表
+create table if not exists public.chat_messages (
+  id uuid default gen_random_uuid() primary key,
+  channel text not null,
+  sender_id text not null,
+  sender_name text not null,
+  sender_avatar text default '',
+  is_system boolean not null default false,
+  is_host boolean not null default false,
+  content text not null,
+  created_at timestamptz default now()
+);
+create index if not exists idx_chat_messages_channel_created on public.chat_messages (channel, created_at desc);
+alter table public.chat_messages enable row level security;
+create policy "chat_messages_select_policy" on public.chat_messages for select using (true);
+create policy "chat_messages_insert_policy" on public.chat_messages for insert with check (
+  auth.uid() is not null or is_system = true
+);
+
+-- 4. 开启实时监听
+alter publication supabase_realtime add table public.system_configs;
+alter publication supabase_realtime add table public.chat_messages;
+*/
+

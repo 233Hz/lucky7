@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import type { SicBoRollResult } from '@/games/sicbo/types'
 import type { MarkSixDrawResult } from '@/games/marksix/types'
 import { getBallWave, ZODIACS } from '@/games/marksix/engine'
@@ -27,6 +28,34 @@ export const useLotteryStore = defineStore('lottery', () => {
   const marksixCycleSeconds = ref<number>(
     Number(localStorage.getItem('lucky7_marksix_cycle')) || 60
   )
+
+  // 从数据库拉取全局开奖周期配置（如果已配置 Supabase）
+  async function fetchServerCycles() {
+    if (!isSupabaseConfigured()) return
+    try {
+      const { data, error } = await supabase
+        .from('system_configs')
+        .select('*')
+        .eq('key', 'lottery_cycles')
+        .single()
+
+      if (!error && data?.value) {
+        const val = data.value as { sicbo_seconds?: number; marksix_seconds?: number }
+        if (val.sicbo_seconds) {
+          sicboCycleSeconds.value = Number(val.sicbo_seconds)
+          localStorage.setItem('lucky7_sicbo_cycle', String(sicboCycleSeconds.value))
+        }
+        if (val.marksix_seconds) {
+          marksixCycleSeconds.value = Number(val.marksix_seconds)
+          localStorage.setItem('lucky7_marksix_cycle', String(marksixCycleSeconds.value))
+        }
+      }
+    } catch (err) {
+      console.warn('Fetch server lottery cycles error:', err)
+    }
+  }
+
+  fetchServerCycles()
 
   // 当前时钟秒数
   const currentTimestamp = ref<number>(Math.floor(Date.now() / 1000))
@@ -122,7 +151,7 @@ export const useLotteryStore = defineStore('lottery', () => {
   }
 
   // 管理后台更新周期配置
-  function updateCycles(sicboSeconds: number, marksixSeconds: number) {
+  async function updateCycles(sicboSeconds: number, marksixSeconds: number) {
     if (sicboSeconds >= 10) {
       sicboCycleSeconds.value = Math.floor(sicboSeconds)
       localStorage.setItem('lucky7_sicbo_cycle', String(sicboCycleSeconds.value))
@@ -130,6 +159,23 @@ export const useLotteryStore = defineStore('lottery', () => {
     if (marksixSeconds >= 15) {
       marksixCycleSeconds.value = Math.floor(marksixSeconds)
       localStorage.setItem('lucky7_marksix_cycle', String(marksixCycleSeconds.value))
+    }
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase
+          .from('system_configs')
+          .upsert({
+            key: 'lottery_cycles',
+            value: {
+              sicbo_seconds: sicboCycleSeconds.value,
+              marksix_seconds: marksixCycleSeconds.value
+            },
+            updated_at: new Date().toISOString()
+          })
+      } catch (err) {
+        console.warn('Update server lottery cycles error:', err)
+      }
     }
   }
 

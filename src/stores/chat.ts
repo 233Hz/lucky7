@@ -69,21 +69,48 @@ export const useChatStore = defineStore('chat', () => {
       }
     }
 
-    // 初始化 Supabase Realtime Broadcast 订阅
-    if (isSupabaseConfigured() && !realtimeChannels.has(channel)) {
-      try {
-        const sub = supabase
-          .channel(`chat_${channel}`)
-          .on('broadcast', { event: 'new_message' }, ({ payload }) => {
-            if (payload) {
-              appendMessageLocally(channel, payload as ChatMessage, false)
-            }
-          })
-          .subscribe()
+    // 初始化 Supabase 数据库拉取与 Realtime Broadcast 订阅
+    if (isSupabaseConfigured()) {
+      // 1. 从 chat_messages 表拉取最新历史记录
+      supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('channel', channel)
+        .order('created_at', { ascending: false })
+        .limit(40)
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) {
+            const dbMsgs: ChatMessage[] = data.reverse().map((r: any) => ({
+              id: r.id,
+              channel: r.channel,
+              senderId: r.sender_id,
+              senderName: r.sender_name,
+              senderAvatar: r.sender_avatar || '',
+              isSystem: Boolean(r.is_system),
+              isHost: Boolean(r.is_host),
+              content: r.content,
+              createdAt: r.created_at
+            }))
+            channelMessages.value[channel] = dbMsgs
+          }
+        })
 
-        realtimeChannels.set(channel, sub)
-      } catch (err) {
-        console.warn(`Supabase chat channel subscribe error for ${channel}:`, err)
+      // 2. 监听实时广播
+      if (!realtimeChannels.has(channel)) {
+        try {
+          const sub = supabase
+            .channel(`chat_${channel}`)
+            .on('broadcast', { event: 'new_message' }, ({ payload }) => {
+              if (payload) {
+                appendMessageLocally(channel, payload as ChatMessage, false)
+              }
+            })
+            .subscribe()
+
+          realtimeChannels.set(channel, sub)
+        } catch (err) {
+          console.warn(`Supabase chat channel subscribe error for ${channel}:`, err)
+        }
       }
     }
   }
@@ -138,7 +165,7 @@ export const useChatStore = defineStore('chat', () => {
         payload: msg
       })
 
-      // 2. Supabase 实时广播
+      // 2. Supabase 实时广播与持久化
       if (isSupabaseConfigured()) {
         const sub = realtimeChannels.get(channel)
         if (sub) {
@@ -148,6 +175,20 @@ export const useChatStore = defineStore('chat', () => {
             payload: msg
           })
         }
+
+        // 异步写入 chat_messages 表
+        supabase
+          .from('chat_messages')
+          .insert({
+            channel,
+            sender_id: msg.senderId,
+            sender_name: msg.senderName,
+            sender_avatar: msg.senderAvatar,
+            is_system: msg.isSystem || false,
+            is_host: msg.isHost || false,
+            content: msg.content
+          })
+          .then()
       }
     }
   }
