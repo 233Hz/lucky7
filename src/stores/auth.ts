@@ -224,6 +224,35 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // 修改密码
+  async function updatePassword(newPassword: string): Promise<{ success: boolean; message: string }> {
+    authError.value = null
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, message: '密码长度至少需要 6 个字符' }
+    }
+
+    if (!isSupabaseConfigured()) {
+      return { success: true, message: '密码修改成功（本地演示模式）！' }
+    }
+
+    try {
+      loading.value = true
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) {
+        return { success: false, message: error.message || '修改密码失败' }
+      }
+      return { success: true, message: '密码已成功更新，请妥善保存您的新密码！' }
+    } catch (err: unknown) {
+      const e = err as { message?: string }
+      return { success: false, message: e.message || '更新密码发生异常' }
+    } finally {
+      loading.value = false
+    }
+  }
+
   // 刷新最新余额
   async function refreshBalance() {
     if (profile.value && isSupabaseConfigured()) {
@@ -244,6 +273,7 @@ export const useAuthStore = defineStore('auth', () => {
     signIn,
     signOut,
     updateProfile,
+    updatePassword,
     refreshBalance
   }
 })

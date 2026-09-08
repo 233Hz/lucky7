@@ -64,6 +64,106 @@
       </form>
     </div>
 
+    <!-- Password Change Card -->
+    <div class="rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] space-y-4 text-[#1a1a1a]">
+      <div class="border-b-3 border-[#1a1a1a] pb-3 flex items-center justify-between">
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-[#1a1a1a] uppercase flex items-center gap-2">
+            <KeyRound class="w-5 h-5 text-[#1a1a1a]" />
+            <span>安全设置 · 修改登录密码 · PASSWORD</span>
+          </h3>
+          <p class="text-xs text-[#4a4a4a] font-bold mt-1">
+            更新账户登录密码，保障您的筹码资产与游戏记录安全。
+          </p>
+        </div>
+      </div>
+
+      <form @submit.prevent="handleChangePassword" class="max-w-xl space-y-4 pt-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- New Password -->
+          <div>
+            <label class="block text-xs font-black text-[#1a1a1a] uppercase mb-1 flex items-center justify-between">
+              <span>新密码</span>
+              <span class="text-[10px] text-[#4a4a4a] font-bold">(至少6位)</span>
+            </label>
+            <div class="relative">
+              <input
+                v-model="newPassword"
+                :type="showNewPassword ? 'text' : 'password'"
+                required
+                minlength="6"
+                placeholder="请输入新密码"
+                class="comic-input w-full pl-3.5 pr-10 py-2 text-xs font-bold"
+              />
+              <button
+                type="button"
+                @click="showNewPassword = !showNewPassword"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#4a4a4a] hover:text-[#1a1a1a]"
+                title="显示/隐藏密码"
+              >
+                <component :is="showNewPassword ? EyeOff : Eye" class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <!-- Confirm Password -->
+          <div>
+            <label class="block text-xs font-black text-[#1a1a1a] uppercase mb-1 flex items-center justify-between">
+              <span>确认新密码</span>
+              <span class="text-[10px] text-[#4a4a4a] font-bold">(再次输入)</span>
+            </label>
+            <div class="relative">
+              <input
+                v-model="confirmPassword"
+                :type="showConfirmPassword ? 'text' : 'password'"
+                required
+                minlength="6"
+                placeholder="请再次输入新密码"
+                class="comic-input w-full pl-3.5 pr-10 py-2 text-xs font-bold"
+              />
+              <button
+                type="button"
+                @click="showConfirmPassword = !showConfirmPassword"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#4a4a4a] hover:text-[#1a1a1a]"
+                title="显示/隐藏密码"
+              >
+                <component :is="showConfirmPassword ? EyeOff : Eye" class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alert messages -->
+        <div
+          v-if="passwordError"
+          class="p-2.5 rounded bg-[#fee2e2] border-2 border-[#ef4444] text-xs font-bold text-[#991b1b] flex items-center gap-2"
+        >
+          <AlertCircle class="w-4 h-4 flex-shrink-0 text-[#ef4444]" />
+          <span>{{ passwordError }}</span>
+        </div>
+
+        <div
+          v-if="passwordSuccess"
+          class="p-2.5 rounded bg-[#dcfce7] border-2 border-[#22c55e] text-xs font-black text-[#166534] flex items-center gap-2"
+        >
+          <Check class="w-4 h-4 flex-shrink-0 text-[#22c55e]" />
+          <span>{{ passwordSuccess }}</span>
+        </div>
+
+        <div class="pt-1">
+          <button
+            v-prevent-reclick
+            type="submit"
+            :disabled="isChangingPassword || !newPassword || !confirmPassword"
+            class="comic-btn-yellow px-6 py-2.5 text-xs font-black flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <KeyRound class="w-3.5 h-3.5" />
+            <span>{{ isChangingPassword ? '正在更新密码...' : '确认修改密码 · UPDATE' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
     <!-- Chip Transactions History -->
     <div class="rounded-lg bg-white border-4 border-[#1a1a1a] p-6 shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] space-y-4 text-[#1a1a1a]">
       <div class="flex items-center justify-between border-b-3 border-[#1a1a1a] pb-3">
@@ -114,7 +214,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { CreditCard, RotateCw, LogOut } from 'lucide-vue-next'
+import { CreditCard, RotateCw, LogOut, KeyRound, Eye, EyeOff, Check, AlertCircle } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import CoinIcon from '@/components/common/CoinIcon.vue'
@@ -140,6 +240,47 @@ onMounted(() => {
 const isSaving = ref(false)
 const isSigningOut = ref(false)
 const isRefreshing = ref(false)
+
+// 密码修改相关状态
+const newPassword = ref('')
+const confirmPassword = ref('')
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+const isChangingPassword = ref(false)
+const passwordError = ref('')
+const passwordSuccess = ref('')
+
+async function handleChangePassword() {
+  passwordError.value = ''
+  passwordSuccess.value = ''
+
+  if (newPassword.value.length < 6) {
+    passwordError.value = '新密码长度至少需要 6 个字符'
+    return
+  }
+
+  if (newPassword.value !== confirmPassword.value) {
+    passwordError.value = '两次输入的新密码不一致，请核对后重试'
+    return
+  }
+
+  isChangingPassword.value = true
+  try {
+    const res = await authStore.updatePassword(newPassword.value)
+    if (res.success) {
+      passwordSuccess.value = res.message || '密码已成功更新！'
+      newPassword.value = ''
+      confirmPassword.value = ''
+      setTimeout(() => {
+        passwordSuccess.value = ''
+      }, 5000)
+    } else {
+      passwordError.value = res.message || '修改密码失败，请稍后重试'
+    }
+  } finally {
+    isChangingPassword.value = false
+  }
+}
 
 async function handleSaveProfile() {
   if (isSaving.value || !editNickname.value.trim()) return
