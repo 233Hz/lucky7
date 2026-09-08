@@ -48,6 +48,10 @@ export const useLotteryStore = defineStore('lottery', () => {
   const marksixCycleSeconds = ref<number>(
     Number(localStorage.getItem('lucky7_marksix_cycle')) || 60
   )
+  // 往期历史开奖展示期数配置（期），默认 10 期
+  const historyLimit = ref<number>(
+    Number(localStorage.getItem('lucky7_history_limit')) || 10
+  )
 
   // 封盘开奖动效时长（秒）
   const DRAWING_WINDOW_SECONDS = 4
@@ -74,6 +78,10 @@ export const useLotteryStore = defineStore('lottery', () => {
             marksixCycleSeconds.value = Number(payload.marksix_seconds)
             localStorage.setItem('lucky7_marksix_cycle', String(marksixCycleSeconds.value))
           }
+          if (payload.history_limit && Number(payload.history_limit) !== historyLimit.value) {
+            historyLimit.value = Number(payload.history_limit)
+            localStorage.setItem('lucky7_history_limit', String(historyLimit.value))
+          }
         }
       }
     } catch (e) {
@@ -89,6 +97,9 @@ export const useLotteryStore = defineStore('lottery', () => {
       }
       if (e.key === 'lucky7_marksix_cycle' && e.newValue) {
         marksixCycleSeconds.value = Number(e.newValue)
+      }
+      if (e.key === 'lucky7_history_limit' && e.newValue) {
+        historyLimit.value = Number(e.newValue)
       }
     })
   }
@@ -109,7 +120,7 @@ export const useLotteryStore = defineStore('lottery', () => {
             filter: 'key=eq.lottery_cycles'
           },
           (payload) => {
-            const val = (payload.new as { value?: { sicbo_seconds?: number; marksix_seconds?: number } })?.value
+            const val = (payload.new as { value?: { sicbo_seconds?: number; marksix_seconds?: number; history_limit?: number } })?.value
             if (val) {
               if (val.sicbo_seconds && Number(val.sicbo_seconds) !== sicboCycleSeconds.value) {
                 sicboCycleSeconds.value = Number(val.sicbo_seconds)
@@ -119,13 +130,22 @@ export const useLotteryStore = defineStore('lottery', () => {
                 marksixCycleSeconds.value = Number(val.marksix_seconds)
                 localStorage.setItem('lucky7_marksix_cycle', String(marksixCycleSeconds.value))
               }
-              lotteryBroadcast?.postMessage({
-                type: 'CYCLES_UPDATED',
-                payload: {
-                  sicbo_seconds: sicboCycleSeconds.value,
-                  marksix_seconds: marksixCycleSeconds.value
-                }
-              })
+              if (val.history_limit && Number(val.history_limit) !== historyLimit.value) {
+                historyLimit.value = Number(val.history_limit)
+                localStorage.setItem('lucky7_history_limit', String(historyLimit.value))
+              }
+              try {
+                lotteryBroadcast?.postMessage({
+                  type: 'CYCLES_UPDATED',
+                  payload: {
+                    sicbo_seconds: sicboCycleSeconds.value,
+                    marksix_seconds: marksixCycleSeconds.value,
+                    history_limit: historyLimit.value
+                  }
+                })
+              } catch (err) {
+                console.warn('BroadcastChannel error:', err)
+              }
             }
           }
         )
@@ -145,7 +165,7 @@ export const useLotteryStore = defineStore('lottery', () => {
         .maybeSingle()
 
       if (!error && data?.value) {
-        const val = data.value as { sicbo_seconds?: number; marksix_seconds?: number }
+        const val = data.value as { sicbo_seconds?: number; marksix_seconds?: number; history_limit?: number }
         if (val.sicbo_seconds) {
           sicboCycleSeconds.value = Number(val.sicbo_seconds)
           localStorage.setItem('lucky7_sicbo_cycle', String(sicboCycleSeconds.value))
@@ -153,6 +173,10 @@ export const useLotteryStore = defineStore('lottery', () => {
         if (val.marksix_seconds) {
           marksixCycleSeconds.value = Number(val.marksix_seconds)
           localStorage.setItem('lucky7_marksix_cycle', String(marksixCycleSeconds.value))
+        }
+        if (val.history_limit) {
+          historyLimit.value = Number(val.history_limit)
+          localStorage.setItem('lucky7_history_limit', String(historyLimit.value))
         }
       }
       subscribeToServerConfig()
@@ -222,14 +246,16 @@ export const useLotteryStore = defineStore('lottery', () => {
     return getSicboResultForPeriod(sicboLastDrawnPeriod.value)
   })
 
-  // 全服统一的历史开奖记录列表（最近 10 期，开箱即同）
+  // 全服统一的历史开奖记录列表（根据配置的 historyLimit 期数生成，开箱即同）
   const sicboHistory = computed<SicBoRollResult[]>(() => {
     const cycle = Math.max(10, sicboCycleSeconds.value)
     const currentIdx = sicboCurrentIndex.value
+    const limit = Math.min(50, Math.max(5, historyLimit.value || 10))
     const list: SicBoRollResult[] = []
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= limit; i++) {
       const p = getUtcPeriodString(currentIdx - i, cycle)
-      list.push(getSicboResultForPeriod(p))
+      const res = getSicboResultForPeriod(p)
+      list.push({ ...res, period: p })
     }
     return list
   })
@@ -295,8 +321,9 @@ export const useLotteryStore = defineStore('lottery', () => {
   const marksixHistory = computed<MarkSixDrawResult[]>(() => {
     const cycle = Math.max(15, marksixCycleSeconds.value)
     const currentIdx = marksixCurrentIndex.value
+    const limit = Math.min(50, Math.max(5, historyLimit.value || 10))
     const list: MarkSixDrawResult[] = []
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= limit; i++) {
       const p = getUtcPeriodString(currentIdx - i, cycle)
       list.push(getMarksixResultForPeriod(p))
     }
@@ -306,7 +333,7 @@ export const useLotteryStore = defineStore('lottery', () => {
   // ==========================================
   // --- 管理后台更新周期配置（多端秒级同步） ---
   // ==========================================
-  async function updateCycles(sicboSeconds: number, marksixSeconds: number) {
+  async function updateCycles(sicboSeconds: number, marksixSeconds: number, historyCount?: number) {
     if (sicboSeconds >= 10) {
       sicboCycleSeconds.value = Math.floor(sicboSeconds)
       localStorage.setItem('lucky7_sicbo_cycle', String(sicboCycleSeconds.value))
@@ -315,15 +342,24 @@ export const useLotteryStore = defineStore('lottery', () => {
       marksixCycleSeconds.value = Math.floor(marksixSeconds)
       localStorage.setItem('lucky7_marksix_cycle', String(marksixCycleSeconds.value))
     }
+    if (historyCount && historyCount >= 5 && historyCount <= 50) {
+      historyLimit.value = Math.floor(historyCount)
+      localStorage.setItem('lucky7_history_limit', String(historyLimit.value))
+    }
 
     // 1. 跨标签页即时同步
-    lotteryBroadcast?.postMessage({
-      type: 'CYCLES_UPDATED',
-      payload: {
-        sicbo_seconds: sicboCycleSeconds.value,
-        marksix_seconds: marksixCycleSeconds.value
-      }
-    })
+    try {
+      lotteryBroadcast?.postMessage({
+        type: 'CYCLES_UPDATED',
+        payload: {
+          sicbo_seconds: sicboCycleSeconds.value,
+          marksix_seconds: marksixCycleSeconds.value,
+          history_limit: historyLimit.value
+        }
+      })
+    } catch (e) {
+      console.warn('BroadcastChannel postMessage error:', e)
+    }
 
     // 2. Supabase 云端广播与持久化
     if (isSupabaseConfigured()) {
@@ -334,7 +370,8 @@ export const useLotteryStore = defineStore('lottery', () => {
             key: 'lottery_cycles',
             value: {
               sicbo_seconds: sicboCycleSeconds.value,
-              marksix_seconds: marksixCycleSeconds.value
+              marksix_seconds: marksixCycleSeconds.value,
+              history_limit: historyLimit.value
             },
             updated_at: new Date().toISOString()
           })
@@ -366,6 +403,7 @@ export const useLotteryStore = defineStore('lottery', () => {
   return {
     sicboCycleSeconds,
     marksixCycleSeconds,
+    historyLimit,
     sicboRemainingSeconds,
     sicboPeriod,
     isSicboDrawing,

@@ -76,9 +76,20 @@
             <span class="text-xs font-black text-[#1a1a1a] uppercase tracking-wider flex items-center gap-1.5">
               <span>上一期开奖结果</span>
             </span>
-            <span class="text-[10px] font-bold font-mono px-2 py-0.5 bg-[#facc15] border border-[#1a1a1a] rounded text-[#1a1a1a]">
-              第 {{ lotteryStore.sicboLastDrawnPeriod }} 期
-            </span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 bg-[#facc15] border border-[#1a1a1a] rounded text-[#1a1a1a]">
+                第 {{ lotteryStore.sicboLastDrawnPeriod }} 期
+              </span>
+              <button
+                v-prevent-reclick
+                @click="showHistoryModal = true"
+                class="comic-btn-yellow px-2 py-0.5 text-[10px] font-black flex items-center gap-1 shadow-[1px_1px_0px_0px_#1a1a1a]"
+                title="查看往期历史开奖结果"
+              >
+                <History class="w-3 h-3" />
+                <span>往期({{ lotteryStore.historyLimit }})</span>
+              </button>
+            </div>
           </div>
 
           <!-- 上一期骰子与属性展示 -->
@@ -409,13 +420,71 @@
         </div>
       </template>
     </Modal>
+
+    <!-- 往期历史开奖弹窗 (近 X 期) -->
+    <Modal v-model="showHistoryModal" :title="`猜大小 · 历史开奖记录 (近 ${lotteryStore.historyLimit} 期)`">
+      <div class="space-y-3 font-mono">
+        <div class="flex items-center justify-between px-3 py-2 bg-[#fffef0] rounded-lg border-2 border-[#1a1a1a] text-xs">
+          <span class="font-black text-[#1a1a1a]">全服统一确定性算法生成 · 实时同步验证</span>
+          <span class="font-bold text-[#4a4a4a]">共 {{ lotteryStore.sicboHistory.length }} 条记录</span>
+        </div>
+
+        <!-- 历史列表 -->
+        <div class="max-h-[380px] overflow-y-auto space-y-2 pr-1">
+          <div
+            v-for="item in lotteryStore.sicboHistory"
+            :key="item.period"
+            class="flex items-center justify-between p-2.5 rounded-lg border-2 border-[#1a1a1a] bg-white shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] hover:bg-[#fffef0] transition-colors"
+          >
+            <!-- 期号与骰子 -->
+            <div class="flex items-center space-x-2.5">
+              <span class="text-xs font-black text-[#1a1a1a] bg-[#facc15] px-1.5 py-0.5 border border-[#1a1a1a] rounded text-[11px]">
+                第 {{ item.period }} 期
+              </span>
+              <!-- 3 颗骰子 -->
+              <div class="flex items-center space-x-1">
+                <div
+                  v-for="(d, dIdx) in item.dice"
+                  :key="dIdx"
+                  class="w-6 h-6 rounded bg-[#fffef0] border border-[#1a1a1a] flex items-center justify-center font-mono font-black text-xs text-[#1a1a1a]"
+                >
+                  {{ d }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 点数与属性标签 -->
+            <div class="flex items-center space-x-1.5 text-xs font-black">
+              <span class="font-black text-[#1a1a1a]">{{ item.sum }}点</span>
+              <span
+                class="px-1.5 py-0.5 rounded border border-[#1a1a1a] text-[10px]"
+                :class="item.isTriple ? 'bg-[#facc15] text-[#1a1a1a]' : item.isBig ? 'bg-[#ef4444] text-white' : 'bg-[#3b82f6] text-white'"
+              >
+                {{ item.isTriple ? '全围' : item.isBig ? '大' : '小' }}
+              </span>
+              <span class="px-1.5 py-0.5 rounded border border-[#1a1a1a] text-[10px] bg-[#1a1a1a] text-white">
+                {{ item.isOdd ? '单' : '双' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <button
+          @click="showHistoryModal = false"
+          class="comic-btn-white w-full py-2.5 text-xs font-black"
+        >
+          关闭窗口
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import confetti from 'canvas-confetti'
-import { Dices, ArrowLeft, Crown, Clock, CheckCircle, AlertTriangle } from 'lucide-vue-next'
+import { Dices, ArrowLeft, Crown, Clock, CheckCircle, AlertTriangle, History } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { useLotteryStore } from '@/stores/lottery'
@@ -437,6 +506,7 @@ const chatStore = useChatStore()
 const gameScheduleStore = useGameScheduleStore()
 
 const scheduleState = computed(() => gameScheduleStore.checkGameOpen('sicbo'))
+const showHistoryModal = ref(false)
 
 const pointOdds = POINT_ODDS
 const selectedChip = ref<number>(100)

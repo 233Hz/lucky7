@@ -16,6 +16,7 @@ export interface SicBoBetItem {
 }
 
 export interface SicBoRollResult {
+  period?: string
   dice: [number, number, number]
   sum: number
   isBig: boolean

@@ -70,16 +70,16 @@
         <div class="flex items-center justify-between border-b-3 border-[#1a1a1a] pb-3">
           <div class="flex items-center gap-2">
             <Timer class="w-5 h-5 text-[#1a1a1a]" />
-            <h2 class="text-base font-black text-[#1a1a1a] uppercase">全服游戏开奖周期配置 · LOTTERY TIMER</h2>
+            <h2 class="text-base font-black text-[#1a1a1a] uppercase">全服开奖周期与历史展示配置 · LOTTERY TIMER & HISTORY</h2>
           </div>
           <span class="px-2.5 py-0.5 rounded-md bg-[#facc15] border-2 border-[#1a1a1a] text-xs font-black shadow-[2px_2px_0px_0px_#1a1a1a]">
             实时全服生效
           </span>
         </div>
         <p class="text-xs text-[#4a4a4a] font-bold">
-          配置“猜大小”与“猜六合彩”全服定时开奖的循环周期。所有客户端将严格根据此配置同步倒计时与期号。
+          配置“猜大小”与“猜六合彩”全服定时开奖的循环周期，以及前台「上一期开奖结果」弹窗允许查看的历史期数 (X 期)。所有客户端将严格根据此配置同步。
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <!-- 猜大小周期 -->
           <div class="p-4 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_#1a1a1a] space-y-2">
             <div class="flex items-center justify-between">
@@ -145,11 +145,44 @@
               </button>
             </div>
           </div>
+
+          <!-- 往期历史开奖展示期数配置 (X 期) -->
+          <div class="p-4 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_#1a1a1a] space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-[#1a1a1a]">往期开奖历史展示期数</span>
+              <span class="text-xs font-mono font-black text-[#1a1a1a] bg-[#facc15] px-2 py-0.5 rounded-md border-2 border-[#1a1a1a]">
+                当前: {{ lotteryStore.historyLimit }} 期
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                v-model.number="editHistoryLimit"
+                type="number"
+                min="5"
+                max="50"
+                step="5"
+                class="comic-input flex-1 px-3 py-1.5 text-xs font-mono font-black"
+              />
+              <span class="text-xs font-black">期</span>
+            </div>
+            <div class="flex items-center gap-1.5 pt-1">
+              <button
+                v-for="cnt in [10, 15, 20, 30]"
+                :key="cnt"
+                type="button"
+                @click="editHistoryLimit = cnt"
+                class="px-2 py-1 text-[11px] font-mono font-black border-2 border-[#1a1a1a] rounded-md transition-all"
+                :class="editHistoryLimit === cnt ? 'bg-[#facc15] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'bg-white hover:bg-[#fffef0]'"
+              >
+                {{ cnt }}期
+              </button>
+            </div>
+          </div>
         </div>
         <div class="flex items-center justify-between pt-2">
           <span v-if="cycleSaveSuccess" class="text-xs font-black text-[#22c55e] flex items-center gap-1">
             <Check class="w-4 h-4" />
-            <span>开奖周期配置已成功更新并保存！</span>
+            <span>周期与历史配置已成功更新并保存！</span>
           </span>
           <span v-else></span>
           <button
@@ -159,7 +192,7 @@
             class="comic-btn-yellow px-6 py-2 text-xs flex items-center gap-1.5 disabled:opacity-50"
           >
             <Check class="w-4 h-4" />
-            <span>{{ isSavingCycles ? '保存配置中...' : '保存开奖周期配置' }}</span>
+            <span>{{ isSavingCycles ? '保存配置中...' : '保存周期与历史配置' }}</span>
           </button>
         </div>
       </div>
@@ -592,9 +625,10 @@ async function handleSaveSchedule(gameId: GameModeId) {
   }
 }
 
-// 开奖周期配置响应式编辑状态（自动与 Store 保持双向秒级同步，免去刷新）
+// 开奖周期与历史展示期数配置响应式编辑状态（自动与 Store 保持双向秒级同步，免去刷新）
 const editSicboCycle = ref(lotteryStore.sicboCycleSeconds)
 const editMarksixCycle = ref(lotteryStore.marksixCycleSeconds)
+const editHistoryLimit = ref(lotteryStore.historyLimit)
 const cycleSaveSuccess = ref(false)
 
 watch(
@@ -609,6 +643,14 @@ watch(
   () => lotteryStore.marksixCycleSeconds,
   (newVal) => {
     editMarksixCycle.value = newVal
+  },
+  { immediate: true }
+)
+
+watch(
+  () => lotteryStore.historyLimit,
+  (newVal) => {
+    editHistoryLimit.value = newVal
   },
   { immediate: true }
 )
@@ -727,7 +769,7 @@ async function saveLotteryCycles() {
   if (isSavingCycles.value) return
   isSavingCycles.value = true
   try {
-    await lotteryStore.updateCycles(editSicboCycle.value, editMarksixCycle.value)
+    await lotteryStore.updateCycles(editSicboCycle.value, editMarksixCycle.value, editHistoryLimit.value)
     cycleSaveSuccess.value = true
     setTimeout(() => {
       cycleSaveSuccess.value = false

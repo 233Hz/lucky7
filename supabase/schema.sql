@@ -89,9 +89,9 @@ create table if not exists public.system_configs (
   updated_at timestamptz default now()
 );
 
--- 初始化默认开奖周期配置
+-- 初始化默认开奖周期与往期历史展示期数配置
 insert into public.system_configs (key, value)
-values ('lottery_cycles', '{"sicbo_seconds": 30, "marksix_seconds": 60}'::jsonb)
+values ('lottery_cycles', '{"sicbo_seconds": 30, "marksix_seconds": 60, "history_limit": 10}'::jsonb)
 on conflict (key) do nothing;
 
 -- 初始化全服游戏模式开启时间与状态配置
