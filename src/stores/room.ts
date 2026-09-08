@@ -88,6 +88,15 @@ export const useRoomStore = defineStore('room', () => {
     }
   }
 
+  function safeBroadcast(msg: unknown) {
+    if (!broadcastChannel) return
+    try {
+      broadcastChannel.postMessage(JSON.parse(JSON.stringify(msg)))
+    } catch (e) {
+      console.warn('Room BroadcastChannel error:', e)
+    }
+  }
+
   // Getters
   const isHost = computed(() => {
     if (!currentRoom.value || !authStore.profile) return false
@@ -202,11 +211,11 @@ export const useRoomStore = defineStore('room', () => {
       roomPlayers.value = [hostPlayer]
 
       activeRooms.value.unshift(newRoom)
-      broadcastChannel?.postMessage({
+      safeBroadcast({
         type: 'ROOM_LIST_UPDATE',
         payload: activeRooms.value
       })
-      broadcastChannel?.postMessage({
+      safeBroadcast({
         type: 'ROOM_STATE_UPDATE',
         payload: { room: newRoom, players: roomPlayers.value }
       })
@@ -273,7 +282,7 @@ export const useRoomStore = defineStore('room', () => {
           profile: authStore.profile
         }
         roomPlayers.value.push(newPlayer)
-        broadcastChannel?.postMessage({
+        safeBroadcast({
           type: 'PLAYER_JOINED',
           payload: { roomId: room.id, player: newPlayer }
         })
@@ -324,7 +333,7 @@ export const useRoomStore = defineStore('room', () => {
         .eq('room_id', currentRoom.value.id)
         .eq('user_id', targetId)
     } else {
-      broadcastChannel?.postMessage({
+      safeBroadcast({
         type: 'ROOM_STATE_UPDATE',
         payload: { room: currentRoom.value, players: roomPlayers.value }
       })
@@ -352,11 +361,11 @@ export const useRoomStore = defineStore('room', () => {
         .update({ status: 'playing' })
         .eq('room_id', currentRoom.value.id)
     } else {
-      broadcastChannel?.postMessage({
+      safeBroadcast({
         type: 'GAME_STARTED',
         payload: { roomId: currentRoom.value.id }
       })
-      broadcastChannel?.postMessage({
+      safeBroadcast({
         type: 'ROOM_STATE_UPDATE',
         payload: { room: currentRoom.value, players: roomPlayers.value }
       })
@@ -391,7 +400,7 @@ export const useRoomStore = defineStore('room', () => {
       }
     }
 
-    broadcastChannel?.postMessage({
+    safeBroadcast({
       type: 'ROOM_STATE_UPDATE',
       payload: { room: currentRoom.value, players: roomPlayers.value }
     })
@@ -427,7 +436,7 @@ export const useRoomStore = defineStore('room', () => {
       }
     }
     roomPlayers.value.push(testPlayer)
-    broadcastChannel?.postMessage({
+    safeBroadcast({
       type: 'ROOM_STATE_UPDATE',
       payload: { room: currentRoom.value, players: roomPlayers.value }
     })
@@ -455,11 +464,11 @@ export const useRoomStore = defineStore('room', () => {
       roomPlayers.value = []
     }
 
-    broadcastChannel?.postMessage({
+    safeBroadcast({
       type: 'ROOM_DESTROYED',
       payload: { roomId }
     })
-    broadcastChannel?.postMessage({
+    safeBroadcast({
       type: 'ROOM_LIST_UPDATE',
       payload: activeRooms.value
     })
@@ -488,11 +497,11 @@ export const useRoomStore = defineStore('room', () => {
       }
     }
 
-    broadcastChannel?.postMessage({
+    safeBroadcast({
       type: 'PLAYER_KICKED',
       payload: { roomId, userId }
     })
-    broadcastChannel?.postMessage({
+    safeBroadcast({
       type: 'ROOM_STATE_UPDATE',
       payload: { room: currentRoom.value, players: roomPlayers.value }
     })
@@ -511,7 +520,7 @@ export const useRoomStore = defineStore('room', () => {
       kickPlayer(userId)
     } else {
       roomPlayers.value = roomPlayers.value.filter(p => p.user_id !== userId)
-      broadcastChannel?.postMessage({
+      safeBroadcast({
         type: 'ROOM_STATE_UPDATE',
         payload: { room: currentRoom.value, players: roomPlayers.value }
       })
@@ -662,11 +671,11 @@ export const useRoomStore = defineStore('room', () => {
         if (currentRoom.value.host_id === currentUserId) {
           currentRoom.value.host_id = remainingPlayers[0].user_id
         }
-        broadcastChannel?.postMessage({
+        safeBroadcast({
           type: 'PLAYER_LEFT',
           payload: { roomId, userId: currentUserId }
         })
-        broadcastChannel?.postMessage({
+        safeBroadcast({
           type: 'ROOM_STATE_UPDATE',
           payload: { room: currentRoom.value, players: remainingPlayers }
         })

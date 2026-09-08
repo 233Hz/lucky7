@@ -547,17 +547,27 @@ function isTimeLocked(gameId: GameModeId): boolean {
 }
 
 async function handleCloseActivity(gameId: GameModeId) {
-  if (gameId === 'sicbo' || gameId === 'marksix') {
-    const period = gameId === 'sicbo' ? lotteryStore.sicboPeriod : lotteryStore.marksixPeriod
-    await gameScheduleStore.requestCloseActivity(gameId, period)
-    alert(`已向【${gameScheduleStore.schedules[gameId].name}】下达关停指令！\n\n当前期（${period}）未结束的开奖将照常进行并完成结算，结算完毕后将自动正式关闭活动。`)
-  } else {
-    await gameScheduleStore.requestCloseActivity(gameId)
+  try {
+    if (gameId === 'sicbo' || gameId === 'marksix') {
+      const period = gameId === 'sicbo' ? lotteryStore.sicboPeriod : lotteryStore.marksixPeriod
+      await gameScheduleStore.requestCloseActivity(gameId, period)
+      alert(`已向【${gameScheduleStore.schedules[gameId].name}】下达关停指令！\n\n当前期（${period}）未结束的开奖将照常进行并完成结算，结算完毕后将自动正式关闭活动。`)
+    } else {
+      await gameScheduleStore.requestCloseActivity(gameId)
+    }
+  } catch (err: unknown) {
+    const e = err as { message?: string }
+    alert(e.message || '关停活动失败')
   }
 }
 
 async function handleReopenActivity(gameId: GameModeId) {
-  await gameScheduleStore.reopenActivity(gameId)
+  try {
+    await gameScheduleStore.reopenActivity(gameId)
+  } catch (err: unknown) {
+    const e = err as { message?: string }
+    alert(e.message || '开启活动失败')
+  }
 }
 
 async function handleSaveSchedule(gameId: GameModeId) {

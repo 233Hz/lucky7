@@ -178,6 +178,16 @@ export const useGameScheduleStore = defineStore('gameSchedule', () => {
     }
   }
 
+  // 安全广播函数（通过序列化彻底剔除 Vue 响应式 Proxy 与无法 clone 的对象，防止 structuredClone 报错）
+  function safeBroadcast(msg: unknown) {
+    if (!broadcast) return
+    try {
+      broadcast.postMessage(JSON.parse(JSON.stringify(msg)))
+    } catch (e) {
+      console.warn('Game schedules BroadcastChannel postMessage error:', e)
+    }
+  }
+
   // Supabase 实时监听
   let scheduleChannel: RealtimeChannel | null = null
   function subscribeToServerConfig() {
@@ -198,7 +208,7 @@ export const useGameScheduleStore = defineStore('gameSchedule', () => {
             if (val) {
               schedules.value = { ...schedules.value, ...val }
               localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules.value))
-              broadcast?.postMessage({
+              safeBroadcast({
                 type: 'SCHEDULES_UPDATED',
                 payload: schedules.value
               })
@@ -235,11 +245,12 @@ export const useGameScheduleStore = defineStore('gameSchedule', () => {
 
   // 内部辅助：保存并同步全服配置
   async function commitSchedules() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules.value))
+    const plainSchedules = JSON.parse(JSON.stringify(schedules.value))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(plainSchedules))
 
-    broadcast?.postMessage({
+    safeBroadcast({
       type: 'SCHEDULES_UPDATED',
-      payload: schedules.value
+      payload: plainSchedules
     })
 
     if (isSupabaseConfigured()) {
@@ -248,7 +259,7 @@ export const useGameScheduleStore = defineStore('gameSchedule', () => {
           .from('system_configs')
           .upsert({
             key: 'game_schedules',
-            value: schedules.value,
+            value: plainSchedules,
             updated_at: new Date().toISOString()
           })
       } catch (err) {
