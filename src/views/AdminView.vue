@@ -164,6 +164,182 @@
         </div>
       </div>
 
+      <!-- Game Modes Schedule & Activity Controls Card -->
+      <div class="rounded-lg bg-white border-4 border-[#1a1a1a] p-6 shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b-3 border-[#1a1a1a] pb-3 gap-2">
+          <div class="flex items-center gap-2">
+            <Timer class="w-5 h-5 text-[#1a1a1a]" />
+            <h2 class="text-base font-black text-[#1a1a1a] uppercase">全服游戏模式运营与开启时间配置 · GAME MODES SCHEDULE</h2>
+          </div>
+          <span class="px-2.5 py-0.5 rounded-md bg-[#22c55e] text-[#1a1a1a] border-2 border-[#1a1a1a] text-xs font-black shadow-[2px_2px_0px_0px_#1a1a1a] self-start sm:self-auto">
+            多端实时同步
+          </span>
+        </div>
+
+        <p class="text-xs text-[#4a4a4a] font-bold">
+          配置全服 5 大游戏模式的活动运营状态与开放时间。支持全天 24 小时开放或每日自定义固定营业时段。
+          <br />
+          <span class="text-[#ef4444] font-black">重要规则：猜大小和猜六合彩修改开启时间时，必须先关闭活动；关闭后当前正在开奖的期号会继续完成摇奖结算，结算完成后才正式关闭并解锁时间修改。</span>
+        </p>
+
+        <!-- 5 Modes Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1">
+          <div
+            v-for="g in gameModeList"
+            :key="g.id"
+            class="p-4 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[4px_4px_0px_0px_#1a1a1a] space-y-3.5 flex flex-col justify-between"
+          >
+            <!-- Card Header: Icon, Name & Current Status -->
+            <div class="flex items-start justify-between gap-2 border-b-2 border-[#1a1a1a] pb-2.5">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 rounded-md bg-[#facc15] border-2 border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]">
+                  <component :is="g.icon" class="w-5 h-5" />
+                </div>
+                <div>
+                  <div class="text-xs font-black text-[#1a1a1a]">{{ g.name }}</div>
+                  <div class="text-[10px] text-[#4a4a4a] font-bold">{{ g.desc }}</div>
+                </div>
+              </div>
+
+              <!-- Status Badge -->
+              <div class="flex items-center">
+                <span
+                  v-if="gameScheduleStore.schedules[g.id]?.status === 'open'"
+                  class="px-2 py-0.5 rounded text-[11px] font-black bg-[#22c55e] text-[#1a1a1a] border-2 border-[#1a1a1a] shadow-[1px_1px_0px_0px_#1a1a1a]"
+                >
+                  🟢 营业中
+                </span>
+                <span
+                  v-else-if="gameScheduleStore.schedules[g.id]?.status === 'closing'"
+                  class="px-2 py-0.5 rounded text-[11px] font-black bg-[#facc15] text-[#1a1a1a] border-2 border-[#1a1a1a] shadow-[1px_1px_0px_0px_#1a1a1a] animate-pulse"
+                >
+                  🟡 关停过渡中
+                </span>
+                <span
+                  v-else
+                  class="px-2 py-0.5 rounded text-[11px] font-black bg-[#ef4444] text-white border-2 border-[#1a1a1a] shadow-[1px_1px_0px_0px_#1a1a1a]"
+                >
+                  ⚫ 已关闭
+                </span>
+              </div>
+            </div>
+
+            <!-- Activity Switch Control -->
+            <div class="flex items-center justify-between p-2 rounded bg-white border-2 border-[#1a1a1a]">
+              <span class="text-xs font-black text-[#1a1a1a]">活动状态控制：</span>
+              <div class="flex items-center space-x-2">
+                <button
+                  v-if="gameScheduleStore.schedules[g.id]?.status === 'open'"
+                  v-prevent-reclick
+                  @click="handleCloseActivity(g.id)"
+                  class="comic-btn-red px-3 py-1 text-xs"
+                >
+                  关闭活动
+                </button>
+                <div
+                  v-else-if="gameScheduleStore.schedules[g.id]?.status === 'closing'"
+                  class="px-2.5 py-1 text-[11px] font-black bg-[#facc15] border border-[#1a1a1a] rounded flex items-center gap-1 text-[#1a1a1a]"
+                >
+                  <Clock class="w-3.5 h-3.5 animate-spin" />
+                  <span>等待当期开奖结算...</span>
+                </div>
+                <button
+                  v-else
+                  v-prevent-reclick
+                  @click="handleReopenActivity(g.id)"
+                  class="comic-btn-yellow px-3 py-1 text-xs"
+                >
+                  开启活动
+                </button>
+              </div>
+            </div>
+
+            <!-- Closing Transition Notice -->
+            <div
+              v-if="gameScheduleStore.schedules[g.id]?.status === 'closing'"
+              class="p-2.5 rounded bg-[#fef9c3] border-2 border-[#1a1a1a] text-[11px] font-bold text-[#854d0e] flex items-center gap-1.5"
+            >
+              <AlertTriangle class="w-4 h-4 text-[#ef4444] flex-shrink-0 animate-bounce" />
+              <span>已下达关停指令。当前正在进行的开奖结束后将正式关闭并解锁时间配置修改。</span>
+            </div>
+
+            <!-- Schedule Time Setting -->
+            <div class="space-y-2 pt-1">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-[#1a1a1a]">开启时间设置</span>
+                <label class="flex items-center space-x-1.5 cursor-pointer select-none text-xs font-black">
+                  <input
+                    type="checkbox"
+                    v-model="editSchedules[g.id].is_24h"
+                    :disabled="isTimeLocked(g.id)"
+                    class="rounded border-2 border-[#1a1a1a] text-[#facc15] focus:ring-0"
+                  />
+                  <span>全天 24 小时开放</span>
+                </label>
+              </div>
+
+              <!-- Start / End Time (if not 24h) -->
+              <div v-if="!editSchedules[g.id].is_24h" class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-[#4a4a4a] uppercase mb-0.5">每日开始时间</label>
+                  <input
+                    type="time"
+                    v-model="editSchedules[g.id].start_time"
+                    :disabled="isTimeLocked(g.id)"
+                    class="comic-input w-full px-2 py-1 text-xs font-mono font-black disabled:opacity-50 disabled:bg-gray-100 cursor-text disabled:cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-[#4a4a4a] uppercase mb-0.5">每日结束时间</label>
+                  <input
+                    type="time"
+                    v-model="editSchedules[g.id].end_time"
+                    :disabled="isTimeLocked(g.id)"
+                    class="comic-input w-full px-2 py-1 text-xs font-mono font-black disabled:opacity-50 disabled:bg-gray-100 cursor-text disabled:cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <!-- Lock Notice for Sicbo & Marksix -->
+              <div
+                v-if="isTimeLocked(g.id)"
+                class="p-2 rounded bg-[#fee2e2] border-2 border-[#ef4444] text-[11px] font-black text-[#991b1b] flex items-center gap-1.5"
+              >
+                <Lock class="w-3.5 h-3.5 flex-shrink-0" />
+                <span>须先关闭活动并等待开奖结束后，方可修改开启时间</span>
+              </div>
+
+              <div
+                v-else-if="(g.id === 'sicbo' || g.id === 'marksix') && gameScheduleStore.schedules[g.id]?.status === 'closed'"
+                class="p-2 rounded bg-[#dcfce7] border-2 border-[#22c55e] text-[11px] font-black text-[#166534] flex items-center gap-1.5"
+              >
+                <Unlock class="w-3.5 h-3.5 flex-shrink-0" />
+                <span>活动已关闭，现可修改开启时间。保存后可点击「开启活动」上线</span>
+              </div>
+            </div>
+
+            <!-- Save Button Row -->
+            <div class="flex items-center justify-between pt-2 border-t-2 border-[#1a1a1a]">
+              <span v-if="scheduleSaveSuccess[g.id]" class="text-[11px] font-black text-[#22c55e] flex items-center gap-1">
+                <Check class="w-3.5 h-3.5" />
+                <span>配置已保存！</span>
+              </span>
+              <span v-else></span>
+
+              <button
+                v-prevent-reclick
+                :disabled="isTimeLocked(g.id) || isSavingSchedule[g.id]"
+                @click="handleSaveSchedule(g.id)"
+                class="comic-btn-white px-4 py-1.5 text-xs flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Check class="w-3.5 h-3.5" />
+                <span>{{ isSavingSchedule[g.id] ? '保存中...' : '保存时间配置' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Players Management Table -->
       <div class="rounded-lg bg-white border-4 border-[#1a1a1a] overflow-hidden shadow-[6px_6px_0px_0px_rgba(26,26,26,1)]">
         <div class="px-6 py-4 border-b-3 border-[#1a1a1a] bg-[#fffef0] flex items-center justify-between">
@@ -291,9 +467,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { Shield, ShieldX, RotateCw, Gift, Timer, Check } from 'lucide-vue-next'
+import {
+  Shield, ShieldX, RotateCw, Gift, Timer, Check, Clock,
+  Layers, Sparkles, Crown, Dices, Disc, AlertTriangle, Lock, Unlock
+} from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useLotteryStore } from '@/stores/lottery'
+import { useGameScheduleStore, type GameModeId } from '@/stores/gameSchedule'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import Modal from '@/components/common/Modal.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
@@ -301,8 +481,106 @@ import type { Profile } from '@/types/database'
 
 const authStore = useAuthStore()
 const lotteryStore = useLotteryStore()
+const gameScheduleStore = useGameScheduleStore()
 const playersList = ref<Profile[]>([])
 const searchQuery = ref('')
+
+// 5 大游戏模式元数据
+const gameModeList: Array<{ id: GameModeId; name: string; icon: any; desc: string }> = [
+  { id: 'zhajinhua', name: '炸金花 (Golden Flower)', icon: Layers, desc: '三张底牌扑克博弈' },
+  { id: 'blackjack', name: '21点 (Blackjack)', icon: Sparkles, desc: '娱乐场黑杰克天王对决' },
+  { id: 'texas', name: '德州扑克 (Texas Hold\'em)', icon: Crown, desc: '7选5国际竞技扑克' },
+  { id: 'sicbo', name: '猜大小 · 骰宝 (Sic Bo)', icon: Dices, desc: '物理摇盅全服定时开奖' },
+  { id: 'marksix', name: '猜点数六合彩 (Mark Six)', icon: Disc, desc: '1-49特码摇号滚球开奖' }
+]
+
+// 编辑暂存状态（按游戏 id 映射）
+const editSchedules = ref<Record<GameModeId, { is_24h: boolean; start_time: string; end_time: string }>>({
+  zhajinhua: { is_24h: true, start_time: '00:00', end_time: '23:59' },
+  blackjack: { is_24h: true, start_time: '00:00', end_time: '23:59' },
+  texas: { is_24h: true, start_time: '00:00', end_time: '23:59' },
+  sicbo: { is_24h: true, start_time: '00:00', end_time: '23:59' },
+  marksix: { is_24h: true, start_time: '00:00', end_time: '23:59' }
+})
+
+const isSavingSchedule = ref<Record<GameModeId, boolean>>({
+  zhajinhua: false,
+  blackjack: false,
+  texas: false,
+  sicbo: false,
+  marksix: false
+})
+
+const scheduleSaveSuccess = ref<Record<GameModeId, boolean>>({
+  zhajinhua: false,
+  blackjack: false,
+  texas: false,
+  sicbo: false,
+  marksix: false
+})
+
+// 初始化与同步 Store
+watch(
+  () => gameScheduleStore.schedules,
+  (newScheds) => {
+    for (const item of gameModeList) {
+      const s = newScheds[item.id]
+      if (s) {
+        editSchedules.value[item.id] = {
+          is_24h: s.is_24h,
+          start_time: s.start_time || '00:00',
+          end_time: s.end_time || '23:59'
+        }
+      }
+    }
+  },
+  { immediate: true, deep: true }
+)
+
+// 核心规则：猜大小和猜六合彩修改开启时间时需要先关闭活动才能修改
+function isTimeLocked(gameId: GameModeId): boolean {
+  if (gameId === 'sicbo' || gameId === 'marksix') {
+    const s = gameScheduleStore.schedules[gameId]
+    return s ? s.status !== 'closed' : false
+  }
+  return false
+}
+
+async function handleCloseActivity(gameId: GameModeId) {
+  if (gameId === 'sicbo' || gameId === 'marksix') {
+    const period = gameId === 'sicbo' ? lotteryStore.sicboPeriod : lotteryStore.marksixPeriod
+    await gameScheduleStore.requestCloseActivity(gameId, period)
+    alert(`已向【${gameScheduleStore.schedules[gameId].name}】下达关停指令！\n\n当前期（${period}）未结束的开奖将照常进行并完成结算，结算完毕后将自动正式关闭活动。`)
+  } else {
+    await gameScheduleStore.requestCloseActivity(gameId)
+  }
+}
+
+async function handleReopenActivity(gameId: GameModeId) {
+  await gameScheduleStore.reopenActivity(gameId)
+}
+
+async function handleSaveSchedule(gameId: GameModeId) {
+  if (isTimeLocked(gameId)) {
+    alert('猜大小和六合彩修改开启时间前，必须先关闭活动并等待当期开奖结束！')
+    return
+  }
+
+  isSavingSchedule.value[gameId] = true
+  try {
+    const params = editSchedules.value[gameId]
+    await gameScheduleStore.updateScheduleTime(gameId, params)
+    scheduleSaveSuccess.value[gameId] = true
+    setTimeout(() => {
+      scheduleSaveSuccess.value[gameId] = false
+    }, 3000)
+  } catch (err: unknown) {
+    const e = err as { message?: string }
+    alert(e.message || '保存失败')
+  } finally {
+    isSavingSchedule.value[gameId] = false
+  }
+}
 
 // 开奖周期配置响应式编辑状态（自动与 Store 保持双向秒级同步，免去刷新）
 const editSicboCycle = ref(lotteryStore.sicboCycleSeconds)

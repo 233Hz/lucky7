@@ -39,32 +39,73 @@
       </div>
     </div>
 
+    <!-- Closing / Closed Status Notice Banner -->
+    <div
+      v-if="scheduleState.status === 'closing'"
+      class="mb-4 p-3 rounded-lg bg-[#facc15] border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_#1a1a1a] flex items-center gap-2 font-mono text-xs font-black text-[#1a1a1a]"
+    >
+      <AlertTriangle class="w-4 h-4 text-[#ef4444] animate-bounce flex-shrink-0" />
+      <span>【关停过渡】管理员已发起关闭指令：当期（第 {{ lotteryStore.marksixPeriod }} 期）摇号结算后将正式关闭活动，已停止接收新下注。</span>
+    </div>
+
+    <div
+      v-else-if="!scheduleState.isOpen"
+      class="mb-4 p-6 rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[6px_6px_0px_0px_#1a1a1a] text-center space-y-3 font-mono"
+    >
+      <div class="w-12 h-12 rounded-lg bg-[#ef4444] text-white border-2 border-[#1a1a1a] flex items-center justify-center mx-auto shadow-[2px_2px_0px_0px_#1a1a1a]">
+        <Clock class="w-6 h-6" />
+      </div>
+      <h2 class="text-xl font-black text-[#1a1a1a]">猜点数六合彩 (Mark Six) 暂停营业中</h2>
+      <p class="text-xs text-[#4a4a4a] font-bold">
+        {{ scheduleState.reason }} ({{ scheduleState.timeDesc }})
+      </p>
+      <router-link to="/" class="comic-btn-yellow px-5 py-2 text-xs inline-block">
+        返回游戏大厅 · HOME
+      </router-link>
+    </div>
+
     <!-- Main Layout Grid (Left: Game Table, Right: Public Chat Room) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- Main Live Draw Shaker & Table -->
       <div class="lg:col-span-8 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] space-y-6 text-[#1a1a1a]">
       <!-- Top Draw Stage & History (3-Column Layout: History | Center Ball | Bet Status) -->
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center pb-6 border-b-4 border-[#1a1a1a]">
-        <!-- 1. Left: History Roadmap (Recent 10 Draws) -->
-        <div class="md:col-span-5 flex flex-col items-center md:items-start min-w-0 w-full space-y-1.5">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-black font-mono text-[#1a1a1a] uppercase tracking-wider bg-[#facc15] px-2 py-0.5 rounded-md border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">历史开出特码</span>
-            <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 bg-white border border-[#1a1a1a] rounded text-[#1a1a1a]">近10期</span>
+        <!-- 1. Left: Single Previous Round Result (只显示上一期结果) -->
+        <div class="md:col-span-5 flex flex-col items-center md:items-start min-w-0 w-full space-y-2 p-3 bg-white rounded-xl border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]">
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-black font-mono text-[#1a1a1a] uppercase tracking-wider flex items-center gap-1.5">
+              <span>上一期特码开奖</span>
+            </span>
+            <span class="text-[10px] font-bold font-mono px-2 py-0.5 bg-[#facc15] border border-[#1a1a1a] rounded text-[#1a1a1a]">
+              第 {{ lotteryStore.marksixLastDrawnPeriod }} 期
+            </span>
           </div>
-          <div class="flex items-center space-x-2 overflow-x-auto max-w-full py-1">
-            <div
-              v-for="(hist, idx) in historyList"
-              :key="idx"
-              class="flex flex-col items-center flex-shrink-0"
-              :title="`第${hist.period}期：${hist.number}号 (${hist.zodiac} · ${hist.isBig ? '大' : '小'})`"
-            >
+
+          <!-- 上一期特码球与生肖波色 -->
+          <div class="flex items-center justify-between w-full pt-0.5">
+            <div class="flex items-center space-x-2">
               <div
-                class="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-full border-2 border-[#1a1a1a] flex items-center justify-center font-mono font-black text-xs shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
-                :class="hist.waveColor === 'red' ? 'bg-[#ef4444] text-white' : hist.waveColor === 'blue' ? 'bg-[#3b82f6] text-white' : 'bg-[#22c55e] text-[#1a1a1a]'"
+                class="w-8 h-8 rounded-full border-2 border-[#1a1a1a] flex items-center justify-center font-mono font-black text-xs shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
+                :class="lotteryStore.marksixLastResult.waveColor === 'red' ? 'bg-[#ef4444] text-white' : lotteryStore.marksixLastResult.waveColor === 'blue' ? 'bg-[#3b82f6] text-white' : 'bg-[#22c55e] text-[#1a1a1a]'"
               >
-                {{ hist.number < 10 ? '0' + hist.number : hist.number }}
+                {{ lotteryStore.marksixLastResult.number < 10 ? '0' + lotteryStore.marksixLastResult.number : lotteryStore.marksixLastResult.number }}
               </div>
-              <span class="text-[10px] font-mono font-black text-[#1a1a1a] mt-0.5">{{ hist.zodiac }}</span>
+              <span class="text-xs font-mono font-black text-[#1a1a1a] px-1.5 py-0.5 bg-[#facc15] border border-[#1a1a1a] rounded">
+                生肖: {{ lotteryStore.marksixLastResult.zodiac }}
+              </span>
+            </div>
+
+            <!-- 大/小与单/双标签 -->
+            <div class="flex items-center space-x-1 text-xs font-mono font-black">
+              <span
+                class="px-1.5 py-0.5 rounded border border-[#1a1a1a] text-[10px]"
+                :class="lotteryStore.marksixLastResult.isBig ? 'bg-[#ef4444] text-white' : 'bg-[#3b82f6] text-white'"
+              >
+                {{ lotteryStore.marksixLastResult.isBig ? '大' : '小' }}
+              </span>
+              <span class="px-1.5 py-0.5 rounded border border-[#1a1a1a] text-[10px] bg-[#1a1a1a] text-white">
+                {{ lotteryStore.marksixLastResult.isOdd ? '单' : '双' }}
+              </span>
             </div>
           </div>
         </div>
@@ -124,7 +165,7 @@
             { type: 'odd_even', value: 'even', name: '特码 双', odds: 1.95, sub: '49和局' }
           ]"
           :key="item.name"
-          @click="placeBet(item.type as any, item.value, item.name, item.odds)"
+          @click="requestPlaceBet(item.type as any, item.value, item.name, item.odds)"
           class="p-4 rounded-xl border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none"
           :class="getBetAmount(item.type as any, item.value) > 0 ? 'bg-[#22c55e] text-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] text-[#1a1a1a] hover:bg-[#f0fdf4] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
         >
@@ -140,7 +181,7 @@
       <!-- 2. 三色波 (红波/蓝波/绿波) -->
       <div v-if="activeTab === 'waves'" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div
-          @click="placeBet('wave_color', 'red', '红波', 2.8)"
+          @click="requestPlaceBet('wave_color', 'red', '红波', 2.8)"
           class="p-5 rounded-xl border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none"
           :class="getBetAmount('wave_color', 'red') > 0 ? 'bg-[#ef4444] text-white shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] text-[#1a1a1a] hover:bg-[#fee2e2] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
         >
@@ -156,7 +197,7 @@
         </div>
 
         <div
-          @click="placeBet('wave_color', 'blue', '蓝波', 2.9)"
+          @click="requestPlaceBet('wave_color', 'blue', '蓝波', 2.9)"
           class="p-5 rounded-xl border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none"
           :class="getBetAmount('wave_color', 'blue') > 0 ? 'bg-[#3b82f6] text-white shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] text-[#1a1a1a] hover:bg-[#e0f2fe] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
         >
@@ -172,7 +213,7 @@
         </div>
 
         <div
-          @click="placeBet('wave_color', 'green', '绿波', 2.9)"
+          @click="requestPlaceBet('wave_color', 'green', '绿波', 2.9)"
           class="p-5 rounded-xl border-4 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-between select-none"
           :class="getBetAmount('wave_color', 'green') > 0 ? 'bg-[#22c55e] text-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] -translate-y-1' : 'bg-[#fffef0] text-[#1a1a1a] hover:bg-[#dcfce7] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
         >
@@ -193,7 +234,7 @@
         <div
           v-for="zod in zodiacList"
           :key="zod"
-          @click="placeBet('zodiac', zod, `生肖-${zod}`, 11.5)"
+          @click="requestPlaceBet('zodiac', zod, `生肖-${zod}`, 11.5)"
           class="p-3 rounded-xl border-3 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-center select-none"
           :class="getBetAmount('zodiac', zod) > 0 ? 'bg-[#facc15] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] -translate-y-0.5' : 'bg-[#fffef0] hover:bg-[#fef9c3] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'"
         >
@@ -216,7 +257,7 @@
           <div
             v-for="n in 49"
             :key="n"
-            @click="placeBet('exact_number', n, `特码${n}`, 47)"
+            @click="requestPlaceBet('exact_number', n, `特码${n}`, 47)"
             class="p-2 rounded-lg border-2 border-[#1a1a1a] transition-all cursor-pointer flex flex-col items-center justify-center select-none relative"
             :class="getBetAmount('exact_number', n) > 0 ? 'bg-[#facc15] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]' : 'bg-white hover:bg-[#fffef0]'"
           >
@@ -277,22 +318,110 @@
         />
       </div>
     </div>
+
+    <!-- 六合彩下注确认弹窗 (必须确认后才能下注) -->
+    <Modal v-model="showBetConfirmModal" title="下注确认 · CONFIRM BET">
+      <div v-if="pendingBet" class="space-y-4 font-mono">
+        <div class="p-3.5 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] space-y-2 shadow-[3px_3px_0px_0px_#1a1a1a]">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-[#4a4a4a] font-bold">下注游戏 / 期号</span>
+            <span class="text-xs font-black bg-[#facc15] px-2 py-0.5 rounded border border-[#1a1a1a]">
+              六合彩 · 第 {{ lotteryStore.marksixPeriod }} 期
+            </span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-[#4a4a4a] font-bold">投注项目</span>
+            <span class="text-sm font-black text-[#1a1a1a]">{{ pendingBet.name }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-[#4a4a4a] font-bold">赔率</span>
+            <span class="text-xs font-black text-[#22c55e] bg-[#dcfce7] px-2 py-0.5 rounded border border-[#1a1a1a]">
+              1 赔 {{ pendingBet.odds }}
+            </span>
+          </div>
+        </div>
+
+        <!-- 筹码选择 / 微调 -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-black text-[#1a1a1a]">下注筹码金额</label>
+            <span class="text-xs font-bold text-[#4a4a4a] flex items-center gap-1">
+              <span>可用余额: {{ authStore.userChips }}</span>
+              <CoinIcon customClass="w-3.5 h-3.5" />
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <input
+              v-model.number="pendingBet.amount"
+              type="number"
+              min="10"
+              step="50"
+              class="comic-input flex-1 px-3 py-2 text-sm font-black"
+            />
+            <CoinIcon customClass="w-5 h-5" />
+          </div>
+          <!-- 快捷筹码选择 -->
+          <div class="flex items-center gap-1.5 mt-2">
+            <button
+              v-for="amt in [50, 100, 500, 1000, 5000]"
+              :key="amt"
+              type="button"
+              @click="pendingBet.amount = amt"
+              class="px-2.5 py-1 text-xs font-bold border-2 border-[#1a1a1a] rounded transition-all"
+              :class="pendingBet.amount === amt ? 'bg-[#facc15] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'bg-white hover:bg-[#fffef0]'"
+            >
+              {{ amt }}
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-lg bg-white border-2 border-[#1a1a1a] flex items-center justify-between text-xs font-bold">
+          <span>预计最高派彩:</span>
+          <span class="text-base font-black text-[#ef4444] flex items-center gap-1">
+            <CoinIcon customClass="w-4 h-4" />
+            <span>{{ Math.round(pendingBet.amount * pendingBet.odds) }}</span>
+          </span>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex items-center justify-end space-x-3 w-full">
+          <button
+            @click="showBetConfirmModal = false"
+            class="comic-btn-white px-5 py-2 text-xs"
+          >
+            取消
+          </button>
+          <button
+            v-prevent-reclick
+            @click="confirmBet"
+            :disabled="!pendingBet || pendingBet.amount <= 0 || pendingBet.amount > authStore.userChips"
+            class="comic-btn-yellow px-6 py-2 text-xs flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <CheckCircle class="w-4 h-4" />
+            <span>确认下注 · BET NOW</span>
+          </button>
+        </div>
+      </template>
+    </Modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import confetti from 'canvas-confetti'
-import { Disc, ArrowLeft, Clock, CheckCircle } from 'lucide-vue-next'
+import { Disc, ArrowLeft, Clock, CheckCircle, AlertTriangle } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { useLotteryStore } from '@/stores/lottery'
 import { useChatStore } from '@/stores/chat'
+import { useGameScheduleStore } from '@/stores/gameSchedule'
 import { sound } from '@/lib/sound'
 import BallShaker from '@/components/game/BallShaker.vue'
 import ChipSelector from '@/components/game/ChipSelector.vue'
 import ChatPanel from '@/components/chat/ChatPanel.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
+import Modal from '@/components/common/Modal.vue'
 import {
   settleMarkSixBets,
   getBallWave,
@@ -304,6 +433,9 @@ const authStore = useAuthStore()
 const walletStore = useWalletStore()
 const lotteryStore = useLotteryStore()
 const chatStore = useChatStore()
+const gameScheduleStore = useGameScheduleStore()
+
+const scheduleState = computed(() => gameScheduleStore.checkGameOpen('marksix'))
 
 const activeTab = ref<string>('two_sides')
 const tabNames: Record<string, string> = {
@@ -319,11 +451,14 @@ const bets = ref<MarkSixBetItem[]>([])
 const isDrawing = ref<boolean>(false)
 const lastProfit = ref<number | null>(null)
 
+// 下注二次确认状态
+const showBetConfirmModal = ref<boolean>(false)
+const pendingBet = ref<MarkSixBetItem | null>(null)
+
 // 正在滚球的动效定时器与下注时所处期号
 let drawAnimInterval: ReturnType<typeof setInterval> | null = null
 
 const currentResult = ref<MarkSixDrawResult>(lotteryStore.marksixLastResult)
-const historyList = computed(() => lotteryStore.marksixHistory)
 
 watch(
   () => lotteryStore.marksixLastResult,
@@ -347,29 +482,73 @@ function getBetAmount(type: MarkSixBetType, value: string | number): number {
   return item ? item.amount : 0
 }
 
-function placeBet(type: MarkSixBetType, value: string | number, name: string, odds: number) {
-  // 封盘摇号阶段禁止下注
-  if (lotteryStore.isMarksixDrawing || isDrawing.value) return
+// 1. 点击注区：弹出下注二次确认弹窗
+function requestPlaceBet(type: MarkSixBetType, value: string | number, name: string, odds: number) {
+  if (scheduleState.value.status === 'closing') {
+    alert('活动关停中：等待当期开奖后将暂停开放，已停止接收新下注！')
+    return
+  }
+  if (!scheduleState.value.isOpen) {
+    alert(`活动未在开放时间内 (${scheduleState.value.timeDesc})`)
+    return
+  }
+  if (lotteryStore.isMarksixDrawing || isDrawing.value) {
+    alert('本期已封盘摇号中，请等待开奖揭晓！')
+    return
+  }
 
-  if (authStore.userChips < totalBetAmount.value + selectedChip.value) {
+  if (authStore.userChips < selectedChip.value) {
     alert('筹码不足，请先前往签到获取筹码！')
     return
   }
 
+  pendingBet.value = {
+    type,
+    value,
+    name,
+    odds,
+    amount: selectedChip.value
+  }
+  showBetConfirmModal.value = true
+}
+
+// 2. 弹窗内确认下注后才真正下单并扣款记录
+function confirmBet() {
+  if (!pendingBet.value) return
+
+  if (scheduleState.value.status === 'closing' || !scheduleState.value.isOpen) {
+    alert('活动已关停或未在营业时间，下注失败！')
+    showBetConfirmModal.value = false
+    return
+  }
+  if (lotteryStore.isMarksixDrawing || isDrawing.value) {
+    alert('当前已进入封盘摇号阶段，下注未提交！')
+    showBetConfirmModal.value = false
+    return
+  }
+  if (authStore.userChips < totalBetAmount.value + pendingBet.value.amount) {
+    alert('筹码不足！')
+    return
+  }
+
+  const { type, value, name, odds, amount } = pendingBet.value
   sound.playChip()
 
   const existing = bets.value.find(b => b.type === type && b.value === value)
   if (existing) {
-    existing.amount += selectedChip.value
+    existing.amount += amount
   } else {
     bets.value.push({
       type,
       value,
       name,
       odds,
-      amount: selectedChip.value
+      amount
     })
   }
+
+  showBetConfirmModal.value = false
+  pendingBet.value = null
 }
 
 function clearAllBets() {
@@ -446,6 +625,11 @@ async function handleScheduledMarkSixConclusion() {
 
     // 清空注单，准备下一期
     bets.value = []
+  }
+
+  // 若处于关停过渡期，本期结算完成后正式关闭活动
+  if (gameScheduleStore.schedules.marksix?.status === 'closing') {
+    await gameScheduleStore.completeCloseActivity('marksix')
   }
 }
 

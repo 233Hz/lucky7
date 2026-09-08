@@ -86,11 +86,19 @@
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
+              v-if="gameScheduleStore.checkGameOpen('zhajinhua').isOpen"
               to="/game/zhajinhua"
               class="comic-btn-yellow w-full py-3 text-xs block text-center"
             >
               开始游戏 · BATTLE!
             </router-link>
+            <button
+              v-else
+              @click="handleGameClosedAlert('炸金花', 'zhajinhua')"
+              class="comic-btn-white opacity-60 w-full py-3 text-xs block text-center"
+            >
+              {{ gameScheduleStore.checkGameOpen('zhajinhua').status === 'closing' ? '关停过渡中' : '暂停开放' }} · ({{ gameScheduleStore.checkGameOpen('zhajinhua').timeDesc }})
+            </button>
           </div>
         </div>
 
@@ -122,11 +130,19 @@
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
+              v-if="gameScheduleStore.checkGameOpen('blackjack').isOpen"
               to="/game/blackjack"
               class="comic-btn-red w-full py-3 text-xs block text-center"
             >
               开始挑战 · HIT ME!
             </router-link>
+            <button
+              v-else
+              @click="handleGameClosedAlert('21点', 'blackjack')"
+              class="comic-btn-white opacity-60 w-full py-3 text-xs block text-center"
+            >
+              {{ gameScheduleStore.checkGameOpen('blackjack').status === 'closing' ? '关停过渡中' : '暂停开放' }} · ({{ gameScheduleStore.checkGameOpen('blackjack').timeDesc }})
+            </button>
           </div>
         </div>
 
@@ -158,11 +174,19 @@
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
+              v-if="gameScheduleStore.checkGameOpen('texas').isOpen"
               to="/game/texas"
               class="comic-btn-blue w-full py-3 text-xs block text-center"
             >
               入席对决 · ALL-IN!
             </router-link>
+            <button
+              v-else
+              @click="handleGameClosedAlert('德州扑克', 'texas')"
+              class="comic-btn-white opacity-60 w-full py-3 text-xs block text-center"
+            >
+              {{ gameScheduleStore.checkGameOpen('texas').status === 'closing' ? '关停过渡中' : '暂停开放' }} · ({{ gameScheduleStore.checkGameOpen('texas').timeDesc }})
+            </button>
           </div>
         </div>
 
@@ -194,11 +218,19 @@
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
+              v-if="gameScheduleStore.checkGameOpen('sicbo').isOpen"
               to="/game/sicbo"
               class="comic-btn-red w-full py-3 text-xs block text-center"
             >
               摇骰开盅 · ROLL!
             </router-link>
+            <button
+              v-else
+              @click="handleGameClosedAlert('猜大小 · 骰宝', 'sicbo')"
+              class="comic-btn-white opacity-60 w-full py-3 text-xs block text-center"
+            >
+              {{ gameScheduleStore.checkGameOpen('sicbo').status === 'closing' ? '关停过渡中' : '暂停开放' }} · ({{ gameScheduleStore.checkGameOpen('sicbo').timeDesc }})
+            </button>
           </div>
         </div>
 
@@ -230,11 +262,19 @@
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
+              v-if="gameScheduleStore.checkGameOpen('marksix').isOpen"
               to="/game/marksix"
               class="comic-btn-green w-full py-3 text-xs block text-center"
             >
               即刻开奖 · LUCKY 7!
             </router-link>
+            <button
+              v-else
+              @click="handleGameClosedAlert('猜点数六合彩', 'marksix')"
+              class="comic-btn-white opacity-60 w-full py-3 text-xs block text-center"
+            >
+              {{ gameScheduleStore.checkGameOpen('marksix').status === 'closing' ? '关停过渡中' : '暂停开放' }} · ({{ gameScheduleStore.checkGameOpen('marksix').timeDesc }})
+            </button>
           </div>
         </div>
 
@@ -383,6 +423,7 @@ import {
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useRoomStore } from '@/stores/room'
+import { useGameScheduleStore, type GameModeId } from '@/stores/gameSchedule'
 import Modal from '@/components/common/Modal.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 import type { GameRoom } from '@/types/database'
@@ -390,6 +431,12 @@ import type { GameRoom } from '@/types/database'
 const router = useRouter()
 const authStore = useAuthStore()
 const roomStore = useRoomStore()
+const gameScheduleStore = useGameScheduleStore()
+
+function handleGameClosedAlert(gameName: string, gameId: GameModeId) {
+  const check = gameScheduleStore.checkGameOpen(gameId)
+  alert(`【${gameName}】当前暂未开放！\n\n状态：${check.reason}\n营业时间：${check.timeDesc}`)
+}
 
 const showRoomModal = ref(false)
 const showCreateModal = ref(false)

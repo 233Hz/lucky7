@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import type { SicBoRollResult } from '@/games/sicbo/types'
 import type { MarkSixDrawResult } from '@/games/marksix/types'
 import { getBallWave, ZODIACS } from '@/games/marksix/engine'
+import { useGameScheduleStore } from '@/stores/gameSchedule'
 
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
@@ -342,6 +343,25 @@ export const useLotteryStore = defineStore('lottery', () => {
       }
     }
   }
+
+  // 监听当期摇奖结束切换，若处于 closing 状态则正式关闭活动
+  watch(isSicboDrawing, (isDrawing, prev) => {
+    if (prev && !isDrawing) {
+      const scheduleStore = useGameScheduleStore()
+      if (scheduleStore.schedules.sicbo?.status === 'closing') {
+        scheduleStore.completeCloseActivity('sicbo')
+      }
+    }
+  })
+
+  watch(isMarksixDrawing, (isDrawing, prev) => {
+    if (prev && !isDrawing) {
+      const scheduleStore = useGameScheduleStore()
+      if (scheduleStore.schedules.marksix?.status === 'closing') {
+        scheduleStore.completeCloseActivity('marksix')
+      }
+    }
+  })
 
   return {
     sicboCycleSeconds,

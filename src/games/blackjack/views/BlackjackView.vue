@@ -20,8 +20,26 @@
       </div>
     </div>
 
+    <!-- Game Closed / Outside Open Time Notice -->
+    <div
+      v-if="!scheduleState.isOpen"
+      class="mb-6 p-8 rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[6px_6px_0px_0px_#1a1a1a] text-center space-y-4 font-mono text-[#1a1a1a]"
+    >
+      <div class="w-16 h-16 rounded-xl bg-[#ef4444] text-white border-3 border-[#1a1a1a] flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_#1a1a1a]">
+        <Clock class="w-8 h-8" />
+      </div>
+      <h2 class="text-2xl font-black uppercase">21点 (Blackjack) 暂停开放</h2>
+      <p class="text-xs sm:text-sm text-[#4a4a4a] font-bold max-w-md mx-auto">
+        {{ scheduleState.reason }}<br />
+        开放时间：{{ scheduleState.timeDesc }}
+      </p>
+      <router-link to="/" class="comic-btn-yellow px-6 py-2.5 text-xs inline-block">
+        返回游戏大厅 · HOME
+      </router-link>
+    </div>
+
     <!-- Felt Table -->
-    <div class="relative rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 min-h-[540px] flex flex-col justify-between shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-hidden">
+    <div v-else class="relative rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 min-h-[540px] flex flex-col justify-between shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-hidden">
       <!-- Halftone Dots Texture -->
       <div class="absolute inset-0 bg-[radial-gradient(#1a1a1a_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
@@ -208,10 +226,12 @@ import {
   Hand,
   Zap,
   Sparkles,
-  AlertTriangle
+  AlertTriangle,
+  Clock
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
+import { useGameScheduleStore } from '@/stores/gameSchedule'
 import { sound } from '@/lib/sound'
 import PlayingCard from '@/components/game/PlayingCard.vue'
 import ChipSelector from '@/components/game/ChipSelector.vue'
@@ -221,6 +241,9 @@ import type { Card } from '@/types/game'
 
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
+const gameScheduleStore = useGameScheduleStore()
+
+const scheduleState = computed(() => gameScheduleStore.checkGameOpen('blackjack'))
 
 type GamePhase = 'betting' | 'player_turn' | 'dealer_turn' | 'settled'
 const phase = ref<GamePhase>('betting')

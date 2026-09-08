@@ -94,6 +94,20 @@ insert into public.system_configs (key, value)
 values ('lottery_cycles', '{"sicbo_seconds": 30, "marksix_seconds": 60}'::jsonb)
 on conflict (key) do nothing;
 
+-- 初始化全服游戏模式开启时间与状态配置
+insert into public.system_configs (key, value)
+values (
+  'game_schedules',
+  '{
+    "zhajinhua": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"},
+    "blackjack": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"},
+    "texas": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"},
+    "sicbo": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"},
+    "marksix": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"}
+  }'::jsonb
+)
+on conflict (key) do nothing;
+
 -- 9. 聊天消息表 (chat_messages) - 支持全服公共开奖频道与房间专属私密聊天
 create table if not exists public.chat_messages (
   id uuid default gen_random_uuid() primary key,
@@ -439,5 +453,19 @@ drop policy if exists "room_players_delete_policy" on public.room_players;
 create policy "room_players_delete_policy" on public.room_players for delete using (
   auth.uid() = user_id or exists (select 1 from public.game_rooms where id = room_players.room_id and host_id = auth.uid())
 );
+
+-- 6. 初始化全服游戏模式开启时间与状态配置（若尚未插入）
+insert into public.system_configs (key, value)
+values (
+  'game_schedules',
+  '{
+    "zhajinhua": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"},
+    "blackjack": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"},
+    "texas": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"},
+    "sicbo": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"},
+    "marksix": {"enabled": true, "status": "open", "is_24h": true, "start_time": "00:00", "end_time": "23:59"}
+  }'::jsonb
+)
+on conflict (key) do nothing;
 */
 
