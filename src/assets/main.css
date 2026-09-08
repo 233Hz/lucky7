@@ -58,6 +58,10 @@
     @apply rounded-lg border-4 border-[#1a1a1a] bg-[#fffef0] text-[#1a1a1a] font-bold shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] focus:shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] focus:outline-none focus:bg-white transition-all;
   }
 
+  .comic-select-trigger {
+    @apply rounded-lg border-4 border-[#1a1a1a] bg-[#fffef0] text-[#1a1a1a] font-bold shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] focus:outline-none transition-all;
+  }
+
   .comic-badge {
     @apply inline-flex items-center rounded-md border-2 md:border-3 border-[#1a1a1a] font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(26,26,26,1)];
   }

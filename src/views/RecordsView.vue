@@ -11,17 +11,11 @@
       </div>
 
       <!-- Filter by Game -->
-      <select
+      <ComicSelect
         v-model="selectedGameFilter"
-        class="comic-input text-xs py-2 px-3 font-black"
-      >
-        <option value="all">全部玩法</option>
-        <option value="zhajinhua">炸金花</option>
-        <option value="blackjack">21点</option>
-        <option value="texas">德州扑克</option>
-        <option value="sicbo">猜大小</option>
-        <option value="marksix">六合彩</option>
-      </select>
+        :options="gameFilterOptions"
+        triggerClass="text-xs py-2 px-3.5 font-black min-w-[130px]"
+      />
     </div>
 
     <!-- Summary Stats Bar -->
@@ -94,9 +88,19 @@ import { ref, computed, onMounted } from 'vue'
 import { History } from 'lucide-vue-next'
 import { useWalletStore } from '@/stores/wallet'
 import CoinIcon from '@/components/common/CoinIcon.vue'
+import ComicSelect from '@/components/common/ComicSelect.vue'
 
 const walletStore = useWalletStore()
 const selectedGameFilter = ref('all')
+
+const gameFilterOptions = [
+  { value: 'all', label: '全部玩法' },
+  { value: 'zhajinhua', label: '炸金花' },
+  { value: 'blackjack', label: '21点' },
+  { value: 'texas', label: '德州扑克' },
+  { value: 'sicbo', label: '猜大小' },
+  { value: 'marksix', label: '六合彩' }
+]
 
 onMounted(() => {
   walletStore.fetchGameRecords()

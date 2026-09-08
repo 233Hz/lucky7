@@ -385,13 +385,12 @@
         </div>
         <div>
           <label class="block text-xs font-black text-[#1a1a1a] uppercase mb-1 font-mono">游戏玩法</label>
-          <select
+          <ComicSelect
             v-model="newRoomType"
-            class="comic-input w-full text-sm py-2.5 px-3 font-mono font-bold"
-          >
-            <option value="zhajinhua">炸金花 (Golden Flower)</option>
-            <option value="texas">德州扑克 (Texas Hold'em)</option>
-          </select>
+            :options="roomTypeOptions"
+            fullWidth
+            triggerClass="w-full text-sm py-2.5 px-3 font-mono font-bold"
+          />
         </div>
         <div>
           <label class="block text-xs font-black text-[#1a1a1a] uppercase mb-1 flex items-center gap-1 font-mono">
@@ -440,6 +439,7 @@ import { useRoomStore } from '@/stores/room'
 import { useGameScheduleStore, type GameModeId } from '@/stores/gameSchedule'
 import { dialog } from '@/lib/dialog'
 import Modal from '@/components/common/Modal.vue'
+import ComicSelect from '@/components/common/ComicSelect.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 import type { GameRoom } from '@/types/database'
 
@@ -460,6 +460,11 @@ const showCreateModal = ref(false)
 const newRoomName = ref('')
 const newRoomType = ref<GameRoom['game_type']>('zhajinhua')
 const newRoomMinBet = ref(50)
+
+const roomTypeOptions = [
+  { value: 'zhajinhua', label: '炸金花 (Golden Flower)' },
+  { value: 'texas', label: '德州扑克 (Texas Hold\'em)' }
+]
 
 const formattedChips = computed(() => {
   return new Intl.NumberFormat('en-US').format(authStore.userChips)
