@@ -212,7 +212,7 @@
         <p class="text-xs text-[#4a4a4a] font-bold">
           配置全服 5 大游戏模式的活动运营状态与开放时间。支持全天 24 小时开放或每日自定义固定营业时段。
           <br />
-          <span class="text-[#ef4444] font-black">重要规则：猜大小和猜六合彩修改开启时间时，必须先关闭活动；关闭后当前正在开奖的期号会继续完成摇奖结算，结算完成后才正式关闭并解锁时间修改。</span>
+          <span class="text-[#22c55e] font-black">现代运营模式：支持「下期自动生效」机制！修改开启时间无需人工暂停活动，保存后系统将在当前期开奖派彩完毕后（下期开始前）自动平滑生效，绝不影响正在进行的游戏对局。</span>
         </p>
 
         <!-- 5 Modes Grid -->
@@ -304,7 +304,6 @@
                   <input
                     type="checkbox"
                     v-model="editSchedules[g.id].is_24h"
-                    :disabled="isTimeLocked(g.id)"
                     class="rounded border-2 border-[#1a1a1a] text-[#facc15] focus:ring-0"
                   />
                   <span>全天 24 小时开放</span>
@@ -318,8 +317,7 @@
                   <input
                     type="time"
                     v-model="editSchedules[g.id].start_time"
-                    :disabled="isTimeLocked(g.id)"
-                    class="comic-input w-full px-2 py-1 text-xs font-mono font-black disabled:opacity-50 disabled:bg-gray-100 cursor-text disabled:cursor-not-allowed"
+                    class="comic-input w-full px-2 py-1 text-xs font-mono font-black cursor-text"
                   />
                 </div>
                 <div>
@@ -327,27 +325,30 @@
                   <input
                     type="time"
                     v-model="editSchedules[g.id].end_time"
-                    :disabled="isTimeLocked(g.id)"
-                    class="comic-input w-full px-2 py-1 text-xs font-mono font-black disabled:opacity-50 disabled:bg-gray-100 cursor-text disabled:cursor-not-allowed"
+                    class="comic-input w-full px-2 py-1 text-xs font-mono font-black cursor-text"
                   />
                 </div>
               </div>
 
-              <!-- Lock Notice for Sicbo & Marksix -->
+              <!-- Pending Schedule Notice (下期自动生效提示) -->
               <div
-                v-if="isTimeLocked(g.id)"
-                class="p-2 rounded bg-[#fee2e2] border-2 border-[#ef4444] text-[11px] font-black text-[#991b1b] flex items-center gap-1.5"
+                v-if="gameScheduleStore.schedules[g.id]?.pending_schedule"
+                class="p-2.5 rounded bg-[#fef9c3] border-2 border-[#1a1a1a] text-[11px] font-bold text-[#854d0e] flex items-center justify-between gap-2 shadow-[2px_2px_0px_0px_#1a1a1a]"
               >
-                <Lock class="w-3.5 h-3.5 flex-shrink-0" />
-                <span>须先关闭活动并等待开奖结束后，方可修改开启时间</span>
-              </div>
-
-              <div
-                v-else-if="(g.id === 'sicbo' || g.id === 'marksix') && gameScheduleStore.schedules[g.id]?.status === 'closed'"
-                class="p-2 rounded bg-[#dcfce7] border-2 border-[#22c55e] text-[11px] font-black text-[#166534] flex items-center gap-1.5"
-              >
-                <Unlock class="w-3.5 h-3.5 flex-shrink-0" />
-                <span>活动已关闭，现可修改开启时间。保存后可点击「开启活动」上线</span>
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <Clock class="w-4 h-4 text-[#eab308] flex-shrink-0 animate-spin" />
+                  <span class="truncate">
+                    已暂存新时段 ({{ formatScheduleDesc(gameScheduleStore.schedules[g.id]?.pending_schedule!) }})，将于【{{ gameScheduleStore.schedules[g.id]?.pending_schedule?.effective_period }}】自动生效
+                  </span>
+                </div>
+                <button
+                  v-prevent-reclick
+                  @click="handleCancelPending(g.id)"
+                  class="px-2 py-0.5 text-[10px] font-black bg-white border border-[#1a1a1a] rounded hover:bg-gray-100 flex-shrink-0 shadow-[1px_1px_0px_0px_#1a1a1a]"
+                  title="撤销该暂存配置"
+                >
+                  撤销
+                </button>
               </div>
             </div>
 
@@ -361,7 +362,7 @@
 
               <button
                 v-prevent-reclick
-                :disabled="isTimeLocked(g.id) || isSavingSchedule[g.id]"
+                :disabled="isSavingSchedule[g.id]"
                 @click="handleSaveSchedule(g.id)"
                 class="comic-btn-white px-4 py-1.5 text-xs flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -502,7 +503,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   Shield, ShieldX, RotateCw, Gift, Timer, Check, Clock,
-  Layers, Sparkles, Crown, Dices, Disc, AlertTriangle, Lock, Unlock
+  Layers, Sparkles, Crown, Dices, Disc, AlertTriangle
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useLotteryStore } from '@/stores/lottery'
@@ -570,13 +571,8 @@ watch(
   { immediate: true, deep: true }
 )
 
-// 核心规则：猜大小和猜六合彩修改开启时间时需要先关闭活动才能修改
-function isTimeLocked(gameId: GameModeId): boolean {
-  if (gameId === 'sicbo' || gameId === 'marksix') {
-    const s = gameScheduleStore.schedules[gameId]
-    return s ? s.status !== 'closed' : false
-  }
-  return false
+function formatScheduleDesc(cfg: { is_24h: boolean; start_time: string; end_time: string }): string {
+  return cfg.is_24h ? '全天24小时开放' : `每日 ${cfg.start_time} - ${cfg.end_time}`
 }
 
 async function handleCloseActivity(gameId: GameModeId) {
@@ -604,24 +600,36 @@ async function handleReopenActivity(gameId: GameModeId) {
 }
 
 async function handleSaveSchedule(gameId: GameModeId) {
-  if (isTimeLocked(gameId)) {
-    alert('猜大小和六合彩修改开启时间前，必须先关闭活动并等待当期开奖结束！')
-    return
-  }
-
   isSavingSchedule.value[gameId] = true
   try {
     const params = editSchedules.value[gameId]
-    await gameScheduleStore.updateScheduleTime(gameId, params)
+    const nextPeriod = gameId === 'sicbo'
+      ? `第 ${lotteryStore.nextSicboPeriod} 期`
+      : gameId === 'marksix'
+      ? `第 ${lotteryStore.nextMarksixPeriod} 期`
+      : undefined
+
+    const res = await gameScheduleStore.updateScheduleTime(gameId, params, nextPeriod)
     scheduleSaveSuccess.value[gameId] = true
     setTimeout(() => {
       scheduleSaveSuccess.value[gameId] = false
     }, 3000)
+
+    if (res.isPending) {
+      alert(`【${gameScheduleStore.schedules[gameId].name}】新开启时段配置已成功暂存！\n\n当前期正在开奖进行中，新时段将于【${res.effectivePeriod}】开奖派彩完毕后（下期开始）自动平滑生效，无需手动关闭活动。`)
+    }
   } catch (err: unknown) {
     const e = err as { message?: string }
     alert(e.message || '保存失败')
   } finally {
     isSavingSchedule.value[gameId] = false
+  }
+}
+
+async function handleCancelPending(gameId: GameModeId) {
+  const gName = gameScheduleStore.schedules[gameId]?.name || gameId
+  if (confirm(`确认撤销【${gName}】待生效的新开启时段配置吗？`)) {
+    await gameScheduleStore.cancelPendingSchedule(gameId)
   }
 }
 

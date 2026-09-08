@@ -710,12 +710,19 @@ async function handleScheduledMarkSixConclusion() {
     bets.value = []
   }
 
-  // 若处于关停过渡期，本期结算完成后稍作留存展示（5秒），以便玩家查看特码开奖与派彩，随后正式关闭活动
+  // 1. 若处于关停过渡期，本期结算完成后稍作留存展示（5秒），以便玩家查看特码开奖与派彩，随后正式关闭活动
   if (gameScheduleStore.schedules.marksix?.status === 'closing') {
     setTimeout(async () => {
       if (gameScheduleStore.schedules.marksix?.status === 'closing') {
         await gameScheduleStore.completeCloseActivity('marksix')
       }
+    }, 5000)
+  }
+
+  // 2. 若存在待生效的新营业时段（下期生效制），本期结算完成后自动平滑应用
+  if (gameScheduleStore.schedules.marksix?.pending_schedule) {
+    setTimeout(async () => {
+      await gameScheduleStore.applyPendingSchedule('marksix')
     }, 5000)
   }
 }

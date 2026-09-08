@@ -381,13 +381,29 @@ export const useLotteryStore = defineStore('lottery', () => {
     }
   }
 
-  // 监听当期摇奖结束切换，若处于 closing 状态，留出足够结算与派彩展示时间（6秒）后正式关闭活动
+  // 下一期期号（供排期与预定换届生效使用）
+  const nextSicboPeriod = computed(() => {
+    const cycle = Math.max(10, sicboCycleSeconds.value)
+    return getUtcPeriodString(sicboCurrentIndex.value + 1, cycle)
+  })
+
+  const nextMarksixPeriod = computed(() => {
+    const cycle = Math.max(15, marksixCycleSeconds.value)
+    return getUtcPeriodString(marksixCurrentIndex.value + 1, cycle)
+  })
+
+  // 监听当期摇奖结束切换：
+  // 1. 若处于 closing 状态，留出足够结算与派彩展示时间（6秒）后正式关闭活动
+  // 2. 若存在 pending_schedule（待生效的新开启时段），自动平滑应用生效
   watch(isSicboDrawing, (isDrawing, prev) => {
     if (prev && !isDrawing) {
       setTimeout(() => {
         const scheduleStore = useGameScheduleStore()
         if (scheduleStore.schedules.sicbo?.status === 'closing') {
           scheduleStore.completeCloseActivity('sicbo')
+        }
+        if (scheduleStore.schedules.sicbo?.pending_schedule) {
+          scheduleStore.applyPendingSchedule('sicbo')
         }
       }, 6000)
     }
@@ -400,6 +416,9 @@ export const useLotteryStore = defineStore('lottery', () => {
         if (scheduleStore.schedules.marksix?.status === 'closing') {
           scheduleStore.completeCloseActivity('marksix')
         }
+        if (scheduleStore.schedules.marksix?.pending_schedule) {
+          scheduleStore.applyPendingSchedule('marksix')
+        }
       }, 6000)
     }
   })
@@ -410,6 +429,7 @@ export const useLotteryStore = defineStore('lottery', () => {
     historyLimit,
     sicboRemainingSeconds,
     sicboPeriod,
+    nextSicboPeriod,
     isSicboDrawing,
     sicboLastDrawnPeriod,
     sicboLastResult,
@@ -417,6 +437,7 @@ export const useLotteryStore = defineStore('lottery', () => {
     getSicboResultForPeriod,
     marksixRemainingSeconds,
     marksixPeriod,
+    nextMarksixPeriod,
     isMarksixDrawing,
     marksixLastDrawnPeriod,
     marksixLastResult,

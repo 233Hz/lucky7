@@ -694,12 +694,19 @@ async function handleScheduledDrawConclusion() {
     bets.value = []
   }
 
-  // 若处于关停过渡期，本期结算完成后稍作留存展示（5秒），以便玩家查看开奖点数与派彩，随后正式关闭活动
+  // 1. 若处于关停过渡期，本期结算完成后稍作留存展示（5秒），以便玩家查看开奖点数与派彩，随后正式关闭活动
   if (gameScheduleStore.schedules.sicbo?.status === 'closing') {
     setTimeout(async () => {
       if (gameScheduleStore.schedules.sicbo?.status === 'closing') {
         await gameScheduleStore.completeCloseActivity('sicbo')
       }
+    }, 5000)
+  }
+
+  // 2. 若存在待生效的新营业时段（下期生效制），本期结算完成后自动平滑应用
+  if (gameScheduleStore.schedules.sicbo?.pending_schedule) {
+    setTimeout(async () => {
+      await gameScheduleStore.applyPendingSchedule('sicbo')
     }, 5000)
   }
 }

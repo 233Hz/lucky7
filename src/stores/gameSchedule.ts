@@ -6,6 +6,14 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 export type GameModeId = 'zhajinhua' | 'blackjack' | 'texas' | 'sicbo' | 'marksix'
 export type GameActivityStatus = 'open' | 'closed' | 'closing'
 
+export interface PendingScheduleConfig {
+  is_24h: boolean
+  start_time: string
+  end_time: string
+  effective_period?: string
+  staged_at: string
+}
+
 export interface GameScheduleConfig {
   id: GameModeId
   name: string
@@ -15,6 +23,7 @@ export interface GameScheduleConfig {
   start_time: string // HH:mm
   end_time: string   // HH:mm
   closing_period?: string
+  pending_schedule?: PendingScheduleConfig
 }
 
 const DEFAULT_SCHEDULES: Record<GameModeId, GameScheduleConfig> = {
@@ -309,27 +318,86 @@ export const useGameScheduleStore = defineStore('gameSchedule', () => {
     await commitSchedules()
   }
 
-  // 4. 修改开启时间配置
-  // 核心规则：猜大小和六合彩修改开启时间时，必须先关闭活动（status === 'closed'）才能修改
+  // 4. 修改开启时间配置（方案 1：下期自动生效机制）
+  // 棋牌模式或已关闭模式立即生效；运行中的猜大小/六合彩自动暂存并在下期结算后平滑生效
   async function updateScheduleTime(
     gameId: GameModeId,
     params: {
       is_24h: boolean
       start_time: string
       end_time: string
-    }
-  ) {
+    },
+    effectivePeriod?: string
+  ): Promise<{ isPending: boolean; effectivePeriod?: string }> {
     const config = schedules.value[gameId]
-    if (!config) return
+    if (!config) return { isPending: false }
 
-    if ((gameId === 'sicbo' || gameId === 'marksix') && config.status !== 'closed') {
-      throw new Error(`${config.name} 处于开启或关停过渡中，必须先彻底关闭活动后才能修改开启时间！`)
+    // 棋牌模式（炸金花、21点、德州扑克）或已完全关闭状态：立即生效
+    if ((gameId !== 'sicbo' && gameId !== 'marksix') || config.status === 'closed') {
+      config.is_24h = params.is_24h
+      config.start_time = params.start_time
+      config.end_time = params.end_time
+      delete config.pending_schedule
+      await commitSchedules()
+      return { isPending: false }
     }
 
-    config.is_24h = params.is_24h
-    config.start_time = params.start_time
-    config.end_time = params.end_time
+    // 猜大小和六合彩处于运行中（open）或关停过渡（closing）：下期自动生效
+    config.pending_schedule = {
+      is_24h: params.is_24h,
+      start_time: params.start_time,
+      end_time: params.end_time,
+      effective_period: effectivePeriod,
+      staged_at: new Date().toISOString()
+    }
 
+    await commitSchedules()
+    return { isPending: true, effectivePeriod }
+  }
+
+  // 5. 当期开奖与结算完毕，将暂存的 pending_schedule 正式应用生效
+  async function applyPendingSchedule(gameId: GameModeId) {
+    const config = schedules.value[gameId]
+    if (!config || !config.pending_schedule) return
+
+    const pending = config.pending_schedule
+    config.is_24h = pending.is_24h
+    config.start_time = pending.start_time
+    config.end_time = pending.end_time
+    delete config.pending_schedule
+
+    // 根据新配置重新判断当前时刻是否在营业窗口内
+    if (config.is_24h) {
+      config.status = 'open'
+      config.enabled = true
+    } else {
+      const cur = nowTimeString.value
+      const start = config.start_time || '00:00'
+      const end = config.end_time || '23:59'
+      let inWindow = false
+      if (start <= end) {
+        inWindow = cur >= start && cur <= end
+      } else {
+        inWindow = cur >= start || cur <= end
+      }
+
+      if (inWindow) {
+        config.status = 'open'
+        config.enabled = true
+      } else {
+        config.status = 'closed'
+        config.enabled = false
+      }
+    }
+
+    await commitSchedules()
+  }
+
+  // 6. 撤销未生效的暂存配置
+  async function cancelPendingSchedule(gameId: GameModeId) {
+    const config = schedules.value[gameId]
+    if (!config || !config.pending_schedule) return
+    delete config.pending_schedule
     await commitSchedules()
   }
 
@@ -341,6 +409,8 @@ export const useGameScheduleStore = defineStore('gameSchedule', () => {
     completeCloseActivity,
     reopenActivity,
     updateScheduleTime,
+    applyPendingSchedule,
+    cancelPendingSchedule,
     commitSchedules
   }
 })
