@@ -114,9 +114,9 @@ export const useGameScheduleStore = defineStore('gameSchedule', () => {
     // 1. 若处于关停中 closing
     if (config.status === 'closing') {
       return {
-        isOpen: false,
+        isOpen: true,
         status: 'closing',
-        reason: '活动关停中：等待当期开奖结束后正式关闭，已停止接收新下注',
+        reason: '活动关停过渡中：等待当期开奖结束后正式关闭，已停止接收新下注',
         timeDesc
       }
     }

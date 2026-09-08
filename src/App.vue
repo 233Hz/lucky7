@@ -23,9 +23,13 @@ import Navbar from '@/components/common/Navbar.vue'
 import Footer from '@/components/common/Footer.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
+import { useLotteryStore } from '@/stores/lottery'
+import { useGameScheduleStore } from '@/stores/gameSchedule'
 
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
+useLotteryStore()
+useGameScheduleStore()
 
 onMounted(async () => {
   await authStore.initAuth()

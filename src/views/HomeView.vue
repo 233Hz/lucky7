@@ -218,7 +218,14 @@
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
-              v-if="gameScheduleStore.checkGameOpen('sicbo').isOpen"
+              v-if="gameScheduleStore.checkGameOpen('sicbo').status === 'closing'"
+              to="/game/sicbo"
+              class="comic-btn-yellow w-full py-3 text-xs block text-center animate-pulse font-black"
+            >
+              关停过渡中 · 进入等待当期结算
+            </router-link>
+            <router-link
+              v-else-if="gameScheduleStore.checkGameOpen('sicbo').isOpen"
               to="/game/sicbo"
               class="comic-btn-red w-full py-3 text-xs block text-center"
             >
@@ -229,7 +236,7 @@
               @click="handleGameClosedAlert('猜大小 · 骰宝', 'sicbo')"
               class="comic-btn-white opacity-60 w-full py-3 text-xs block text-center"
             >
-              {{ gameScheduleStore.checkGameOpen('sicbo').status === 'closing' ? '关停过渡中' : '暂停开放' }} · ({{ gameScheduleStore.checkGameOpen('sicbo').timeDesc }})
+              暂停开放 · ({{ gameScheduleStore.checkGameOpen('sicbo').timeDesc }})
             </button>
           </div>
         </div>
@@ -262,7 +269,14 @@
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
-              v-if="gameScheduleStore.checkGameOpen('marksix').isOpen"
+              v-if="gameScheduleStore.checkGameOpen('marksix').status === 'closing'"
+              to="/game/marksix"
+              class="comic-btn-yellow w-full py-3 text-xs block text-center animate-pulse font-black"
+            >
+              关停过渡中 · 进入等待当期结算
+            </router-link>
+            <router-link
+              v-else-if="gameScheduleStore.checkGameOpen('marksix').isOpen"
               to="/game/marksix"
               class="comic-btn-green w-full py-3 text-xs block text-center"
             >
@@ -273,7 +287,7 @@
               @click="handleGameClosedAlert('猜点数六合彩', 'marksix')"
               class="comic-btn-white opacity-60 w-full py-3 text-xs block text-center"
             >
-              {{ gameScheduleStore.checkGameOpen('marksix').status === 'closing' ? '关停过渡中' : '暂停开放' }} · ({{ gameScheduleStore.checkGameOpen('marksix').timeDesc }})
+              暂停开放 · ({{ gameScheduleStore.checkGameOpen('marksix').timeDesc }})
             </button>
           </div>
         </div>

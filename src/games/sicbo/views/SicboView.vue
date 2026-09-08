@@ -48,24 +48,30 @@
       <span>【关停过渡】管理员已发起关闭指令：当期（第 {{ lotteryStore.sicboPeriod }} 期）摇骰结算后将正式关闭活动，已停止接收新下注。</span>
     </div>
 
+    <!-- 已彻底关闭状态界面 -->
     <div
-      v-else-if="!scheduleState.isOpen"
-      class="mb-4 p-6 rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[6px_6px_0px_0px_#1a1a1a] text-center space-y-3 font-mono"
+      v-if="scheduleState.status === 'closed' || (!scheduleState.isOpen && scheduleState.status !== 'closing')"
+      class="p-8 sm:p-12 rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[6px_6px_0px_0px_#1a1a1a] text-center space-y-4 font-mono my-6"
     >
-      <div class="w-12 h-12 rounded-lg bg-[#ef4444] text-white border-2 border-[#1a1a1a] flex items-center justify-center mx-auto shadow-[2px_2px_0px_0px_#1a1a1a]">
-        <Clock class="w-6 h-6" />
+      <div class="w-14 h-14 rounded-lg bg-[#ef4444] text-white border-2 border-[#1a1a1a] flex items-center justify-center mx-auto shadow-[2px_2px_0px_0px_#1a1a1a]">
+        <Clock class="w-7 h-7" />
       </div>
-      <h2 class="text-xl font-black text-[#1a1a1a]">猜大小 · 骰宝 (Sic Bo) 暂停营业中</h2>
-      <p class="text-xs text-[#4a4a4a] font-bold">
+      <h2 class="text-xl sm:text-2xl font-black text-[#1a1a1a]">猜大小 · 骰宝 (Sic Bo) 暂停营业中</h2>
+      <p class="text-xs sm:text-sm text-[#4a4a4a] font-bold max-w-md mx-auto">
         {{ scheduleState.reason }} ({{ scheduleState.timeDesc }})
       </p>
-      <router-link to="/" class="comic-btn-yellow px-5 py-2 text-xs inline-block">
-        返回游戏大厅 · HOME
-      </router-link>
+      <div class="pt-2">
+        <router-link to="/" class="comic-btn-yellow px-6 py-2.5 text-xs inline-block font-black">
+          返回游戏大厅 · HOME
+        </router-link>
+      </div>
     </div>
 
     <!-- Main Layout Grid (Left: Game Table, Right: Public Chat Room) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div
+      v-else
+      class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start"
+    >
       <!-- Main Shaker & Dice Table -->
       <div class="lg:col-span-8 rounded-none bg-[#fffef0] border-4 border-[#1a1a1a] p-6 shadow-brutal-xl space-y-6 text-[#1a1a1a]">
       <!-- Top Shaker Stage & History (3-Column Layout: History | Center Shaker | Bet Status) -->
@@ -548,7 +554,7 @@ function getBetAmount(type: SicBoBetType, value?: number): number {
 // 1. 点击台面区域：触发下注二次确认弹窗，而不是直接下注
 function requestPlaceBet(type: SicBoBetType, value: number | undefined, name: string, odds: number) {
   if (scheduleState.value.status === 'closing') {
-    alert('活动关停中：等待当期开奖后将暂停开放，已停止接收新下注！')
+    alert('活动关停过渡中：当前正在进行本期最后开奖与结算，已停止接收新下注！')
     return
   }
   if (!scheduleState.value.isOpen) {
@@ -688,9 +694,13 @@ async function handleScheduledDrawConclusion() {
     bets.value = []
   }
 
-  // 若处于关停过渡期，本期结算完成后正式关闭活动
+  // 若处于关停过渡期，本期结算完成后稍作留存展示（5秒），以便玩家查看开奖点数与派彩，随后正式关闭活动
   if (gameScheduleStore.schedules.sicbo?.status === 'closing') {
-    await gameScheduleStore.completeCloseActivity('sicbo')
+    setTimeout(async () => {
+      if (gameScheduleStore.schedules.sicbo?.status === 'closing') {
+        await gameScheduleStore.completeCloseActivity('sicbo')
+      }
+    }, 5000)
   }
 }
 
