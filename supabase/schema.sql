@@ -108,6 +108,11 @@ values (
 )
 on conflict (key) do nothing;
 
+-- 初始化系统消息生命周期与有效时间配置 (默认系统消息 120 分钟过期自动清理)
+insert into public.system_configs (key, value)
+values ('chat_message_ttl', '{"system_ttl_minutes": 120, "auto_clean": true}'::jsonb)
+on conflict (key) do nothing;
+
 -- 9. 聊天消息表 (chat_messages) - 支持全服公共开奖频道与房间专属私密聊天
 create table if not exists public.chat_messages (
   id uuid default gen_random_uuid() primary key,
@@ -118,11 +123,14 @@ create table if not exists public.chat_messages (
   is_system boolean not null default false,
   is_host boolean not null default false,
   content text not null,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  expires_at timestamptz default null
 );
 
--- 索引加速按频道与时间拉取最新消息
+-- 索引加速按频道与时间拉取最新消息及过期扫描
 create index if not exists idx_chat_messages_channel_created on public.chat_messages (channel, created_at desc);
+create index if not exists idx_chat_messages_expires_at on public.chat_messages (expires_at) where expires_at is not null;
+create index if not exists idx_chat_messages_system_expires on public.chat_messages (is_system, expires_at);
 
 -- ==========================================================
 -- 触发器：用户注册时自动同步创建 profiles 记录并赠送初始金币
@@ -325,6 +333,56 @@ begin
 end;
 $$ language plpgsql security definer;
 
+-- 自动设置系统消息过期时间的触发器函数
+create or replace function public.trig_set_system_message_expires_at()
+returns trigger as $$
+declare
+  v_ttl_minutes int := 120;
+begin
+  if new.is_system = true and new.expires_at is null then
+    select coalesce((value->>'system_ttl_minutes')::int, 120)
+    into v_ttl_minutes
+    from public.system_configs
+    where key = 'chat_message_ttl';
+
+    new.expires_at := coalesce(new.created_at, now()) + (coalesce(v_ttl_minutes, 120) || ' minutes')::interval;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists tr_set_system_message_expires_at on public.chat_messages;
+create trigger tr_set_system_message_expires_at
+before insert on public.chat_messages
+for each row
+execute function public.trig_set_system_message_expires_at();
+
+-- 清理过期系统消息的 RPC 函数（支持自定义保留分钟数）
+create or replace function public.clean_expired_chat_messages(p_retention_minutes int default null)
+returns jsonb as $$
+declare
+  v_deleted_count int := 0;
+  v_ttl_minutes int := coalesce(p_retention_minutes, 120);
+begin
+  delete from public.chat_messages
+  where is_system = true
+    and (
+      (expires_at is not null and expires_at <= now())
+      or
+      (expires_at is null and created_at < (now() - (v_ttl_minutes || ' minutes')::interval))
+    );
+  get diagnostics v_deleted_count = row_count;
+
+  return json_build_object(
+    'success', true,
+    'deleted_count', v_deleted_count,
+    'cleaned_at', now()
+  )::jsonb;
+end;
+$$ language plpgsql security definer;
+
+grant execute on function public.clean_expired_chat_messages(int) to anon, authenticated, service_role;
+
 -- ==========================================================
 -- RLS 安全策略与权限
 -- ==========================================================
@@ -467,5 +525,67 @@ values (
   }'::jsonb
 )
 on conflict (key) do nothing;
+
+-- 7. 系统消息有效期与自动丢弃清理机制 (超期自动清理，防止数据库膨胀)
+alter table public.chat_messages add column if not exists expires_at timestamptz default null;
+update public.chat_messages set expires_at = created_at + interval '2 hours' where is_system = true and expires_at is null;
+create index if not exists idx_chat_messages_expires_at on public.chat_messages (expires_at) where expires_at is not null;
+create index if not exists idx_chat_messages_system_expires on public.chat_messages (is_system, expires_at);
+
+insert into public.system_configs (key, value)
+values ('chat_message_ttl', '{"system_ttl_minutes": 120, "auto_clean": true}'::jsonb)
+on conflict (key) do nothing;
+
+create or replace function public.trig_set_system_message_expires_at()
+returns trigger as $$
+declare
+  v_ttl_minutes int := 120;
+begin
+  if new.is_system = true and new.expires_at is null then
+    select coalesce((value->>'system_ttl_minutes')::int, 120)
+    into v_ttl_minutes
+    from public.system_configs
+    where key = 'chat_message_ttl';
+
+    new.expires_at := coalesce(new.created_at, now()) + (coalesce(v_ttl_minutes, 120) || ' minutes')::interval;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists tr_set_system_message_expires_at on public.chat_messages;
+create trigger tr_set_system_message_expires_at
+before insert on public.chat_messages
+for each row
+execute function public.trig_set_system_message_expires_at();
+
+create or replace function public.clean_expired_chat_messages(p_retention_minutes int default null)
+returns jsonb as $$
+declare
+  v_deleted_count int := 0;
+  v_ttl_minutes int := coalesce(p_retention_minutes, 120);
+begin
+  delete from public.chat_messages
+  where is_system = true
+    and (
+      (expires_at is not null and expires_at <= now())
+      or
+      (expires_at is null and created_at < (now() - (v_ttl_minutes || ' minutes')::interval))
+    );
+  get diagnostics v_deleted_count = row_count;
+
+  return json_build_object(
+    'success', true,
+    'deleted_count', v_deleted_count,
+    'cleaned_at', now()
+  )::jsonb;
+end;
+$$ language plpgsql security definer;
+
+grant execute on function public.clean_expired_chat_messages(int) to anon, authenticated, service_role;
+
+-- 调度 pg_cron 任务：每 10 分钟自动在后台巡检清理一次超期系统通报
+create extension if not exists pg_cron with schema extensions;
+select cron.schedule('clean-expired-chat-messages', '*/10 * * * *', 'select public.clean_expired_chat_messages();');
 */
 

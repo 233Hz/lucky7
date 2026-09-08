@@ -374,6 +374,132 @@
         </div>
       </div>
 
+      <!-- System Messages Lifecycle & Auto-Cleanup Card -->
+      <div class="rounded-lg bg-white border-4 border-[#1a1a1a] p-6 shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b-3 border-[#1a1a1a] pb-3 gap-2">
+          <div class="flex items-center gap-2">
+            <MessageSquare class="w-5 h-5 text-[#1a1a1a]" />
+            <h2 class="text-base font-black text-[#1a1a1a] uppercase">系统消息生命周期与有效时间管理 · MESSAGE RETENTION</h2>
+          </div>
+          <span class="px-2.5 py-0.5 rounded-md bg-[#facc15] text-[#1a1a1a] border-2 border-[#1a1a1a] text-xs font-black shadow-[2px_2px_0px_0px_#1a1a1a] self-start sm:self-auto">
+            自动过期丢弃
+          </span>
+        </div>
+
+        <p class="text-xs text-[#4a4a4a] font-bold">
+          针对猜大小、六合彩高频定时开奖及房间动作产生的大量系统通报消息设置有效期。超期系统记录自动清理，防止数据库存储过多无用数据；玩家私人与公屏真实聊天不受影响，永久留存。
+        </p>
+
+        <!-- Message Counts Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="p-3 rounded-lg bg-[#fffef0] border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]">
+            <div class="text-[11px] text-[#4a4a4a] font-bold uppercase">全服聊天消息总量</div>
+            <div class="text-lg font-black text-[#1a1a1a] mt-0.5">{{ messageStats.total }} 条</div>
+          </div>
+          <div class="p-3 rounded-lg bg-[#fffef0] border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]">
+            <div class="text-[11px] text-[#4a4a4a] font-bold uppercase">存活系统通报条数</div>
+            <div class="text-lg font-black text-[#eab308] mt-0.5">{{ messageStats.system }} 条</div>
+          </div>
+          <div class="p-3 rounded-lg bg-[#fffef0] border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]">
+            <div class="text-[11px] text-[#4a4a4a] font-bold uppercase">玩家真实互动消息</div>
+            <div class="text-lg font-black text-[#22c55e] mt-0.5">{{ messageStats.user }} 条</div>
+          </div>
+        </div>
+
+        <!-- Retention Settings & Manual Clean -->
+        <div class="p-4 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_#1a1a1a] space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-black text-[#1a1a1a] block">系统消息有效期 (TTL)</span>
+              <span class="text-[11px] text-[#4a4a4a] font-bold">超过此时长的系统开奖通知将不再对前端可见，并由后台自动销毁</span>
+            </div>
+            <span class="text-xs font-mono font-black text-[#1a1a1a] bg-[#facc15] px-2 py-0.5 rounded-md border-2 border-[#1a1a1a] self-start sm:self-auto">
+              当前有效时长: {{ chatStore.systemTtlMinutes }} 分钟 ({{ (chatStore.systemTtlMinutes / 60).toFixed(1) }} 小时)
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input
+              v-model.number="editSystemTtl"
+              type="number"
+              min="10"
+              max="1440"
+              step="10"
+              class="comic-input flex-1 px-3 py-1.5 text-xs font-mono font-black"
+            />
+            <span class="text-xs font-black">分钟</span>
+          </div>
+
+          <!-- Quick Pills -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button
+              v-for="p in [
+                { label: '30分钟', min: 30 },
+                { label: '1小时', min: 60 },
+                { label: '2小时', min: 120 },
+                { label: '6小时', min: 360 },
+                { label: '12小时', min: 720 },
+                { label: '24小时', min: 1440 }
+              ]"
+              :key="p.min"
+              type="button"
+              @click="editSystemTtl = p.min"
+              class="px-2.5 py-1 text-[11px] font-mono font-black border-2 border-[#1a1a1a] rounded-md transition-all"
+              :class="editSystemTtl === p.min ? 'bg-[#facc15] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'bg-white hover:bg-[#fffef0]'"
+            >
+              {{ p.label }}
+            </button>
+          </div>
+
+          <!-- Status badge -->
+          <div class="p-2.5 rounded bg-white border-2 border-[#1a1a1a] text-[11px] font-bold text-[#1a1a1a] flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-[2px_2px_0px_0px_#1a1a1a]">
+            <div class="flex items-center gap-1.5">
+              <Clock class="w-4 h-4 text-[#22c55e] flex-shrink-0" />
+              <span>数据库已启用 <strong class="text-[#1a1a1a]">pg_cron</strong> 定时器，每 10 分钟自动在后台巡检并清理超时废弃记录</span>
+            </div>
+            <button
+              type="button"
+              @click="refreshMessageStats"
+              class="text-[10px] font-black underline hover:text-[#3b82f6] flex items-center gap-1 self-start sm:self-auto"
+            >
+              <RotateCw class="w-3 h-3" :class="{ 'animate-spin': isLoadingStats }" />
+              <span>刷新统计</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Buttons Row -->
+        <div class="flex flex-col sm:flex-row items-center justify-between pt-2 gap-3">
+          <div>
+            <span v-if="ttlSaveSuccess" class="text-xs font-black text-[#22c55e] flex items-center gap-1">
+              <Check class="w-4 h-4" />
+              <span>有效期配置已保存并同步至数据库！</span>
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              v-prevent-reclick
+              :disabled="isCleaningMessages"
+              @click="handleCleanExpiredMessages"
+              class="comic-btn-white flex-1 sm:flex-none px-4 py-2 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              <Trash2 class="w-4 h-4 text-[#ef4444]" />
+              <span>{{ isCleaningMessages ? '正在清理中...' : '立即清理过期消息' }}</span>
+            </button>
+            <button
+              v-prevent-reclick
+              :disabled="isSavingTtl"
+              @click="handleSaveTtl"
+              class="comic-btn-yellow flex-1 sm:flex-none px-5 py-2 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              <Check class="w-4 h-4" />
+              <span>{{ isSavingTtl ? '保存中...' : '保存有效时间' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Players Management Table -->
       <div class="rounded-lg bg-white border-4 border-[#1a1a1a] overflow-hidden shadow-[6px_6px_0px_0px_rgba(26,26,26,1)]">
         <div class="px-6 py-4 border-b-3 border-[#1a1a1a] bg-[#fffef0] flex items-center justify-between">
@@ -503,11 +629,13 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   Shield, ShieldX, RotateCw, Gift, Timer, Check, Clock,
-  Layers, Sparkles, Crown, Dices, Disc, AlertTriangle
+  Layers, Sparkles, Crown, Dices, Disc, AlertTriangle,
+  MessageSquare, Trash2
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useLotteryStore } from '@/stores/lottery'
 import { useGameScheduleStore, type GameModeId } from '@/stores/gameSchedule'
+import { useChatStore } from '@/stores/chat'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { dialog } from '@/lib/dialog'
 import Modal from '@/components/common/Modal.vue'
@@ -517,6 +645,7 @@ import type { Profile } from '@/types/database'
 const authStore = useAuthStore()
 const lotteryStore = useLotteryStore()
 const gameScheduleStore = useGameScheduleStore()
+const chatStore = useChatStore()
 const playersList = ref<Profile[]>([])
 const searchQuery = ref('')
 
@@ -671,6 +800,71 @@ watch(
   { immediate: true }
 )
 
+// 系统消息有效时间与过期清理响应式状态
+const editSystemTtl = ref(chatStore.systemTtlMinutes)
+const ttlSaveSuccess = ref(false)
+const isSavingTtl = ref(false)
+const isCleaningMessages = ref(false)
+const isLoadingStats = ref(false)
+const messageStats = ref({ total: 0, system: 0, user: 0 })
+
+watch(
+  () => chatStore.systemTtlMinutes,
+  (newVal) => {
+    editSystemTtl.value = newVal
+  },
+  { immediate: true }
+)
+
+async function refreshMessageStats() {
+  isLoadingStats.value = true
+  try {
+    messageStats.value = await chatStore.fetchMessageStats()
+  } finally {
+    isLoadingStats.value = false
+  }
+}
+
+async function handleSaveTtl() {
+  isSavingTtl.value = true
+  try {
+    await chatStore.updateSystemTtl(editSystemTtl.value)
+    ttlSaveSuccess.value = true
+    setTimeout(() => {
+      ttlSaveSuccess.value = false
+    }, 3000)
+    dialog.success(`系统消息有效时长已设定为 ${editSystemTtl.value} 分钟（${(editSystemTtl.value / 60).toFixed(1)} 小时）！\n\n新产生的系统通报将以此有效期写入，超期记录由后台定时器（pg_cron）与数据库触发器自动清理。`, {
+      title: '生命周期配置已保存'
+    })
+  } catch (err: unknown) {
+    const e = err as { message?: string }
+    dialog.error(e.message || '保存配置失败')
+  } finally {
+    isSavingTtl.value = false
+  }
+}
+
+async function handleCleanExpiredMessages() {
+  const confirmed = await dialog.confirm(`确认立即执行一次全服过期系统消息深度清理吗？\n\n将清理所有超过 ${editSystemTtl.value} 分钟的旧系统通报（玩家真实聊天消息永久保留）。`, {
+    title: '立即清理确认'
+  })
+  if (!confirmed) return
+
+  isCleaningMessages.value = true
+  try {
+    const res = await chatStore.cleanExpiredMessages(editSystemTtl.value)
+    await refreshMessageStats()
+    dialog.success(`清理完毕！已成功从数据库中清除 ${res.deletedCount} 条过期系统消息。`, {
+      title: '清理成功'
+    })
+  } catch (err: unknown) {
+    const e = err as { message?: string }
+    dialog.error(e.message || '清理操作失败')
+  } finally {
+    isCleaningMessages.value = false
+  }
+}
+
 const showGrantModal = ref(false)
 const selectedTarget = ref<Profile | null>(null)
 const grantAmount = ref(10000)
@@ -681,6 +875,7 @@ const isFetchingPlayers = ref(false)
 
 onMounted(() => {
   fetchPlayers()
+  refreshMessageStats()
 })
 
 const filteredPlayers = computed(() => {

@@ -14,10 +14,16 @@ export interface ChatMessage {
   isSystem?: boolean
   content: string
   createdAt: string
+  expiresAt?: string
 }
 
 export const useChatStore = defineStore('chat', () => {
   const authStore = useAuthStore()
+
+  // 系统消息有效时间（分钟），默认 120 分钟（2 小时）
+  const systemTtlMinutes = ref<number>(
+    Number(localStorage.getItem('lucky7_chat_system_ttl')) || 120
+  )
 
   // 存储各频道的聊天记录列表：key 为 channel 名称
   const channelMessages = ref<Record<string, ChatMessage[]>>({})
@@ -27,6 +33,26 @@ export const useChatStore = defineStore('chat', () => {
 
   // Supabase 实时广播频道句柄池
   const realtimeChannels = new Map<string, RealtimeChannel>()
+
+  // 从服务端同步系统消息 TTL 配置
+  async function fetchTtlConfig() {
+    if (!isSupabaseConfigured()) return
+    try {
+      const { data, error } = await supabase
+        .from('system_configs')
+        .select('*')
+        .eq('key', 'chat_message_ttl')
+        .maybeSingle()
+      if (!error && data?.value?.system_ttl_minutes) {
+        systemTtlMinutes.value = Number(data.value.system_ttl_minutes)
+        localStorage.setItem('lucky7_chat_system_ttl', String(systemTtlMinutes.value))
+      }
+    } catch (err) {
+      console.warn('Fetch chat message ttl config error:', err)
+    }
+  }
+
+  fetchTtlConfig()
 
   // 跨标签页同步广播总线
   let broadcastBus: BroadcastChannel | null = null
@@ -71,26 +97,38 @@ export const useChatStore = defineStore('chat', () => {
 
     // 初始化 Supabase 数据库拉取与 Realtime Broadcast 订阅
     if (isSupabaseConfigured()) {
-      // 1. 从 chat_messages 表拉取最新历史记录
+      // 1. 从 chat_messages 表拉取最新历史记录（过滤未过期的消息）
+      const nowIso = new Date().toISOString()
       supabase
         .from('chat_messages')
         .select('*')
         .eq('channel', channel)
+        .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
         .order('created_at', { ascending: false })
         .limit(40)
         .then(({ data, error }) => {
           if (!error && data && data.length > 0) {
-            const dbMsgs: ChatMessage[] = data.reverse().map((r: any) => ({
-              id: r.id,
-              channel: r.channel,
-              senderId: r.sender_id,
-              senderName: r.sender_name,
-              senderAvatar: r.sender_avatar || '',
-              isSystem: Boolean(r.is_system),
-              isHost: Boolean(r.is_host),
-              content: r.content,
-              createdAt: r.created_at
-            }))
+            const now = Date.now()
+            const dbMsgs: ChatMessage[] = data
+              .reverse()
+              .map((r: any) => ({
+                id: r.id,
+                channel: r.channel,
+                senderId: r.sender_id,
+                senderName: r.sender_name,
+                senderAvatar: r.sender_avatar || '',
+                isSystem: Boolean(r.is_system),
+                isHost: Boolean(r.is_host),
+                content: r.content,
+                createdAt: r.created_at,
+                expiresAt: r.expires_at || undefined
+              }))
+              .filter(m => {
+                if (m.isSystem && m.expiresAt) {
+                  return new Date(m.expiresAt).getTime() > now
+                }
+                return true
+              })
             channelMessages.value[channel] = dbMsgs
           }
         })
@@ -140,11 +178,25 @@ export const useChatStore = defineStore('chat', () => {
       channelMessages.value[channel] = []
     }
 
+    const now = Date.now()
+    // 过滤已过期的系统消息
+    if (msg.isSystem && msg.expiresAt && new Date(msg.expiresAt).getTime() <= now) {
+      return
+    }
+
     // 去重
     const exists = channelMessages.value[channel].some(m => m.id === msg.id)
     if (exists) return
 
     channelMessages.value[channel].push(msg)
+
+    // 清理该频道中已过期的系统消息
+    channelMessages.value[channel] = channelMessages.value[channel].filter(m => {
+      if (m.isSystem && m.expiresAt) {
+        return new Date(m.expiresAt).getTime() > now
+      }
+      return true
+    })
 
     // 最多保留 80 条消息
     if (channelMessages.value[channel].length > 80) {
@@ -186,7 +238,8 @@ export const useChatStore = defineStore('chat', () => {
             sender_avatar: msg.senderAvatar,
             is_system: msg.isSystem || false,
             is_host: msg.isHost || false,
-            content: msg.content
+            content: msg.content,
+            expires_at: msg.expiresAt || null
           })
           .then()
       }
@@ -219,10 +272,19 @@ export const useChatStore = defineStore('chat', () => {
     return msg
   }
 
-  // 发送系统通报/开奖通知/房间事件
-  function sendSystemAnnouncement(channel: string, content: string, customId?: string) {
+  // 发送系统通报/开奖通知/房间事件（支持有效时长 TTL）
+  function sendSystemAnnouncement(
+    channel: string,
+    content: string,
+    customId?: string,
+    customTtlMinutes?: number
+  ) {
     const text = content.trim()
     if (!text) return
+
+    const ttl = customTtlMinutes || systemTtlMinutes.value || 120
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + ttl * 60 * 1000).toISOString()
 
     const msg: ChatMessage = {
       id: customId || `sys_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -232,10 +294,88 @@ export const useChatStore = defineStore('chat', () => {
       senderAvatar: '',
       isSystem: true,
       content: text,
-      createdAt: new Date().toISOString()
+      createdAt: now.toISOString(),
+      expiresAt
     }
 
     appendMessageLocally(channel, msg, true)
+  }
+
+  // 更新系统消息有效时长配置（分）
+  async function updateSystemTtl(ttlMinutes: number) {
+    if (ttlMinutes < 5) ttlMinutes = 5
+    systemTtlMinutes.value = ttlMinutes
+    localStorage.setItem('lucky7_chat_system_ttl', String(ttlMinutes))
+
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase
+          .from('system_configs')
+          .upsert({
+            key: 'chat_message_ttl',
+            value: {
+              system_ttl_minutes: ttlMinutes,
+              auto_clean: true
+            },
+            updated_at: new Date().toISOString()
+          })
+      } catch (err) {
+        console.warn('Update chat_message_ttl error:', err)
+      }
+    }
+  }
+
+  // 手动/主动清理数据库与本地已过期的系统消息
+  async function cleanExpiredMessages(ttlMinutes?: number) {
+    const minutes = ttlMinutes ?? systemTtlMinutes.value
+    let deletedCount = 0
+
+    // 1. 本地各频道清理过期系统消息
+    const now = Date.now()
+    for (const ch of Object.keys(channelMessages.value)) {
+      channelMessages.value[ch] = channelMessages.value[ch].filter(m => {
+        if (m.isSystem && m.expiresAt) {
+          return new Date(m.expiresAt).getTime() > now
+        }
+        return true
+      })
+      try {
+        localStorage.setItem(`lucky7_chat_${ch}`, JSON.stringify(channelMessages.value[ch]))
+      } catch {
+        // ignore
+      }
+    }
+
+    // 2. 调用 Supabase RPC 清理数据库中过期系统消息
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase.rpc('clean_expired_chat_messages', {
+          p_retention_minutes: minutes
+        })
+        if (error) throw error
+        deletedCount = (data as { deleted_count?: number })?.deleted_count || 0
+      } catch (err) {
+        console.error('cleanExpiredMessages RPC failed:', err)
+        throw err
+      }
+    }
+
+    return { success: true, deletedCount }
+  }
+
+  // 获取当前消息统计数据（供管理后台显示）
+  async function fetchMessageStats() {
+    if (!isSupabaseConfigured()) return { total: 0, system: 0, user: 0 }
+    try {
+      const { count: total } = await supabase.from('chat_messages').select('*', { count: 'exact', head: true })
+      const { count: system } = await supabase.from('chat_messages').select('*', { count: 'exact', head: true }).eq('is_system', true)
+      const t = total || 0
+      const s = system || 0
+      return { total: t, system: s, user: Math.max(0, t - s) }
+    } catch (err) {
+      console.error('fetchMessageStats error:', err)
+      return { total: 0, system: 0, user: 0 }
+    }
   }
 
   // 清空指定频道的聊天记录
@@ -260,10 +400,14 @@ export const useChatStore = defineStore('chat', () => {
   return {
     channelMessages,
     unreadCounts,
+    systemTtlMinutes,
     getMessages,
     initChannel,
     sendMessage,
     sendSystemAnnouncement,
+    updateSystemTtl,
+    cleanExpiredMessages,
+    fetchMessageStats,
     clearChannel,
     destroyChannel
   }
