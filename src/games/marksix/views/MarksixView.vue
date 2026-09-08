@@ -69,9 +69,9 @@
       <!-- Main Live Draw Shaker & Table -->
       <div class="lg:col-span-8 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] space-y-6 text-[#1a1a1a]">
       <!-- Top Draw Stage & History (3-Column Layout: History | Center Ball | Bet Status) -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center pb-6 border-b-4 border-[#1a1a1a]">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 lg:gap-8 pb-6 border-b-4 border-[#1a1a1a]">
         <!-- 1. Left: Single Previous Round Result (只显示上一期结果) -->
-        <div class="md:col-span-5 flex flex-col items-center md:items-start min-w-0 w-full space-y-2 p-3 bg-white rounded-xl border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]">
+        <div class="w-full md:w-[260px] lg:w-[270px] shrink-0 flex flex-col items-center md:items-start min-w-0 space-y-2 p-3 bg-white rounded-xl border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]">
           <div class="flex items-center justify-between w-full">
             <span class="text-xs font-black font-mono text-[#1a1a1a] uppercase tracking-wider flex items-center gap-1.5">
               <span>上一期特码开奖</span>
@@ -111,7 +111,7 @@
         </div>
 
         <!-- 2. Middle: Shaker Center Stage -->
-        <div class="md:col-span-4 flex flex-col items-center justify-center">
+        <div class="flex-1 flex flex-col items-center justify-center min-w-0 px-2">
           <div class="p-3 sm:p-4 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] flex flex-col items-center">
             <BallShaker
               :number="currentResult.number"
@@ -129,7 +129,7 @@
         </div>
 
         <!-- 3. Right: Current Total Bet & Profit -->
-        <div class="md:col-span-3 flex flex-col items-center md:items-end justify-center space-y-1 w-full">
+        <div class="w-full md:w-[150px] lg:w-[170px] shrink-0 flex flex-col items-center md:items-end justify-center space-y-1">
           <div class="text-xs font-black font-mono text-[#1a1a1a]/70 uppercase">本局累计下注</div>
           <div class="text-xl sm:text-2xl font-black font-mono text-[#1a1a1a] flex items-center gap-1.5 bg-[#facc15] px-2.5 py-1 rounded-md border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
             <CoinIcon customClass="w-4 h-4 sm:w-5 sm:h-5" />
