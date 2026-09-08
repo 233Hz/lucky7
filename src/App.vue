@@ -14,6 +14,9 @@
 
     <!-- Global Footer -->
     <Footer />
+
+    <!-- Global Unified UI Dialog (Alert & Confirm) -->
+    <GlobalDialog />
   </div>
 </template>
 
@@ -21,6 +24,8 @@
 import { onMounted } from 'vue'
 import Navbar from '@/components/common/Navbar.vue'
 import Footer from '@/components/common/Footer.vue'
+import GlobalDialog from '@/components/common/GlobalDialog.vue'
+import { setupGlobalAlertInterception } from '@/lib/dialog'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
 import { useLotteryStore } from '@/stores/lottery'
@@ -30,6 +35,8 @@ const authStore = useAuthStore()
 const walletStore = useWalletStore()
 useLotteryStore()
 useGameScheduleStore()
+
+setupGlobalAlertInterception()
 
 onMounted(async () => {
   await authStore.initAuth()

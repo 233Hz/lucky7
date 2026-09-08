@@ -509,6 +509,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useLotteryStore } from '@/stores/lottery'
 import { useGameScheduleStore, type GameModeId } from '@/stores/gameSchedule'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { dialog } from '@/lib/dialog'
 import Modal from '@/components/common/Modal.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 import type { Profile } from '@/types/database'
@@ -580,13 +581,15 @@ async function handleCloseActivity(gameId: GameModeId) {
     if (gameId === 'sicbo' || gameId === 'marksix') {
       const period = gameId === 'sicbo' ? lotteryStore.sicboPeriod : lotteryStore.marksixPeriod
       await gameScheduleStore.requestCloseActivity(gameId, period)
-      alert(`已向【${gameScheduleStore.schedules[gameId].name}】下达关停指令！\n\n当前期（${period}）未结束的开奖将照常进行并完成结算，结算完毕后将自动正式关闭活动。`)
+      dialog.info(`已向【${gameScheduleStore.schedules[gameId].name}】下达关停指令！\n\n当前期（${period}）未结束的开奖将照常进行并完成结算，结算完毕后将自动正式关闭活动。`, {
+        title: '关停指令已生效'
+      })
     } else {
       await gameScheduleStore.requestCloseActivity(gameId)
     }
   } catch (err: unknown) {
     const e = err as { message?: string }
-    alert(e.message || '关停活动失败')
+    dialog.error(e.message || '关停活动失败')
   }
 }
 
@@ -595,7 +598,7 @@ async function handleReopenActivity(gameId: GameModeId) {
     await gameScheduleStore.reopenActivity(gameId)
   } catch (err: unknown) {
     const e = err as { message?: string }
-    alert(e.message || '开启活动失败')
+    dialog.error(e.message || '开启活动失败')
   }
 }
 
@@ -616,11 +619,13 @@ async function handleSaveSchedule(gameId: GameModeId) {
     }, 3000)
 
     if (res.isPending) {
-      alert(`【${gameScheduleStore.schedules[gameId].name}】新开启时段配置已成功暂存！\n\n当前期正在开奖进行中，新时段将于【${res.effectivePeriod}】开奖派彩完毕后（下期开始）自动平滑生效，无需手动关闭活动。`)
+      dialog.info(`【${gameScheduleStore.schedules[gameId].name}】新开启时段配置已成功暂存！\n\n当前期正在开奖进行中，新时段将于【${res.effectivePeriod}】开奖派彩完毕后（下期开始）自动平滑生效，无需手动关闭活动。`, {
+        title: '配置已暂存 (下期生效)'
+      })
     }
   } catch (err: unknown) {
     const e = err as { message?: string }
-    alert(e.message || '保存失败')
+    dialog.error(e.message || '保存失败')
   } finally {
     isSavingSchedule.value[gameId] = false
   }
@@ -628,7 +633,10 @@ async function handleSaveSchedule(gameId: GameModeId) {
 
 async function handleCancelPending(gameId: GameModeId) {
   const gName = gameScheduleStore.schedules[gameId]?.name || gameId
-  if (confirm(`确认撤销【${gName}】待生效的新开启时段配置吗？`)) {
+  const confirmed = await dialog.confirm(`确认撤销【${gName}】待生效的新开启时段配置吗？`, {
+    title: '撤销确认'
+  })
+  if (confirmed) {
     await gameScheduleStore.cancelPendingSchedule(gameId)
   }
 }
@@ -741,7 +749,9 @@ async function submitGrant() {
     }
     showGrantModal.value = false
     isSubmitting.value = false
-    alert(`成功为 ${selectedTarget.value.nickname} 调整筹码 ${grantAmount.value}！`)
+    dialog.success(`成功为 ${selectedTarget.value.nickname} 调整筹码 ${grantAmount.value}！`, {
+      title: '调账成功'
+    })
     return
   }
 
@@ -761,13 +771,15 @@ async function submitGrant() {
         authStore.profile.chips = selectedTarget.value.chips
       }
       showGrantModal.value = false
-      alert(`调账成功！目标玩家最新余额: ${selectedTarget.value.chips}`)
+      dialog.success(`调账成功！目标玩家最新余额: ${selectedTarget.value.chips}`, {
+        title: '调账成功'
+      })
     } else {
-      alert(res.message || '调账失败')
+      dialog.error(res.message || '调账失败')
     }
   } catch (err: unknown) {
     const e = err as { message?: string }
-    alert('操作异常: ' + (e.message || '请检查权限'))
+    dialog.error('操作异常: ' + (e.message || '请检查权限'))
   } finally {
     isSubmitting.value = false
   }

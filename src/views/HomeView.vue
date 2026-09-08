@@ -438,6 +438,7 @@ import {
 import { useAuthStore } from '@/stores/auth'
 import { useRoomStore } from '@/stores/room'
 import { useGameScheduleStore, type GameModeId } from '@/stores/gameSchedule'
+import { dialog } from '@/lib/dialog'
 import Modal from '@/components/common/Modal.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 import type { GameRoom } from '@/types/database'
@@ -449,7 +450,9 @@ const gameScheduleStore = useGameScheduleStore()
 
 function handleGameClosedAlert(gameName: string, gameId: GameModeId) {
   const check = gameScheduleStore.checkGameOpen(gameId)
-  alert(`【${gameName}】当前暂未开放！\n\n状态：${check.reason}\n营业时间：${check.timeDesc}`)
+  dialog.warning(`【${gameName}】当前暂未开放！\n\n状态：${check.reason}\n营业时间：${check.timeDesc}`, {
+    title: `模式暂未开放 · ${gameName}`
+  })
 }
 
 const showRoomModal = ref(false)

@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import router from '@/router'
 import { useAuthStore } from './auth'
+import { dialog } from '@/lib/dialog'
 import type { GameRoom, RoomPlayer } from '@/types/database'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
@@ -47,7 +48,7 @@ export const useRoomStore = defineStore('room', () => {
         } else if (type === 'PLAYER_KICKED') {
           if (currentRoom.value && currentRoom.value.id === payload.roomId) {
             if (authStore.profile && authStore.profile.id === payload.userId) {
-              alert('您已被房主移出房间！')
+              dialog.warning('您已被房主移出房间！', { title: '已被移出房间' })
               if (roomChannel) {
                 roomChannel.unsubscribe()
                 roomChannel = null
@@ -64,7 +65,7 @@ export const useRoomStore = defineStore('room', () => {
           }
         } else if (type === 'ROOM_DESTROYED') {
           if (currentRoom.value && currentRoom.value.id === payload.roomId) {
-            alert('房间内所有玩家均已退出，房间已自动销毁！')
+            dialog.info('房间内所有玩家均已退出，房间已自动销毁！', { title: '房间已解散' })
             if (roomChannel) {
               roomChannel.unsubscribe()
               roomChannel = null
@@ -552,7 +553,7 @@ export const useRoomStore = defineStore('room', () => {
           if (payload.eventType === 'UPDATE') {
             currentRoom.value = payload.new as GameRoom
           } else if (payload.eventType === 'DELETE') {
-            alert('房间内所有玩家均已退出，房间已自动销毁！')
+            dialog.info('房间内所有玩家均已退出，房间已自动销毁！', { title: '房间已解散' })
             if (roomChannel) {
               roomChannel.unsubscribe()
               roomChannel = null
@@ -570,7 +571,7 @@ export const useRoomStore = defineStore('room', () => {
           if (payload.eventType === 'DELETE') {
             const deletedUserId = (payload.old as { user_id?: string })?.user_id
             if (deletedUserId && authStore.profile?.id === deletedUserId) {
-              alert('您已被房主移出房间！')
+              dialog.warning('您已被房主移出房间！', { title: '已被移出房间' })
               if (roomChannel) {
                 roomChannel.unsubscribe()
                 roomChannel = null

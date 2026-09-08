@@ -217,6 +217,7 @@ import { useRouter } from 'vue-router'
 import { CreditCard, RotateCw, LogOut, KeyRound, Eye, EyeOff, Check, AlertCircle } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
+import { dialog } from '@/lib/dialog'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 
 const router = useRouter()
@@ -288,7 +289,7 @@ async function handleSaveProfile() {
   try {
     const ok = await authStore.updateProfile(editNickname.value.trim(), avatarUrl.value)
     if (ok) {
-      alert('昵称已更新！')
+      dialog.success('昵称已更新！')
     }
   } finally {
     isSaving.value = false

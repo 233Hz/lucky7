@@ -497,6 +497,7 @@ import { useLotteryStore } from '@/stores/lottery'
 import { useChatStore } from '@/stores/chat'
 import { useGameScheduleStore } from '@/stores/gameSchedule'
 import { sound } from '@/lib/sound'
+import { dialog } from '@/lib/dialog'
 import DiceBox from '@/components/game/DiceBox.vue'
 import ChipSelector from '@/components/game/ChipSelector.vue'
 import ChatPanel from '@/components/chat/ChatPanel.vue'
@@ -554,20 +555,20 @@ function getBetAmount(type: SicBoBetType, value?: number): number {
 // 1. 点击台面区域：触发下注二次确认弹窗，而不是直接下注
 function requestPlaceBet(type: SicBoBetType, value: number | undefined, name: string, odds: number) {
   if (scheduleState.value.status === 'closing') {
-    alert('活动关停过渡中：当前正在进行本期最后开奖与结算，已停止接收新下注！')
+    dialog.warning('活动关停过渡中：当前正在进行本期最后开奖与结算，已停止接收新下注！')
     return
   }
   if (!scheduleState.value.isOpen) {
-    alert(`活动未在开放时间内 (${scheduleState.value.timeDesc})`)
+    dialog.warning(`活动未在开放时间内 (${scheduleState.value.timeDesc})`)
     return
   }
   if (lotteryStore.isSicboDrawing || isRolling.value) {
-    alert('本期已封盘摇骰中，请等待开奖结束！')
+    dialog.warning('本期已封盘摇骰中，请等待开奖结束！')
     return
   }
 
   if (authStore.userChips < selectedChip.value) {
-    alert('筹码不足，请先前往签到获取筹码！')
+    dialog.warning('筹码不足，请先前往签到获取筹码！')
     return
   }
 
@@ -586,17 +587,17 @@ function confirmBet() {
   if (!pendingBet.value) return
 
   if (scheduleState.value.status === 'closing' || !scheduleState.value.isOpen) {
-    alert('活动已关停或未在营业时间，下注失败！')
+    dialog.error('活动已关停或未在营业时间，下注失败！')
     showBetConfirmModal.value = false
     return
   }
   if (lotteryStore.isSicboDrawing || isRolling.value) {
-    alert('当前已进入封盘摇骰阶段，下注未提交！')
+    dialog.warning('当前已进入封盘摇骰阶段，下注未提交！')
     showBetConfirmModal.value = false
     return
   }
   if (authStore.userChips < totalBetAmount.value + pendingBet.value.amount) {
-    alert('筹码不足！')
+    dialog.warning('筹码不足！')
     return
   }
 

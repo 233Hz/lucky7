@@ -94,6 +94,7 @@ import confetti from 'canvas-confetti'
 import { CalendarCheck, Flame, Gift, Check } from 'lucide-vue-next'
 import { useWalletStore } from '@/stores/wallet'
 import { sound } from '@/lib/sound'
+import { dialog } from '@/lib/dialog'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 
 const walletStore = useWalletStore()
@@ -116,7 +117,7 @@ async function handleClaim() {
       sound.playWin()
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
     } else {
-      alert(res.message || '签到失败')
+      dialog.error(res.message || '签到失败')
     }
   } finally {
     isClaiming.value = false

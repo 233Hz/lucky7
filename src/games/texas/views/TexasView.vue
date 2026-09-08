@@ -548,6 +548,7 @@ import { useChatStore } from '@/stores/chat'
 import { useGameScheduleStore } from '@/stores/gameSchedule'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { sound } from '@/lib/sound'
+import { dialog } from '@/lib/dialog'
 import PlayingCard from '@/components/game/PlayingCard.vue'
 import PlayerSeat from '@/components/game/PlayerSeat.vue'
 import Modal from '@/components/common/Modal.vue'
@@ -769,7 +770,10 @@ function handleAddTestPlayer() {
 // 房主踢出指定玩家
 async function handleKickPlayer(userId: string, nickname: string) {
   if (!roomStore.isHost || kickingUserId.value) return
-  if (!confirm(`确定要将玩家【${nickname}】移出房间吗？`)) return
+  const confirmed = await dialog.confirm(`确定要将玩家【${nickname}】移出房间吗？`, {
+    title: '移出房间确认'
+  })
+  if (!confirmed) return
 
   kickingUserId.value = userId
   try {
@@ -836,7 +840,7 @@ async function handleStartGame() {
 // Start deal & betting rounds
 function startNewRound() {
   if (authStore.profile && authStore.profile.chips < bigBlind.value) {
-    alert('筹码不足，请先前往签到获取筹码！')
+    dialog.warning('筹码不足，请先前往签到获取筹码！', { title: '筹码不足' })
     return
   }
 
