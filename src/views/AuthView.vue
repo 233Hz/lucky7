@@ -25,7 +25,7 @@
         <div class="grid grid-cols-2 p-1.5 rounded-lg bg-white border-3 border-[#1a1a1a] text-xs font-black font-mono gap-1">
           <button
             type="button"
-            @click="isSignUp = false"
+            @click="isSignUp = false; authStore.authError = null"
             class="py-2 rounded-md transition-all"
             :class="!isSignUp ? 'bg-[#facc15] text-[#1a1a1a] border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'text-[#1a1a1a] hover:bg-[#fffef0] border-2 border-transparent'"
           >
@@ -33,7 +33,7 @@
           </button>
           <button
             type="button"
-            @click="isSignUp = true"
+            @click="isSignUp = true; authStore.authError = null"
             class="py-2 rounded-md transition-all"
             :class="isSignUp ? 'bg-[#facc15] text-[#1a1a1a] border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]' : 'text-[#1a1a1a] hover:bg-[#fffef0] border-2 border-transparent'"
           >
@@ -99,23 +99,6 @@
             <CoinIcon v-if="isSignUp && !authStore.loading && !isSubmitting" customClass="w-4 h-4" />
           </button>
         </form>
-
-        <div class="relative flex items-center justify-center my-2">
-          <div class="border-t-2 border-[#1a1a1a] w-full"></div>
-          <span class="bg-[#fffef0] px-3 text-xs font-mono font-black text-[#1a1a1a] uppercase tracking-widest absolute">或</span>
-        </div>
-
-        <!-- Quick Guest Demo Entry -->
-        <button
-          v-prevent-reclick
-          type="button"
-          :disabled="authStore.loading || isGuestLoading"
-          @click="handleGuestLogin"
-          class="comic-btn-yellow w-full py-3 text-xs font-black flex items-center justify-center space-x-1.5 disabled:opacity-50"
-        >
-          <Zap class="w-4 h-4 mr-1 text-[#1a1a1a]" />
-          <span>{{ isGuestLoading ? '正在快捷登入...' : '一键免密快速试玩 · GUEST' }}</span>
-        </button>
       </div>
     </div>
   </div>
@@ -124,7 +107,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { AlertCircle, Zap } from 'lucide-vue-next'
+import { AlertCircle } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import CoinIcon from '@/components/common/CoinIcon.vue'
 
@@ -136,7 +119,6 @@ const email = ref('')
 const password = ref('')
 const nickname = ref('')
 const isSubmitting = ref(false)
-const isGuestLoading = ref(false)
 
 async function handleSubmit() {
   if (isSubmitting.value || authStore.loading) return
@@ -154,19 +136,6 @@ async function handleSubmit() {
     }
   } finally {
     isSubmitting.value = false
-  }
-}
-
-async function handleGuestLogin() {
-  if (isGuestLoading.value || authStore.loading) return
-  isGuestLoading.value = true
-  try {
-    const ok = await authStore.signIn('guest_' + Math.floor(Math.random() * 1000) + '@lucky7.game', 'guest123456')
-    if (ok) {
-      router.push('/')
-    }
-  } finally {
-    isGuestLoading.value = false
   }
 }
 </script>
