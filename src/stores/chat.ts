@@ -20,10 +20,13 @@ export interface ChatMessage {
 export const useChatStore = defineStore('chat', () => {
   const authStore = useAuthStore()
 
-  // 系统消息有效时间（分钟），默认 120 分钟（2 小时）
-  const systemTtlMinutes = ref<number>(
-    Number(localStorage.getItem('lucky7_chat_system_ttl')) || 120
+  // 全局消息有效时间（分钟），默认 120 分钟（2 小时）
+  const messageTtlMinutes = ref<number>(
+    Number(localStorage.getItem('lucky7_chat_message_ttl')) ||
+    Number(localStorage.getItem('lucky7_chat_system_ttl')) ||
+    120
   )
+  const systemTtlMinutes = messageTtlMinutes // 兼容旧别名
 
   // 存储各频道的聊天记录列表：key 为 channel 名称
   const channelMessages = ref<Record<string, ChatMessage[]>>({})
@@ -34,7 +37,7 @@ export const useChatStore = defineStore('chat', () => {
   // Supabase 实时广播频道句柄池
   const realtimeChannels = new Map<string, RealtimeChannel>()
 
-  // 从服务端同步系统消息 TTL 配置
+  // 从服务端同步消息 TTL 配置
   async function fetchTtlConfig() {
     if (!isSupabaseConfigured()) return
     try {
@@ -43,9 +46,12 @@ export const useChatStore = defineStore('chat', () => {
         .select('*')
         .eq('key', 'chat_message_ttl')
         .maybeSingle()
-      if (!error && data?.value?.system_ttl_minutes) {
-        systemTtlMinutes.value = Number(data.value.system_ttl_minutes)
-        localStorage.setItem('lucky7_chat_system_ttl', String(systemTtlMinutes.value))
+      if (!error && data?.value) {
+        const ttl = Number(data.value.message_ttl_minutes || data.value.system_ttl_minutes)
+        if (ttl) {
+          messageTtlMinutes.value = ttl
+          localStorage.setItem('lucky7_chat_message_ttl', String(ttl))
+        }
       }
     } catch (err) {
       console.warn('Fetch chat message ttl config error:', err)
@@ -124,7 +130,7 @@ export const useChatStore = defineStore('chat', () => {
                 expiresAt: r.expires_at || undefined
               }))
               .filter(m => {
-                if (m.isSystem && m.expiresAt) {
+                if (m.expiresAt) {
                   return new Date(m.expiresAt).getTime() > now
                 }
                 return true
@@ -179,8 +185,8 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     const now = Date.now()
-    // 过滤已过期的系统消息
-    if (msg.isSystem && msg.expiresAt && new Date(msg.expiresAt).getTime() <= now) {
+    // 过滤已过期的消息（全量消息过期判定）
+    if (msg.expiresAt && new Date(msg.expiresAt).getTime() <= now) {
       return
     }
 
@@ -190,9 +196,9 @@ export const useChatStore = defineStore('chat', () => {
 
     channelMessages.value[channel].push(msg)
 
-    // 清理该频道中已过期的系统消息
+    // 清理该频道中所有已过期的消息
     channelMessages.value[channel] = channelMessages.value[channel].filter(m => {
-      if (m.isSystem && m.expiresAt) {
+      if (m.expiresAt) {
         return new Date(m.expiresAt).getTime() > now
       }
       return true
@@ -246,7 +252,7 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  // 发送玩家聊天消息
+  // 发送玩家聊天消息（同样赋予有效时间）
   function sendMessage(
     channel: string,
     content: string,
@@ -256,6 +262,10 @@ export const useChatStore = defineStore('chat', () => {
     if (!text) return null
 
     const profile = authStore.profile
+    const now = new Date()
+    const ttl = messageTtlMinutes.value || 120
+    const expiresAt = new Date(now.getTime() + ttl * 60 * 1000).toISOString()
+
     const msg: ChatMessage = {
       id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
       channel,
@@ -265,7 +275,8 @@ export const useChatStore = defineStore('chat', () => {
       isHost: options?.isHost || false,
       isSystem: false,
       content: text,
-      createdAt: new Date().toISOString()
+      createdAt: now.toISOString(),
+      expiresAt
     }
 
     appendMessageLocally(channel, msg, true)
@@ -282,7 +293,7 @@ export const useChatStore = defineStore('chat', () => {
     const text = content.trim()
     if (!text) return
 
-    const ttl = customTtlMinutes || systemTtlMinutes.value || 120
+    const ttl = customTtlMinutes || messageTtlMinutes.value || 120
     const now = new Date()
     const expiresAt = new Date(now.getTime() + ttl * 60 * 1000).toISOString()
 
@@ -301,10 +312,11 @@ export const useChatStore = defineStore('chat', () => {
     appendMessageLocally(channel, msg, true)
   }
 
-  // 更新系统消息有效时长配置（分）
-  async function updateSystemTtl(ttlMinutes: number) {
+  // 更新全局消息有效时长配置（分）
+  async function updateMessageTtl(ttlMinutes: number) {
     if (ttlMinutes < 5) ttlMinutes = 5
-    systemTtlMinutes.value = ttlMinutes
+    messageTtlMinutes.value = ttlMinutes
+    localStorage.setItem('lucky7_chat_message_ttl', String(ttlMinutes))
     localStorage.setItem('lucky7_chat_system_ttl', String(ttlMinutes))
 
     if (isSupabaseConfigured()) {
@@ -314,6 +326,7 @@ export const useChatStore = defineStore('chat', () => {
           .upsert({
             key: 'chat_message_ttl',
             value: {
+              message_ttl_minutes: ttlMinutes,
               system_ttl_minutes: ttlMinutes,
               auto_clean: true
             },
@@ -325,16 +338,18 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  // 手动/主动清理数据库与本地已过期的系统消息
+  const updateSystemTtl = updateMessageTtl
+
+  // 手动/主动清理数据库与本地已过期的全量消息
   async function cleanExpiredMessages(ttlMinutes?: number) {
-    const minutes = ttlMinutes ?? systemTtlMinutes.value
+    const minutes = ttlMinutes ?? messageTtlMinutes.value
     let deletedCount = 0
 
-    // 1. 本地各频道清理过期系统消息
+    // 1. 本地各频道清理所有过期消息
     const now = Date.now()
     for (const ch of Object.keys(channelMessages.value)) {
       channelMessages.value[ch] = channelMessages.value[ch].filter(m => {
-        if (m.isSystem && m.expiresAt) {
+        if (m.expiresAt) {
           return new Date(m.expiresAt).getTime() > now
         }
         return true
@@ -346,7 +361,7 @@ export const useChatStore = defineStore('chat', () => {
       }
     }
 
-    // 2. 调用 Supabase RPC 清理数据库中过期系统消息
+    // 2. 调用 Supabase RPC 清理数据库中所有超期消息
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase.rpc('clean_expired_chat_messages', {
@@ -400,11 +415,13 @@ export const useChatStore = defineStore('chat', () => {
   return {
     channelMessages,
     unreadCounts,
+    messageTtlMinutes,
     systemTtlMinutes,
     getMessages,
     initChannel,
     sendMessage,
     sendSystemAnnouncement,
+    updateMessageTtl,
     updateSystemTtl,
     cleanExpiredMessages,
     fetchMessageStats,
