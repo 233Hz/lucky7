@@ -43,7 +43,7 @@
       </div>
 
       <!-- 7-Day Rewards Progress Grid -->
-      <div class="space-y-1.5">
+      <div class="space-y-2 pt-0.5">
         <div class="text-[11px] font-black text-[#1a1a1a] uppercase flex items-center justify-between">
           <span>7 天连续签到奖励梯度</span>
           <span class="text-[10px] text-[#4a4a4a] font-bold">连签越多 奖励越高</span>
@@ -53,36 +53,47 @@
             v-for="day in 7"
             :key="day"
             :title="`第 ${day} 天：+${(walletStore.dayRewards[day - 1] || (1000 + (day - 1) * 500)).toLocaleString()} 筹码`"
-            class="relative rounded border-2 border-[#1a1a1a] text-center font-mono select-none flex flex-col justify-between items-center py-1.5 px-0.5 sm:px-1 transition-all min-w-0 overflow-hidden"
+            class="h-[52px] sm:h-[58px] rounded border-2 border-[#1a1a1a] text-center font-mono select-none flex flex-col justify-between items-center py-1.5 px-0.5 sm:px-1 transition-all min-w-0 overflow-hidden"
             :class="[
               day < currentStreakIndex || (day === currentStreakIndex && walletStore.isCheckedInToday)
                 ? 'bg-[#22c55e] text-white shadow-[1px_1px_0px_0px_#1a1a1a]'
                 : day === currentStreakIndex
-                ? 'bg-[#facc15] text-[#1a1a1a] font-black -translate-y-1 shadow-[2px_2px_0px_0px_#1a1a1a] z-10 ring-2 ring-[#1a1a1a]'
+                ? 'bg-[#facc15] text-[#1a1a1a] font-black shadow-[2px_2px_0px_0px_#1a1a1a]'
                 : 'bg-white text-[#4a4a4a] hover:bg-[#fffef0]'
             ]"
           >
-            <!-- Today badge -->
-            <div
-              v-if="day === currentStreakIndex && !walletStore.isCheckedInToday"
-              class="absolute -top-1.5 left-1/2 -translate-x-1/2 px-1 rounded bg-[#ef4444] text-white text-[7.5px] font-black tracking-tighter uppercase whitespace-nowrap shadow-[1px_1px_0px_0px_#1a1a1a] leading-tight z-20"
-            >
-              今日
-            </div>
-
-            <!-- Checked badge / Day title -->
+            <!-- Day title / Status inside card -->
+            <!-- Claimed status -->
             <div
               v-if="day < currentStreakIndex || (day === currentStreakIndex && walletStore.isCheckedInToday)"
-              class="text-[8.5px] sm:text-[10px] font-black leading-none flex items-center justify-center gap-0.5 w-full truncate"
+              class="text-[8px] sm:text-[10px] font-black leading-none flex items-center justify-center gap-0.5 w-full truncate"
             >
-              <Check class="w-2.5 h-2.5 stroke-[3] shrink-0" />
+              <Check class="w-2.5 h-2.5 stroke-[3] shrink-0 text-white" />
               <span>D{{ day }}</span>
             </div>
-            <div v-else class="text-[8.5px] sm:text-[10px] font-black leading-none w-full truncate">
-              第{{ day }}天
+            <!-- Today (unclaimed) status: clean red badge INSIDE card -->
+            <div
+              v-else-if="day === currentStreakIndex"
+              class="w-full flex items-center justify-center"
+            >
+              <span class="px-1.5 py-0.5 rounded bg-[#ef4444] text-white text-[7.5px] sm:text-[8.5px] font-black tracking-tighter leading-none shadow-[1px_1px_0px_0px_#1a1a1a]">
+                今日
+              </span>
+            </div>
+            <!-- Future day status -->
+            <div
+              v-else
+              class="text-[8px] sm:text-[10px] font-black leading-none w-full truncate flex items-center justify-center gap-0.5"
+            >
+              <span>第{{ day }}天</span>
+              <Gift v-if="day === 7" class="w-2.5 h-2.5 text-[#eab308] shrink-0" />
             </div>
 
-            <div class="text-[9px] sm:text-[11px] font-black leading-tight tracking-tighter mt-1 w-full truncate">
+            <!-- Amount display -->
+            <div
+              class="text-[9px] sm:text-[11px] font-black leading-tight tracking-tighter w-full truncate"
+              :class="day < currentStreakIndex || (day === currentStreakIndex && walletStore.isCheckedInToday) ? 'text-white' : 'text-[#1a1a1a]'"
+            >
               <span class="sm:hidden">+{{ formatCompact(walletStore.dayRewards[day - 1] || (1000 + (day - 1) * 500)) }}</span>
               <span class="hidden sm:inline">+{{ (walletStore.dayRewards[day - 1] || (1000 + (day - 1) * 500)).toLocaleString() }}</span>
             </div>
