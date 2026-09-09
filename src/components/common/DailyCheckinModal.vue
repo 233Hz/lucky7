@@ -44,23 +44,47 @@
 
       <!-- 7-Day Rewards Progress Grid -->
       <div class="space-y-1.5">
-        <div class="text-[11px] font-black text-[#1a1a1a] uppercase">7 天连续签到奖励梯度</div>
-        <div class="grid grid-cols-7 gap-1.5">
+        <div class="text-[11px] font-black text-[#1a1a1a] uppercase flex items-center justify-between">
+          <span>7 天连续签到奖励梯度</span>
+          <span class="text-[10px] text-[#4a4a4a] font-bold">连签越多 奖励越高</span>
+        </div>
+        <div class="grid grid-cols-7 gap-1 sm:gap-1.5">
           <div
             v-for="day in 7"
             :key="day"
-            class="p-1.5 rounded border-2 border-[#1a1a1a] text-center font-mono select-none"
+            :title="`第 ${day} 天：+${(walletStore.dayRewards[day - 1] || (1000 + (day - 1) * 500)).toLocaleString()} 筹码`"
+            class="relative rounded border-2 border-[#1a1a1a] text-center font-mono select-none flex flex-col justify-between items-center py-1.5 px-0.5 sm:px-1 transition-all min-w-0 overflow-hidden"
             :class="[
               day < currentStreakIndex || (day === currentStreakIndex && walletStore.isCheckedInToday)
                 ? 'bg-[#22c55e] text-white shadow-[1px_1px_0px_0px_#1a1a1a]'
                 : day === currentStreakIndex
-                ? 'bg-[#facc15] border-3 shadow-[2px_2px_0px_0px_#1a1a1a] scale-105 text-[#1a1a1a] font-black'
-                : 'bg-white text-[#4a4a4a]'
+                ? 'bg-[#facc15] text-[#1a1a1a] font-black -translate-y-1 shadow-[2px_2px_0px_0px_#1a1a1a] z-10 ring-2 ring-[#1a1a1a]'
+                : 'bg-white text-[#4a4a4a] hover:bg-[#fffef0]'
             ]"
           >
-            <div class="text-[9px] font-black">第{{ day }}天</div>
-            <div class="text-[10px] font-black mt-0.5">
-              +{{ (walletStore.dayRewards[day - 1] || (1000 + (day - 1) * 500)).toLocaleString() }}
+            <!-- Today badge -->
+            <div
+              v-if="day === currentStreakIndex && !walletStore.isCheckedInToday"
+              class="absolute -top-1.5 left-1/2 -translate-x-1/2 px-1 rounded bg-[#ef4444] text-white text-[7.5px] font-black tracking-tighter uppercase whitespace-nowrap shadow-[1px_1px_0px_0px_#1a1a1a] leading-tight z-20"
+            >
+              今日
+            </div>
+
+            <!-- Checked badge / Day title -->
+            <div
+              v-if="day < currentStreakIndex || (day === currentStreakIndex && walletStore.isCheckedInToday)"
+              class="text-[8.5px] sm:text-[10px] font-black leading-none flex items-center justify-center gap-0.5 w-full truncate"
+            >
+              <Check class="w-2.5 h-2.5 stroke-[3] shrink-0" />
+              <span>D{{ day }}</span>
+            </div>
+            <div v-else class="text-[8.5px] sm:text-[10px] font-black leading-none w-full truncate">
+              第{{ day }}天
+            </div>
+
+            <div class="text-[9px] sm:text-[11px] font-black leading-tight tracking-tighter mt-1 w-full truncate">
+              <span class="sm:hidden">+{{ formatCompact(walletStore.dayRewards[day - 1] || (1000 + (day - 1) * 500)) }}</span>
+              <span class="hidden sm:inline">+{{ (walletStore.dayRewards[day - 1] || (1000 + (day - 1) * 500)).toLocaleString() }}</span>
             </div>
           </div>
         </div>
@@ -144,6 +168,15 @@ const currentStreakIndex = computed(() => {
 const todayReward = computed(() => {
   return walletStore.getRewardForDay(currentStreakIndex.value - 1)
 })
+
+function formatCompact(val: number): string {
+  if (!val) return '0'
+  if (val >= 1000) {
+    const k = val / 1000
+    return `${Number(k.toFixed(1))}k`
+  }
+  return `${val}`
+}
 
 function getTodayKey(): string {
   const d = new Date()

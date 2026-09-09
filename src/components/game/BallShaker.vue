@@ -2,13 +2,17 @@
   <div class="flex flex-col items-center select-none">
     <!-- Lottery Ball Sphere with Solid Ink Border & Hard Shadow -->
     <div
-      class="w-13 h-13 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center font-black text-lg sm:text-xl border-3 border-[#1a1a1a] relative overflow-hidden transition-all duration-200"
+      class="w-16 h-16 sm:w-20 sm:h-20 aspect-square rounded-full flex flex-col items-center justify-center font-black border-4 border-[#1a1a1a] relative overflow-hidden transition-all duration-200 shrink-0"
       :class="[
         colorWaveClass,
-        rolling ? 'animate-spin scale-110 shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]' : 'shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] hover:-translate-y-0.5'
+        rolling ? 'animate-bounce shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]' : 'shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] hover:-translate-y-0.5'
       ]"
     >
-      <span class="font-mono font-black tracking-tighter">
+      <!-- Comic Gloss Highlight -->
+      <span class="absolute top-2 left-2.5 w-4 h-2.5 rounded-full bg-white/40 -rotate-45 pointer-events-none"></span>
+
+      <!-- Ball Number -->
+      <span class="font-mono font-black text-2xl sm:text-3xl tracking-tight leading-none relative z-10">
         {{ formattedNumber }}
       </span>
     </div>

@@ -10,7 +10,7 @@
           class="relative w-full max-w-lg overflow-hidden rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] transition-all"
         >
           <!-- Modal Header -->
-          <div class="flex items-center justify-between border-b-4 border-[#1a1a1a] bg-[#facc15] px-6 py-3.5">
+          <div class="flex items-center justify-between border-b-4 border-[#1a1a1a] bg-[#facc15] px-4 sm:px-6 py-3 sm:py-3.5">
             <h3 class="text-base font-black text-[#1a1a1a] uppercase tracking-wider flex items-center gap-2 font-mono">
               <slot name="title">{{ title }}</slot>
             </h3>
@@ -23,12 +23,12 @@
           </div>
 
           <!-- Modal Body -->
-          <div class="px-6 py-5 max-h-[75vh] overflow-y-auto bg-[#fffef0] text-[#1a1a1a]">
+          <div class="px-4 sm:px-6 py-4 sm:py-5 max-h-[75vh] overflow-y-auto bg-[#fffef0] text-[#1a1a1a]">
             <slot />
           </div>
 
           <!-- Modal Footer -->
-          <div v-if="$slots.footer" class="flex items-center justify-end space-x-3 border-t-3 border-[#1a1a1a] bg-white px-6 py-4">
+          <div v-if="$slots.footer" class="flex items-center justify-end space-x-3 border-t-3 border-[#1a1a1a] bg-white px-4 sm:px-6 py-3 sm:py-4">
             <slot name="footer" />
           </div>
         </div>

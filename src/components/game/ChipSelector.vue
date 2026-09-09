@@ -14,7 +14,7 @@
     >
       <!-- Circular Chip Design with Solid Comic Ink Outline & Hard Shadow -->
       <div
-        class="w-11 h-11 sm:w-13 sm:h-13 rounded-full flex items-center justify-center font-mono font-black text-xs sm:text-sm transition-all"
+        class="w-11 h-11 sm:w-12 sm:h-12 aspect-square rounded-full flex items-center justify-center font-mono font-black text-xs sm:text-sm transition-all"
         :class="[
           chipStyles[chip] || 'bg-white text-[#1a1a1a]',
           modelValue === chip
