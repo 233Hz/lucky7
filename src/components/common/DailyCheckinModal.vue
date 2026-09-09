@@ -15,7 +15,7 @@
         </div>
         <div>
           <div class="text-xs font-black text-[#1a1a1a]">今日首次登录！</div>
-          <div class="text-[11px] text-[#4a4a4a] font-bold mt-0.5">连续签到可获阶梯加成，最高每日可领 4,000 虚拟筹码！</div>
+          <div class="text-[11px] text-[#4a4a4a] font-bold mt-0.5">连续签到可获阶梯加成，最高每日可领 {{ walletStore.maxReward.toLocaleString() }} 虚拟筹码！</div>
         </div>
       </div>
 
@@ -37,7 +37,7 @@
           </div>
           <div>
             <div class="text-[10px] text-[#4a4a4a] font-bold uppercase">今日预计可领</div>
-            <div class="text-base font-black text-[#22c55e]">+{{ todayReward }}</div>
+            <div class="text-base font-black text-[#22c55e]">+{{ todayReward.toLocaleString() }}</div>
           </div>
         </div>
       </div>
@@ -60,7 +60,7 @@
           >
             <div class="text-[9px] font-black">第{{ day }}天</div>
             <div class="text-[10px] font-black mt-0.5">
-              +{{ 1000 + (day - 1) * 500 }}
+              +{{ (walletStore.dayRewards[day - 1] || (1000 + (day - 1) * 500)).toLocaleString() }}
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@
       <div v-if="claimedSuccess" class="p-3 rounded-lg bg-[#dcfce7] border-2 border-[#1a1a1a] text-center font-mono space-y-1 shadow-[2px_2px_0px_0px_#1a1a1a]">
         <div class="text-sm font-black text-[#15803d] flex items-center justify-center gap-1">
           <Check class="w-4 h-4 stroke-[3]" />
-          <span>领取成功！+{{ earnedReward }} 筹码已入账</span>
+          <span>领取成功！+{{ earnedReward.toLocaleString() }} 筹码已入账</span>
         </div>
         <div class="text-xs font-bold text-[#166534]">
           最新筹码余额: {{ authStore.profile?.chips?.toLocaleString() }}
@@ -107,7 +107,7 @@
             class="comic-btn-yellow px-5 py-2 text-xs flex items-center justify-center gap-1.5 flex-1 sm:flex-none cursor-pointer disabled:opacity-50"
           >
             <Gift class="w-4 h-4" />
-            <span>{{ isClaiming ? '领取中...' : `立即一键领取 (+${todayReward})` }}</span>
+            <span>{{ isClaiming ? '领取中...' : `立即一键领取 (+${todayReward.toLocaleString()})` }}</span>
           </button>
         </div>
       </div>
@@ -142,7 +142,7 @@ const currentStreakIndex = computed(() => {
 })
 
 const todayReward = computed(() => {
-  return 1000 + (currentStreakIndex.value - 1) * 500
+  return walletStore.getRewardForDay(currentStreakIndex.value - 1)
 })
 
 function getTodayKey(): string {
@@ -163,8 +163,11 @@ async function checkAndPrompt() {
   // 3. 今日已提示过则不再重复打扰
   if (lastPromptedDate === todayStr) return
 
-  // 4. 刷新今日签到状态
-  await walletStore.checkTodayStatus()
+  // 4. 刷新今日签到状态与签到配置
+  await Promise.all([
+    walletStore.checkTodayStatus(),
+    walletStore.fetchCheckinConfig()
+  ])
 
   // 5. 今日已签到则记录并返回
   if (walletStore.isCheckedInToday) {

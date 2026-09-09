@@ -214,7 +214,7 @@
         </div>
 
         <!-- Quick Navigation Action Tiles -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
           <button
             @click="switchTab('schedules')"
             class="p-4 rounded-lg bg-white border-3 border-[#1a1a1a] shadow-[4px_4px_0px_0px_#1a1a1a] hover:bg-[#fffef0] hover:shadow-[5px_5px_0px_0px_#1a1a1a] transition-all text-left flex items-start space-x-3 group cursor-pointer"
@@ -251,6 +251,19 @@
             <div>
               <div class="text-xs font-black text-[#1a1a1a]">消息生命周期治理</div>
               <div class="text-[10px] text-[#4a4a4a] font-bold mt-1">设置 TTL 有效时长与深度清理</div>
+            </div>
+          </button>
+
+          <button
+            @click="switchTab('checkin')"
+            class="p-4 rounded-lg bg-white border-3 border-[#1a1a1a] shadow-[4px_4px_0px_0px_#1a1a1a] hover:bg-[#fffef0] hover:shadow-[5px_5px_0px_0px_#1a1a1a] transition-all text-left flex items-start space-x-3 group cursor-pointer"
+          >
+            <div class="w-10 h-10 rounded-lg bg-[#facc15] border-2 border-[#1a1a1a] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform shadow-[2px_2px_0px_0px_#1a1a1a]">
+              <CalendarCheck class="w-5 h-5 text-[#1a1a1a]" />
+            </div>
+            <div>
+              <div class="text-xs font-black text-[#1a1a1a]">签到任务与每日奖励</div>
+              <div class="text-[10px] text-[#4a4a4a] font-bold mt-1">配置 7 天阶梯奖励与连签礼包</div>
             </div>
           </button>
 
@@ -731,7 +744,176 @@
       </div>
 
       <!-- ========================================================== -->
-      <!-- TAB 5: 👥 玩家资产 · PLAYERS -->
+      <!-- TAB 5: 🎁 签到配置 · CHECKIN -->
+      <!-- ========================================================== -->
+      <div v-if="activeTab === 'checkin'" class="space-y-6">
+        <div class="rounded-lg bg-white border-4 border-[#1a1a1a] p-6 shadow-[6px_6px_0px_0px_rgba(26,26,26,1)] space-y-5">
+          <!-- Card Header -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b-3 border-[#1a1a1a] pb-3 gap-2">
+            <div class="flex items-center gap-2">
+              <CalendarCheck class="w-5 h-5 text-[#1a1a1a]" />
+              <h2 class="text-base font-black text-[#1a1a1a] uppercase">全服每日签到与任务奖励配置 · DAILY CHECKIN & MILESTONES</h2>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-md bg-[#facc15] text-[#1a1a1a] border-2 border-[#1a1a1a] text-xs font-black shadow-[2px_2px_0px_0px_#1a1a1a] self-start sm:self-auto">
+              实时全服生效
+            </span>
+          </div>
+
+          <p class="text-xs text-[#4a4a4a] font-bold leading-relaxed">
+            自定义全服每日签到第 1~7 天的基础筹码奖励阶梯，以及连续签到里程碑任务达成额外筹码礼包。配置更新后实时同步至数据库，所有客户端前台、签到弹窗及后端原子派彩 RPC 将严格按照最新配置派发。
+          </p>
+
+          <!-- Preset Templates -->
+          <div class="p-3.5 rounded-lg bg-[#fffef0] border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a] space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-[#1a1a1a]">快速套用奖励预设模板：</span>
+              <span class="text-[10px] text-[#4a4a4a] font-bold">点击一键填充 7 天数值</span>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                @click="applyRewardPreset([1000, 1500, 2000, 2500, 3000, 3500, 4000])"
+                class="comic-btn-white px-3 py-1.5 text-xs flex items-center gap-1 cursor-pointer"
+              >
+                <span>经典阶梯 (+500/天)</span>
+              </button>
+              <button
+                type="button"
+                @click="applyRewardPreset([1000, 2000, 3000, 4000, 5000, 6000, 8888])"
+                class="comic-btn-white px-3 py-1.5 text-xs flex items-center gap-1 cursor-pointer"
+              >
+                <span>高额狂欢 (最高 8,888)</span>
+              </button>
+              <button
+                type="button"
+                @click="applyRewardPreset([1000, 1200, 1500, 1800, 2200, 3000, 5000])"
+                class="comic-btn-white px-3 py-1.5 text-xs flex items-center gap-1 cursor-pointer"
+              >
+                <span>周末冲刺 (末期爆发)</span>
+              </button>
+              <button
+                type="button"
+                @click="applyRewardPreset([2000, 2500, 3000, 3500, 4000, 5000, 6666])"
+                class="comic-btn-white px-3 py-1.5 text-xs flex items-center gap-1 cursor-pointer"
+              >
+                <span>豪华运营福利</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Section 1: 7-Day Rewards Grid -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-[#1a1a1a] uppercase">第 1 ~ 7 天连续签到每日奖励 (筹码)：</span>
+              <span class="text-xs font-mono font-black text-[#1a1a1a] bg-[#facc15] px-2 py-0.5 rounded border-2 border-[#1a1a1a]">
+                当前第7天最高: +{{ (editDayRewards[6] || 4000).toLocaleString() }}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+              <div
+                v-for="day in 7"
+                :key="day"
+                class="p-3 rounded-lg bg-[#fffef0] border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a] space-y-1.5"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-[#1a1a1a]">第 {{ day }} 天</span>
+                  <CoinIcon customClass="w-3.5 h-3.5" />
+                </div>
+                <div class="flex items-center gap-1">
+                  <input
+                    v-model.number="editDayRewards[day - 1]"
+                    type="number"
+                    min="100"
+                    max="100000"
+                    step="100"
+                    class="comic-input w-full px-2 py-1 text-xs font-mono font-black"
+                  />
+                </div>
+                <div class="text-[10px] text-[#4a4a4a] font-bold text-right font-mono">
+                  +{{ (editDayRewards[day - 1] || 0).toLocaleString() }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Milestones Configuration -->
+          <div class="space-y-3 pt-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <Flame class="w-4 h-4 text-[#ef4444]" />
+                <span class="text-xs font-black text-[#1a1a1a] uppercase">连签任务里程碑额外大礼包配置 (MILESTONES)：</span>
+              </div>
+              <span class="text-[11px] text-[#4a4a4a] font-bold">达标当天额外叠加发放</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div
+                v-for="m in editMilestones"
+                :key="m.days"
+                class="p-3.5 rounded-lg bg-[#fffef0] border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a] space-y-2"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-[#1a1a1a] flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-[#ef4444]"></span>
+                    <span>连签 {{ m.days }} 天任务</span>
+                  </span>
+                  <span class="text-[10px] font-mono font-black px-1.5 py-0.5 rounded bg-[#facc15] border border-[#1a1a1a]">
+                    目标 {{ m.days }}天
+                  </span>
+                </div>
+
+                <div>
+                  <label class="block text-[10px] text-[#4a4a4a] font-bold uppercase mb-0.5">任务名称 / 称号</label>
+                  <input
+                    v-model="m.title"
+                    type="text"
+                    class="comic-input w-full px-2 py-1 text-xs font-black"
+                    placeholder="任务称号"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-[10px] text-[#4a4a4a] font-bold uppercase mb-0.5">额外奖励筹码</label>
+                  <div class="flex items-center gap-1">
+                    <input
+                      v-model.number="m.reward"
+                      type="number"
+                      min="0"
+                      step="500"
+                      class="comic-input w-full px-2 py-1 text-xs font-mono font-black"
+                    />
+                    <span class="text-xs font-black">筹码</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Save Button Row -->
+          <div class="flex flex-col sm:flex-row items-center justify-between pt-3 border-t-3 border-[#1a1a1a] gap-3">
+            <div>
+              <span v-if="checkinSaveSuccess" class="text-xs font-black text-[#22c55e] flex items-center gap-1">
+                <Check class="w-4 h-4" />
+                <span>签到任务与每日奖励配置已成功保存并同步全服！</span>
+              </span>
+            </div>
+
+            <button
+              v-prevent-reclick
+              :disabled="isSavingCheckin"
+              @click="handleSaveCheckinConfig"
+              class="comic-btn-yellow w-full sm:w-auto px-6 py-2.5 text-xs flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            >
+              <Check class="w-4 h-4" />
+              <span>{{ isSavingCheckin ? '正在写入数据库...' : '保存签到任务与奖励配置' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================== -->
+      <!-- TAB 6: 👥 玩家资产 · PLAYERS -->
       <!-- ========================================================== -->
       <div v-if="activeTab === 'players'" class="space-y-6">
         <!-- Players Management Table -->
@@ -896,12 +1078,13 @@ import {
   Shield, ShieldX, RotateCw, Gift, Timer, Check, Clock,
   Layers, Sparkles, Crown, Dices, Disc, AlertTriangle,
   MessageSquare, Trash2, LayoutDashboard, Gamepad2, Users,
-  Search, ChevronRight, Activity, Database
+  Search, ChevronRight, Activity, Database, CalendarCheck, Flame
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useLotteryStore } from '@/stores/lottery'
 import { useGameScheduleStore, type GameModeId } from '@/stores/gameSchedule'
 import { useChatStore } from '@/stores/chat'
+import { useWalletStore, type CheckinMilestone } from '@/stores/wallet'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { dialog } from '@/lib/dialog'
 import { sound } from '@/lib/sound'
@@ -913,12 +1096,13 @@ const authStore = useAuthStore()
 const lotteryStore = useLotteryStore()
 const gameScheduleStore = useGameScheduleStore()
 const chatStore = useChatStore()
+const walletStore = useWalletStore()
 const route = useRoute()
 const router = useRouter()
 
 // 菜单选项定义
-type AdminTab = 'dashboard' | 'schedules' | 'lottery' | 'retention' | 'players'
-const validTabs: AdminTab[] = ['dashboard', 'schedules', 'lottery', 'retention', 'players']
+type AdminTab = 'dashboard' | 'schedules' | 'lottery' | 'retention' | 'checkin' | 'players'
+const validTabs: AdminTab[] = ['dashboard', 'schedules', 'lottery', 'retention', 'checkin', 'players']
 const activeTab = ref<AdminTab>(
   validTabs.includes(route.query.tab as AdminTab) ? (route.query.tab as AdminTab) : 'dashboard'
 )
@@ -980,6 +1164,12 @@ const adminMenus = computed(() => [
     label: '消息治理 · RETENTION',
     icon: MessageSquare,
     badge: `${messageStats.value.total} 条`
+  },
+  {
+    id: 'checkin' as AdminTab,
+    label: '签到任务 · CHECKIN',
+    icon: CalendarCheck,
+    badge: `最高+${walletStore.maxReward}`
   },
   {
     id: 'players' as AdminTab,
@@ -1202,6 +1392,46 @@ async function handleCleanExpiredMessages() {
   }
 }
 
+// 全服签到与里程碑任务配置响应式状态
+const editDayRewards = ref<number[]>([...walletStore.dayRewards])
+const editMilestones = ref<CheckinMilestone[]>(JSON.parse(JSON.stringify(walletStore.milestones)))
+const isSavingCheckin = ref(false)
+const checkinSaveSuccess = ref(false)
+
+watch(
+  () => [walletStore.dayRewards, walletStore.milestones],
+  ([days, miles]) => {
+    editDayRewards.value = [...(days as number[])]
+    editMilestones.value = JSON.parse(JSON.stringify(miles))
+  },
+  { deep: true, immediate: true }
+)
+
+function applyRewardPreset(preset: number[]) {
+  editDayRewards.value = [...preset]
+  sound.playClick()
+}
+
+async function handleSaveCheckinConfig() {
+  if (isSavingCheckin.value) return
+  isSavingCheckin.value = true
+  try {
+    await walletStore.updateCheckinConfig(editDayRewards.value, editMilestones.value)
+    checkinSaveSuccess.value = true
+    setTimeout(() => {
+      checkinSaveSuccess.value = false
+    }, 3000)
+    dialog.success('全服每日签到与里程碑任务奖励配置已成功保存并实时生效！', {
+      title: '签到奖励配置已保存'
+    })
+  } catch (err: unknown) {
+    const e = err as { message?: string }
+    dialog.error(e.message || '保存签到配置失败')
+  } finally {
+    isSavingCheckin.value = false
+  }
+}
+
 const showGrantModal = ref(false)
 const selectedTarget = ref<Profile | null>(null)
 const grantAmount = ref(10000)
@@ -1213,6 +1443,7 @@ const isFetchingPlayers = ref(false)
 onMounted(() => {
   fetchPlayers()
   refreshMessageStats()
+  walletStore.fetchCheckinConfig()
 })
 
 const filteredPlayers = computed(() => {
@@ -1266,7 +1497,8 @@ async function refreshAllData() {
   sound.playClick()
   await Promise.all([
     fetchPlayers(),
-    refreshMessageStats()
+    refreshMessageStats(),
+    walletStore.fetchCheckinConfig()
   ])
   dialog.success('已从 Supabase 刷新全服最新运营与玩家数据！', { title: '数据已同步' })
 }

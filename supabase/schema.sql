@@ -113,6 +113,22 @@ insert into public.system_configs (key, value)
 values ('chat_message_ttl', '{"message_ttl_minutes": 120, "auto_clean": true}'::jsonb)
 on conflict (key) do nothing;
 
+-- 初始化每日签到任务与梯度奖励配置 (默认第1~7天梯级奖励与连签任务里程碑)
+insert into public.system_configs (key, value)
+values (
+  'checkin_rewards',
+  '{
+    "day_rewards": [1000, 1500, 2000, 2500, 3000, 3500, 4000],
+    "milestones": [
+      { "days": 3, "reward": 888, "title": "连签3天小试牛刀" },
+      { "days": 7, "reward": 2888, "title": "连签7天持之以恒" },
+      { "days": 14, "reward": 6888, "title": "连签14天炉火纯青" },
+      { "days": 30, "reward": 18888, "title": "连签30天登峰造极" }
+    ]
+  }'::jsonb
+)
+on conflict (key) do nothing;
+
 -- 9. 聊天消息表 (chat_messages) - 支持全服公共开奖频道与房间专属私密聊天
 create table if not exists public.chat_messages (
   id uuid default gen_random_uuid() primary key,
@@ -160,7 +176,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ==========================================================
--- 存储过程：原子性每日签到领取奖励
+-- 存储过程：原子性每日签到领取奖励（动态读取后台配置与里程碑任务）
 -- ==========================================================
 create or replace function public.claim_daily_checkin(p_user_id uuid)
 returns jsonb as $$
@@ -169,8 +185,14 @@ declare
   v_last_checkin date;
   v_streak int := 1;
   v_reward int := 1000;
+  v_milestone_reward int := 0;
+  v_milestone_title text := '';
+  v_total_reward int := 1000;
   v_current_chips bigint;
   v_new_chips bigint;
+  v_cfg_json jsonb;
+  v_day_idx int := 0;
+  v_milestone record;
 begin
   -- 检查今天是否已签到
   if exists (select 1 from public.daily_checkins where user_id = p_user_id and checkin_date = v_today) then
@@ -190,26 +212,66 @@ begin
     v_streak := 1;
   end if;
 
-  -- 根据连续签到天数梯度阶梯加成 (上限7天循环)
-  v_reward := 1000 + ((v_streak - 1) % 7) * 500;
+  -- 获取后台配置的签到任务与每日奖励
+  select value into v_cfg_json
+  from public.system_configs
+  where key = 'checkin_rewards';
 
-  -- 插入签到记录
+  v_day_idx := (v_streak - 1) % 7; -- 0 ~ 6
+
+  if v_cfg_json is not null and v_cfg_json->'day_rewards' is not null then
+    v_reward := coalesce((v_cfg_json->'day_rewards'->>v_day_idx)::int, 1000 + v_day_idx * 500);
+  else
+    v_reward := 1000 + v_day_idx * 500;
+  end if;
+
+  -- 检查连续签到里程碑任务达成额外奖励
+  if v_cfg_json is not null and v_cfg_json->'milestones' is not null then
+    for v_milestone in
+      select (m->>'days')::int as days, (m->>'reward')::int as reward, coalesce(m->>'title', '') as title
+      from jsonb_array_elements(v_cfg_json->'milestones') as m
+    loop
+      if v_streak = v_milestone.days then
+        v_milestone_reward := v_milestone.reward;
+        v_milestone_title := v_milestone.title;
+        exit;
+      end if;
+    end loop;
+  end if;
+
+  v_total_reward := v_reward + v_milestone_reward;
+
+  -- 插入签到记录 (reward_chips 记录该日总奖励)
   insert into public.daily_checkins (user_id, checkin_date, reward_chips, streak_days)
-  values (p_user_id, v_today, v_reward, v_streak);
+  values (p_user_id, v_today, v_total_reward, v_streak);
 
   -- 更新用户余额
   update public.profiles
-  set chips = chips + v_reward, updated_at = now()
+  set chips = chips + v_total_reward, updated_at = now()
   where id = p_user_id
   returning chips into v_new_chips;
 
   -- 记录流水
   insert into public.chip_transactions (user_id, amount, type, balance_after, note)
-  values (p_user_id, v_reward, 'daily_checkin', v_new_chips, '连续第 ' || v_streak || ' 天签到奖励');
+  values (
+    p_user_id,
+    v_total_reward,
+    'daily_checkin',
+    v_new_chips,
+    case
+      when v_milestone_reward > 0 then
+        '第 ' || v_streak || ' 天签到奖励 (' || v_reward || ') + 里程碑任务 [' || v_milestone_title || '] 奖励 (' || v_milestone_reward || ')'
+      else
+        '连续第 ' || v_streak || ' 天签到奖励'
+    end
+  );
 
   return jsonb_build_object(
     'success', true,
-    'reward', v_reward,
+    'reward', v_total_reward,
+    'base_reward', v_reward,
+    'milestone_reward', v_milestone_reward,
+    'milestone_title', v_milestone_title,
     'streak', v_streak,
     'new_balance', v_new_chips
   );
