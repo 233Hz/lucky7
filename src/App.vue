@@ -17,6 +17,9 @@
 
     <!-- Global Unified UI Dialog (Alert & Confirm) -->
     <GlobalDialog />
+
+    <!-- Daily Checkin First-Login Reminder Modal -->
+    <DailyCheckinModal />
   </div>
 </template>
 
@@ -25,6 +28,7 @@ import { onMounted } from 'vue'
 import Navbar from '@/components/common/Navbar.vue'
 import Footer from '@/components/common/Footer.vue'
 import GlobalDialog from '@/components/common/GlobalDialog.vue'
+import DailyCheckinModal from '@/components/common/DailyCheckinModal.vue'
 import { setupGlobalAlertInterception } from '@/lib/dialog'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
