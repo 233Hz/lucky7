@@ -135,13 +135,13 @@
     <!-- Main Content Grid (Table + In-Room Chat) -->
     <div v-else class="grid grid-cols-1 gap-6 items-start" :class="isInRoom && isChatOpen ? 'xl:grid-cols-12' : ''">
       <!-- Left: Felt Poker Table -->
-      <div :class="isInRoom && isChatOpen ? 'xl:col-span-8' : 'w-full'">
-        <div class="relative rounded-none bg-white border-4 border-black p-3 sm:p-6 min-h-[520px] sm:min-h-[580px] flex flex-col justify-between shadow-brutal-xl overflow-hidden">
+      <div :class="isInRoom && isChatOpen ? 'xl:col-span-8' : 'w-full max-w-5xl mx-auto'">
+        <div class="relative rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-4 sm:p-6 min-h-[520px] sm:min-h-[580px] flex flex-col justify-between shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-hidden">
           <!-- Halftone Dots Texture -->
           <div class="absolute inset-0 bg-[radial-gradient(#1a1a1a_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
       <!-- Top Opponents Area -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 justify-items-center relative z-20 pt-2 min-h-[140px]">
+      <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-6 md:gap-8 relative z-20 pt-2 min-h-[140px]">
         <!-- Seated Opponents -->
         <div
           v-for="(opp, idx) in opponentPlayers"
