@@ -1,7 +1,81 @@
 <template>
   <div class="max-w-5xl mx-auto px-2.5 sm:px-4 py-2.5 sm:py-6 font-mono">
-    <!-- Top Header (Clean Mobile-First Responsive Layout) -->
-    <div class="mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b-4 border-[#1a1a1a]">
+    <!-- Header Controls -->
+    <!-- 1. Multiplayer Room Mode Header -->
+    <div v-if="isInRoom" class="mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b-4 border-[#1a1a1a] flex flex-col gap-2.5">
+      <!-- Row 1: Back + Actions -->
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <button
+          @click="handleLeaveRoom"
+          :disabled="isLeaving"
+          class="comic-btn-white px-2.5 sm:px-3 py-1.5 text-xs inline-flex items-center gap-1.5 flex-shrink-0 disabled:opacity-50"
+        >
+          <ArrowLeft class="w-4 h-4" />
+          <span>返回大厅</span>
+        </button>
+
+        <div class="flex items-center space-x-1.5 sm:space-x-2 flex-wrap justify-end">
+          <button
+            @click="isChatOpen = !isChatOpen"
+            class="brutal-btn px-2.5 sm:px-3 py-1.5 text-xs font-black flex items-center gap-1 transition-all"
+            :class="isChatOpen ? 'brutal-btn-yellow shadow-brutal-sm' : 'brutal-btn-white'"
+          >
+            <MessageSquare class="w-3.5 h-3.5" />
+            <span class="hidden sm:inline">{{ isChatOpen ? '收起聊天' : '房间聊天' }}</span>
+            <span class="sm:hidden">聊天</span>
+          </button>
+
+          <button
+            @click="showMembersModal = true"
+            class="brutal-btn px-2.5 sm:px-3 py-1.5 text-xs font-black flex items-center gap-1 transition-all bg-[#fffef0] hover:bg-[#facc15]"
+            :class="roomStore.isHost ? 'border-[#ef4444]' : ''"
+            title="查看所有在桌成员并进行踢人管理"
+          >
+            <Users class="w-3.5 h-3.5" />
+            <span>成员 ({{ roomStore.roomPlayers.length }}/{{ roomStore.currentRoom?.max_players || 6 }})</span>
+          </button>
+
+          <button
+            v-prevent-reclick
+            :disabled="isLeaving"
+            @click="handleLeaveRoom"
+            class="comic-btn-white px-2.5 sm:px-3.5 py-1.5 text-xs font-bold flex items-center gap-1 hover:bg-[#ef4444] hover:text-white disabled:opacity-50 flex-shrink-0"
+          >
+            <LogOut class="w-3.5 h-3.5" />
+            <span>{{ isLeaving ? '退出中...' : '退出' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 2: Room Info Card -->
+      <div class="flex flex-wrap items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]">
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <h1 class="text-sm sm:text-lg font-black text-[#1a1a1a] flex items-center gap-1.5 tracking-tight font-mono">
+            <Crown class="w-4 h-4 sm:w-5 sm:h-5 text-[#1a1a1a] flex-shrink-0" />
+            <span class="truncate max-w-[140px] sm:max-w-xs">{{ roomStore.currentRoom?.name || '21点联机桌' }}</span>
+          </h1>
+          <span class="comic-badge font-black text-[10px] sm:text-xs py-0.5 px-2 bg-[#22c55e] text-[#1a1a1a]">
+            联机房间
+          </span>
+          <span v-if="roomStore.isHost" class="comic-badge bg-[#facc15] text-[#1a1a1a] text-[10px] sm:text-xs py-0.5 px-2">
+            您是房主
+          </span>
+        </div>
+
+        <div class="text-[11px] sm:text-xs font-mono font-bold text-[#1a1a1a]/80 flex flex-wrap items-center gap-1.5">
+          <span class="bg-white px-2 py-0.5 rounded border border-[#1a1a1a] flex items-center gap-1 shadow-[1px_1px_0px_0px_#1a1a1a]">
+            底注: {{ roomStore.currentRoom?.min_bet || 50 }}
+            <CoinIcon customClass="w-3 h-3" />
+          </span>
+          <span class="bg-[#1a1a1a] text-[#facc15] px-2 py-0.5 rounded border border-[#1a1a1a] font-black">
+            3:2 天王赔率
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Single Player Mode Header -->
+    <div v-else class="mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b-4 border-[#1a1a1a]">
       <!-- Row 1: Back to Lobby + Rule / Multiplier Badge -->
       <div class="flex items-center justify-between gap-2 mb-2 sm:mb-2.5">
         <router-link to="/" class="comic-btn-white px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs inline-flex items-center gap-1 flex-shrink-0">
@@ -44,10 +118,13 @@
       </router-link>
     </div>
 
-    <!-- Felt Table -->
-    <div v-else class="relative rounded-xl bg-[#fffef0] border-3 sm:border-4 border-[#1a1a1a] p-3.5 sm:p-6 min-h-[440px] sm:min-h-[540px] flex flex-col justify-between shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] sm:shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-hidden">
-      <!-- Halftone Dots Texture -->
-      <div class="absolute inset-0 bg-[radial-gradient(#1a1a1a_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
+    <!-- Main Content Grid (Table + In-Room Chat) -->
+    <div v-else class="grid grid-cols-1 gap-4 sm:gap-6 items-start" :class="isChatOpen && isInRoom ? 'xl:grid-cols-12' : ''">
+      <!-- Felt Table -->
+      <div :class="isChatOpen && isInRoom ? 'xl:col-span-8' : 'w-full'">
+        <div class="relative rounded-xl bg-[#fffef0] border-3 sm:border-4 border-[#1a1a1a] p-3.5 sm:p-6 min-h-[440px] sm:min-h-[540px] flex flex-col justify-between shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] sm:shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-hidden">
+          <!-- Halftone Dots Texture -->
+          <div class="absolute inset-0 bg-[radial-gradient(#1a1a1a_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
       <!-- Dealer Area (Top) -->
       <div class="flex flex-col items-center relative z-10">
@@ -85,7 +162,7 @@
               />
             </div>
           </template>
-          <div v-else class="w-16 h-22 sm:w-20 sm:h-28 md:w-22 md:h-31 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]/80">
+          <div v-else class="w-16 sm:w-20 md:w-22 aspect-[224/313] shrink-0 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]/80 shadow-[2px_2px_0px_0px_rgba(26,26,26,0.3)]">
             等待发牌
           </div>
         </div>
@@ -139,7 +216,7 @@
               />
             </div>
           </template>
-          <div v-else class="w-16 h-22 sm:w-20 sm:h-28 md:w-22 md:h-31 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]/80">
+          <div v-else class="w-16 sm:w-20 md:w-22 aspect-[224/313] shrink-0 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]/80 shadow-[2px_2px_0px_0px_rgba(26,26,26,0.3)]">
             等待下注
           </div>
         </div>
@@ -247,10 +324,90 @@
       </div>
     </div>
   </div>
+
+      <!-- Right: In-Room Chat Channel -->
+      <div v-if="isInRoom && isChatOpen" class="xl:col-span-4 h-[540px] sticky top-20">
+        <ChatPanel
+          :channel="roomChannel"
+          :title="`${roomStore.currentRoom?.name || '21点'} · 房间聊天`"
+          subtitle="在桌玩家专属畅聊"
+          channelType="room"
+          :isHost="roomStore.isHost"
+          :allowClose="true"
+          @close="isChatOpen = false"
+        />
+      </div>
+    </div>
+
+    <!-- 👥 房间在桌成员与踢人管理弹窗 -->
+    <Modal v-if="isInRoom" v-model="showMembersModal" title="房间在桌成员管理">
+      <div class="space-y-3 font-mono">
+        <div class="flex items-center justify-between text-xs text-[#1a1a1a] font-black pb-2 border-b-2 border-[#1a1a1a]">
+          <span>当前在桌人数: {{ roomStore.roomPlayers.length }} / {{ roomStore.currentRoom?.max_players || 6 }} 人</span>
+          <span v-if="roomStore.isHost" class="text-[#ef4444] text-[11px]">您具有房主管理权限</span>
+        </div>
+
+        <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+          <div
+            v-for="(p, idx) in roomStore.roomPlayers"
+            :key="p.id || p.user_id"
+            class="flex items-center justify-between p-2.5 rounded-lg border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a] transition-colors"
+            :class="p.user_id === authStore.profile?.id ? 'bg-[#fffef0] border-[#facc15]' : 'bg-white'"
+          >
+            <div class="flex items-center space-x-2.5">
+              <span class="w-5 text-center text-xs font-black text-[#1a1a1a]">{{ idx + 1 }}</span>
+              <img
+                :src="p.profile?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + p.user_id"
+                class="w-8 h-8 rounded-md border-2 border-[#1a1a1a] bg-white object-cover"
+              />
+              <div>
+                <div class="text-xs font-black text-[#1a1a1a] flex items-center gap-1.5">
+                  <span>{{ p.profile?.nickname || `玩家_${p.seat + 1}` }}</span>
+                  <span v-if="p.user_id === authStore.profile?.id" class="text-[10px] px-1 bg-[#facc15] border border-[#1a1a1a] rounded font-black">
+                    您
+                  </span>
+                  <span v-if="p.user_id === roomStore.currentRoom?.host_id" class="text-[10px] px-1 bg-[#ef4444] text-white border border-[#1a1a1a] rounded font-black">
+                    房主
+                  </span>
+                </div>
+                <div class="text-[11px] font-bold text-[#1a1a1a]/70 flex items-center gap-1">
+                  <span>筹码: {{ p.chips || p.profile?.chips || 0 }}</span>
+                  <CoinIcon customClass="w-3 h-3" />
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button
+                v-if="roomStore.isHost && p.user_id !== authStore.profile?.id"
+                v-prevent-reclick
+                :disabled="kickingUserId === p.user_id"
+                @click="handleKickPlayer(p.user_id, p.profile?.nickname || '玩家')"
+                class="comic-btn-red px-2.5 py-1 text-[11px] font-black flex items-center gap-1 disabled:opacity-50"
+                title="将该玩家移出房间"
+              >
+                <UserX class="w-3.5 h-3.5" />
+                <span>{{ kickingUserId === p.user_id ? '移出中...' : '移出' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <button
+          @click="showMembersModal = false"
+          class="comic-btn-white w-full py-2 text-xs font-black"
+        >
+          关闭列表
+        </button>
+      </template>
+    </Modal>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import confetti from 'canvas-confetti'
 import {
   CreditCard,
@@ -262,21 +419,49 @@ import {
   Zap,
   Sparkles,
   AlertTriangle,
-  Clock
+  Clock,
+  Crown,
+  Users,
+  MessageSquare,
+  LogOut,
+  UserX
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
+import { useRoomStore } from '@/stores/room'
+import { useChatStore } from '@/stores/chat'
 import { useGameScheduleStore } from '@/stores/gameSchedule'
 import { sound } from '@/lib/sound'
+import { dialog } from '@/lib/dialog'
 import PlayingCard from '@/components/game/PlayingCard.vue'
 import ChipSelector from '@/components/game/ChipSelector.vue'
 import CoinIcon from '@/components/common/CoinIcon.vue'
+import Modal from '@/components/common/Modal.vue'
+import ChatPanel from '@/components/chat/ChatPanel.vue'
 import { createBlackjackDeck, calculateHandScore, determineBlackjackOutcome } from '../engine'
 import type { Card } from '@/types/game'
 
+const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
+const roomStore = useRoomStore()
+const chatStore = useChatStore()
 const gameScheduleStore = useGameScheduleStore()
+
+const isInRoom = computed(() => {
+  return (
+    route.query.mode === 'multiplayer' ||
+    roomStore.currentRoom?.game_type === 'blackjack'
+  )
+})
+
+const isChatOpen = ref<boolean>(true)
+const showMembersModal = ref<boolean>(false)
+const isLeaving = ref<boolean>(false)
+const kickingUserId = ref<string | null>(null)
+
+const roomChannel = computed(() => 'room_' + (roomStore.currentRoom?.id || 'blackjack'))
 
 const scheduleState = computed(() => gameScheduleStore.checkGameOpen('blackjack'))
 
@@ -296,6 +481,83 @@ const dealerScore = computed(() => calculateHandScore(dealerCards.value))
 
 const isDealing = ref(false)
 const isActionBusy = ref(false)
+
+function onWindowBeforeUnload() {
+  if (isInRoom.value) {
+    roomStore.leaveRoom()
+  }
+}
+
+onMounted(async () => {
+  window.addEventListener('beforeunload', onWindowBeforeUnload)
+
+  if (isInRoom.value) {
+    if (!roomStore.currentRoom && route.query.mode === 'multiplayer') {
+      await roomStore.createRoom(
+        'blackjack',
+        `${authStore.profile?.nickname || '玩家'}的21点房间`,
+        50,
+        6
+      )
+    }
+
+    if (roomStore.currentRoom?.min_bet) {
+      currentBet.value = roomStore.currentRoom.min_bet
+    }
+
+    chatStore.initChannel(roomChannel.value)
+    chatStore.sendSystemAnnouncement(
+      roomChannel.value,
+      `【${authStore.profile?.nickname || '玩家'}】进入了21点房间。`
+    )
+  }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', onWindowBeforeUnload)
+  if (isInRoom.value) {
+    roomStore.leaveRoom()
+  }
+})
+
+async function handleLeaveRoom() {
+  if (isLeaving.value) return
+  isLeaving.value = true
+  try {
+    if (isInRoom.value) {
+      chatStore.sendSystemAnnouncement(
+        roomChannel.value,
+        `【${authStore.profile?.nickname || '玩家'}】离开了房间。`
+      )
+      await roomStore.leaveRoom()
+    }
+    router.push('/')
+  } finally {
+    isLeaving.value = false
+  }
+}
+
+async function handleKickPlayer(userId: string, nickname: string) {
+  if (!roomStore.isHost || kickingUserId.value) return
+  const confirmed = await dialog.confirm(`确定要将玩家【${nickname}】移出房间吗？`, {
+    title: '移出房间确认'
+  })
+  if (!confirmed) return
+
+  kickingUserId.value = userId
+  try {
+    const ok = await roomStore.kickPlayer(userId)
+    if (ok) {
+      sound.playClick()
+      chatStore.sendSystemAnnouncement(
+        roomChannel.value,
+        `【房主】已将玩家【${nickname}】移出房间。`
+      )
+    }
+  } finally {
+    kickingUserId.value = null
+  }
+}
 
 function addBet(val: number) {
   if (phase.value !== 'betting') return
@@ -425,7 +687,22 @@ async function finishRound() {
     sound.playLose()
   }
 
-  // 同步至 Supabase
+  // 若处于联机房间，向房间聊天频道广播战况
+  if (isInRoom.value) {
+    if (playerScore.value.isBlackjack) {
+      chatStore.sendSystemAnnouncement(
+        roomChannel.value,
+        `🎉 恭喜【${authStore.profile?.nickname || '玩家'}】拿到天王 BLACKJACK，赢得 +${netProfit} 筹码！`
+      )
+    } else if (netProfit > 0) {
+      chatStore.sendSystemAnnouncement(
+        roomChannel.value,
+        `【${authStore.profile?.nickname || '玩家'}】${description}，赢得 +${netProfit} 筹码！`
+      )
+    }
+  }
+
+  // 同步至 Supabase / 钱包
   await walletStore.recordGameSettlement(
     'blackjack',
     currentBet.value,

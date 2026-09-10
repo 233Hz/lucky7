@@ -172,7 +172,91 @@ export const useRoomStore = defineStore('room', () => {
     }
   }
 
-  // 创建新房间：不生成也不需要任何机器人玩家
+  // 创建单机人机房间：自动填充 AI 陪玩机器人（即点即玩，零等待）
+  async function createAiRoom(
+    gameType: GameRoom['game_type'],
+    name?: string,
+    minBet: number = 50,
+    aiCount: number = 3
+  ): Promise<GameRoom | null> {
+    if (!authStore.profile) return null
+
+    // 若当前已在其它房间，先退出
+    if (currentRoom.value) {
+      if (roomChannel) {
+        roomChannel.unsubscribe()
+        roomChannel = null
+      }
+      currentRoom.value = null
+      roomPlayers.value = []
+    }
+
+    const newRoom: GameRoom = {
+      id: 'ai_room_' + Date.now(),
+      game_type: gameType,
+      name: name || `${authStore.profile.nickname}的人机对局桌`,
+      min_bet: minBet,
+      max_players: aiCount + 1,
+      status: 'waiting',
+      host_id: authStore.profile.id,
+      round_state: { phase: 'waiting', currentTurn: null, isAiMode: true },
+      created_at: new Date().toISOString()
+    }
+
+    // 房主本人入座，初始已就绪
+    const hostPlayer: RoomPlayer = {
+      id: 'rp_' + Date.now(),
+      room_id: newRoom.id,
+      user_id: authStore.profile.id,
+      seat: 0,
+      chips: authStore.profile.chips,
+      status: 'ready',
+      hand: [],
+      current_bet: 0,
+      profile: authStore.profile
+    }
+
+    // 预设高拟真度 AI 机器人玩家
+    const botTemplates = [
+      { name: '老赵 (AI)', seed: 'ai_zhao', chips: 10000 },
+      { name: '大飞 (AI)', seed: 'ai_fei', chips: 15000 },
+      { name: '阿美 (AI)', seed: 'ai_mei', chips: 12000 },
+      { name: '小明 (AI)', seed: 'ai_ming', chips: 8000 },
+      { name: '四叔 (AI)', seed: 'ai_si', chips: 20000 }
+    ]
+
+    const players: RoomPlayer[] = [hostPlayer]
+    for (let i = 0; i < aiCount; i++) {
+      const bot = botTemplates[i % botTemplates.length]
+      const botId = `test_player_${i + 1}_${bot.seed}`
+      players.push({
+        id: `rp_ai_${i}_${Date.now()}`,
+        room_id: newRoom.id,
+        user_id: botId,
+        seat: i + 1,
+        chips: bot.chips,
+        status: 'ready', // AI 机器人全部自动准备完毕
+        hand: [],
+        current_bet: 0,
+        profile: {
+          id: botId,
+          email: `${botId}@lucky7.ai`,
+          nickname: bot.name,
+          avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${bot.seed}`,
+          chips: bot.chips,
+          is_admin: false,
+          created_at: new Date().toISOString()
+        }
+      })
+    }
+
+    currentRoom.value = newRoom
+    roomPlayers.value = players
+
+    return newRoom
+  }
+
+  // 创建新房间：不生成也不需要任何机器人玩家（用于真人联机）
   async function createRoom(
     gameType: GameRoom['game_type'],
     name: string,
@@ -379,8 +463,10 @@ export const useRoomStore = defineStore('room', () => {
     if (currentRoom.value) {
       currentRoom.value.status = 'waiting'
     }
+    const isAi = currentRoom.value?.round_state?.isAiMode === true || currentRoom.value?.id.startsWith('ai_room_')
     roomPlayers.value.forEach(p => {
-      p.status = 'waiting'
+      // 人机对战中，AI 机器人保持已就绪状态
+      p.status = isAi ? 'ready' : 'waiting'
       p.current_bet = 0
       p.hand = []
     })
@@ -700,6 +786,7 @@ export const useRoomStore = defineStore('room', () => {
     canStartGame,
     fetchRooms,
     createRoom,
+    createAiRoom,
     joinRoom,
     toggleReady,
     startGame,

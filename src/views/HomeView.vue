@@ -81,16 +81,16 @@
             <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-bold text-[#1a1a1a] bg-white p-2.5 rounded-md border-2 border-[#1a1a1a]">
               <span class="flex items-center gap-1 font-black">底注: 50 <CoinIcon customClass="w-3.5 h-3.5" /></span>
               <span>•</span>
-              <span class="font-bold">单人AI / 联机开房</span>
+              <span class="font-bold">单人AI即玩 / 联机开房</span>
             </div>
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
               v-if="gameScheduleStore.checkGameOpen('zhajinhua').isOpen"
-              to="/game/zhajinhua"
-              class="comic-btn-yellow w-full py-3 text-xs block text-center"
+              to="/game/zhajinhua?mode=ai"
+              class="comic-btn-yellow w-full py-3 text-xs block text-center font-black"
             >
-              开始游戏 · BATTLE!
+              开始游戏 · 单人人机对战
             </router-link>
             <button
               v-else
@@ -169,16 +169,16 @@
             <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-bold text-[#1a1a1a] bg-white p-2.5 rounded-md border-2 border-[#1a1a1a]">
               <span class="flex items-center gap-1 font-black">盲注: 50/100 <CoinIcon customClass="w-3.5 h-3.5" /></span>
               <span>•</span>
-              <span class="font-bold">皇家同花顺</span>
+              <span class="font-bold">单人AI即玩 / 联机开房</span>
             </div>
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
               v-if="gameScheduleStore.checkGameOpen('texas').isOpen"
-              to="/game/texas"
-              class="comic-btn-blue w-full py-3 text-xs block text-center"
+              to="/game/texas?mode=ai"
+              class="comic-btn-blue w-full py-3 text-xs block text-center font-black"
             >
-              入席对决 · ALL-IN!
+              入席对决 · 单人人机对战
             </router-link>
             <button
               v-else
@@ -320,9 +320,9 @@
             <button
               v-prevent-reclick
               @click="openRoomLobby"
-              class="comic-btn-black w-full py-3 text-xs"
+              class="comic-btn-black w-full py-3 text-xs font-black"
             >
-              浏览联机房间 · JOIN!
+              浏览联机房间 · 真人对战
             </button>
           </div>
         </div>
@@ -351,7 +351,15 @@
             class="p-4 rounded-lg bg-white border-3 border-[#1a1a1a] shadow-[3px_3px_0px_0px_#1a1a1a] flex items-center justify-between hover:bg-[#fffef0] transition-colors"
           >
             <div>
-              <div class="text-sm font-black text-[#1a1a1a] font-mono">{{ rm.name }}</div>
+              <div class="flex items-center gap-1.5">
+                <span
+                  class="text-[10px] px-1.5 py-0.5 rounded border border-[#1a1a1a] font-black"
+                  :class="rm.game_type === 'blackjack' ? 'bg-[#facc15] text-[#1a1a1a]' : rm.game_type === 'texas' ? 'bg-[#3b82f6] text-white' : 'bg-[#ef4444] text-white'"
+                >
+                  {{ rm.game_type === 'blackjack' ? '21点' : rm.game_type === 'texas' ? '德州扑克' : '炸金花' }}
+                </span>
+                <span class="text-sm font-black text-[#1a1a1a] font-mono truncate max-w-[140px] sm:max-w-xs">{{ rm.name }}</span>
+              </div>
               <div class="text-xs text-[#1a1a1a] font-mono font-bold mt-1 flex items-center gap-1.5">
                 <span>底注: {{ rm.min_bet }}</span>
                 <CoinIcon customClass="w-3.5 h-3.5" />
@@ -463,7 +471,8 @@ const newRoomMinBet = ref(50)
 
 const roomTypeOptions = [
   { value: 'zhajinhua', label: '炸金花 (Golden Flower)' },
-  { value: 'texas', label: '德州扑克 (Texas Hold\'em)' }
+  { value: 'texas', label: '德州扑克 (Texas Hold\'em)' },
+  { value: 'blackjack', label: '21点 (Blackjack)' }
 ]
 
 const formattedChips = computed(() => {
@@ -494,7 +503,7 @@ async function submitCreateRoom() {
     if (room) {
       showCreateModal.value = false
       showRoomModal.value = false
-      router.push(`/game/${room.game_type}`)
+      router.push(`/game/${room.game_type}?mode=multiplayer`)
     }
   } finally {
     isCreating.value = false
@@ -508,7 +517,7 @@ async function joinRoomAndEnter(room: GameRoom) {
     const ok = await roomStore.joinRoom(room)
     if (ok) {
       showRoomModal.value = false
-      router.push(`/game/${room.game_type}`)
+      router.push(`/game/${room.game_type}?mode=multiplayer`)
     }
   } finally {
     joiningRoomId.value = null

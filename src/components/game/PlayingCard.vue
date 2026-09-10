@@ -130,6 +130,6 @@ const sizeClasses: Record<string, string> = {
   sm: 'w-14 h-20',
   md: 'w-20 h-28 sm:w-22 sm:h-31',
   lg: 'w-24 h-34 sm:w-28 sm:h-39',
-  responsive: 'w-16 h-22 sm:w-20 sm:h-28 md:w-22 md:h-31'
+  responsive: 'w-16 sm:w-20 md:w-22 aspect-[224/313]'
 }
 </script>

@@ -38,14 +38,14 @@
           </button>
 
           <button
-            v-if="!isSupabaseConfigured() && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
+            v-if="isAiMode && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
             v-prevent-reclick
             @click="handleAddTestPlayer"
             class="comic-btn-blue px-2.5 sm:px-3 py-1.5 text-xs font-bold flex items-center gap-1"
-            title="辅助本地测试：快捷添加测试对手"
+            title="添加更多电脑AI对手"
           >
             <UserPlus class="w-3.5 h-3.5" />
-            <span class="hidden sm:inline">+ 邀请测试</span>
+            <span class="hidden sm:inline">+ 添加AI</span>
           </button>
 
           <button
@@ -65,13 +65,13 @@
         <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <h1 class="text-sm sm:text-lg font-black text-[#1a1a1a] flex items-center gap-1.5 tracking-tight font-mono">
             <Crown class="w-4 h-4 sm:w-5 sm:h-5 text-[#1a1a1a] flex-shrink-0" />
-            <span class="truncate max-w-[140px] sm:max-w-xs">{{ roomStore.currentRoom?.name || '德州扑克对战桌' }}</span>
+            <span class="truncate max-w-[140px] sm:max-w-xs">{{ isAiMode ? '单机人机对战桌' : (roomStore.currentRoom?.name || '德州扑克对战桌') }}</span>
           </h1>
           <span
             class="comic-badge font-black text-[10px] sm:text-xs py-0.5 px-2"
-            :class="roomStore.currentRoom?.status === 'playing' ? 'bg-[#ef4444] text-white' : 'bg-[#22c55e] text-[#1a1a1a]'"
+            :class="isAiMode ? 'bg-[#facc15] text-[#1a1a1a]' : (roomStore.currentRoom?.status === 'playing' ? 'bg-[#ef4444] text-white' : 'bg-[#22c55e] text-[#1a1a1a]')"
           >
-            {{ roomStore.currentRoom?.status === 'playing' ? '对局中' : '准备中' }}
+            {{ isAiMode ? '🤖 单机人机模式' : (roomStore.currentRoom?.status === 'playing' ? '对局中' : '等待准备中') }}
           </span>
           <span v-if="roomStore.isHost" class="comic-badge bg-[#facc15] text-[#1a1a1a] text-[10px] sm:text-xs py-0.5 px-2">
             您是房主
@@ -518,7 +518,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import confetti from 'canvas-confetti'
 import {
   Crown,
@@ -546,7 +546,6 @@ import { useWalletStore } from '@/stores/wallet'
 import { useRoomStore } from '@/stores/room'
 import { useChatStore } from '@/stores/chat'
 import { useGameScheduleStore } from '@/stores/gameSchedule'
-import { isSupabaseConfigured } from '@/lib/supabase'
 import { sound } from '@/lib/sound'
 import { dialog } from '@/lib/dialog'
 import PlayingCard from '@/components/game/PlayingCard.vue'
@@ -559,11 +558,20 @@ import type { TexasPlayer, TexasBetRound, TexasEvaluation } from '../types'
 import type { Card } from '@/types/game'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const walletStore = useWalletStore()
 const roomStore = useRoomStore()
 const chatStore = useChatStore()
 const gameScheduleStore = useGameScheduleStore()
+
+const isAiMode = computed(() => {
+  return (
+    route.query.mode === 'ai' ||
+    roomStore.currentRoom?.round_state?.isAiMode === true ||
+    (!roomStore.currentRoom && route.query.mode !== 'multiplayer')
+  )
+})
 const scheduleState = computed(() => gameScheduleStore.checkGameOpen('texas'))
 
 const isChatOpen = ref<boolean>(true)
@@ -718,8 +726,16 @@ onMounted(async () => {
     hero.value.chips = authStore.profile.chips
   }
 
-  // Ensure room exists; if direct entry, create default room with 0 bots
-  if (!roomStore.currentRoom) {
+  // 直接点击默认进入单人人机模式，自动生成 3 名已准备就绪的 AI 陪玩
+  if (isAiMode.value) {
+    await roomStore.createAiRoom(
+      'texas',
+      `${authStore.profile?.nickname || '玩家'}的单机人机桌`,
+      50,
+      3
+    )
+  } else if (!roomStore.currentRoom) {
+    // 真人联机模式
     await roomStore.createRoom(
       'texas',
       `${authStore.profile?.nickname || '玩家'}的德州扑克桌`,
@@ -732,7 +748,9 @@ onMounted(async () => {
   chatStore.initChannel(roomChannel.value)
   chatStore.sendSystemAnnouncement(
     roomChannel.value,
-    `【${authStore.profile?.nickname || '玩家'}】进入了房间。`
+    isAiMode.value
+      ? `【${authStore.profile?.nickname || '玩家'}】进入了单机人机对局。电脑对手已就绪！`
+      : `【${authStore.profile?.nickname || '玩家'}】进入了房间。`
   )
 })
 
