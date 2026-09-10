@@ -128,8 +128,8 @@ const suitPaths: Record<Suit, string> = {
 
 const sizeClasses: Record<string, string> = {
   sm: 'w-14 h-20',
-  md: 'w-20 h-28 sm:w-22 sm:h-31',
+  md: 'w-20 h-28 sm:w-[88px] sm:h-[124px]',
   lg: 'w-24 h-34 sm:w-28 sm:h-39',
-  responsive: 'w-16 sm:w-20 md:w-22 aspect-[224/313]'
+  responsive: 'w-20 h-28 sm:w-[88px] sm:h-[124px]'
 }
 </script>

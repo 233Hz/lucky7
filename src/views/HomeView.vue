@@ -87,7 +87,7 @@
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
               v-if="gameScheduleStore.checkGameOpen('zhajinhua').isOpen"
-              to="/game/zhajinhua?mode=ai"
+              to="/game/zhajinhua"
               class="comic-btn-yellow w-full py-3 text-xs block text-center font-black"
             >
               开始游戏 · 单人人机对战
@@ -125,16 +125,16 @@
             <div class="flex items-center space-x-2 mt-4 text-[11px] font-mono font-bold text-[#1a1a1a] bg-white p-2.5 rounded-md border-2 border-[#1a1a1a]">
               <span class="font-black">自由下注</span>
               <span>•</span>
-              <span class="font-bold">智能 Ace 点数计算</span>
+              <span class="font-bold">单人即玩 / 联机开房</span>
             </div>
           </div>
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
               v-if="gameScheduleStore.checkGameOpen('blackjack').isOpen"
               to="/game/blackjack"
-              class="comic-btn-red w-full py-3 text-xs block text-center"
+              class="comic-btn-red w-full py-3 text-xs block text-center font-black"
             >
-              开始挑战 · HIT ME!
+              开始对局 · 单人即玩
             </router-link>
             <button
               v-else
@@ -175,7 +175,7 @@
           <div class="mt-6 pt-4 border-t-3 border-[#1a1a1a]">
             <router-link
               v-if="gameScheduleStore.checkGameOpen('texas').isOpen"
-              to="/game/texas?mode=ai"
+              to="/game/texas"
               class="comic-btn-blue w-full py-3 text-xs block text-center font-black"
             >
               入席对决 · 单人人机对战

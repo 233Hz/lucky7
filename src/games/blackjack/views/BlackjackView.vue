@@ -162,8 +162,9 @@
               />
             </div>
           </template>
-          <div v-else class="w-16 sm:w-20 md:w-22 aspect-[224/313] shrink-0 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]/80 shadow-[2px_2px_0px_0px_rgba(26,26,26,0.3)]">
-            等待发牌
+          <div v-else class="w-20 h-28 sm:w-[88px] sm:h-[124px] rounded-lg border-2 border-dashed border-[#1a1a1a] flex flex-col items-center justify-center text-[#1a1a1a]/60 text-xs font-mono font-bold bg-[#fffef0]/80 shadow-[2px_2px_0px_0px_rgba(26,26,26,0.3)]">
+            <CreditCard class="w-5 h-5 mb-1 opacity-50" />
+            <span>等待发牌</span>
           </div>
         </div>
       </div>
@@ -216,8 +217,9 @@
               />
             </div>
           </template>
-          <div v-else class="w-16 sm:w-20 md:w-22 aspect-[224/313] shrink-0 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]/80 shadow-[2px_2px_0px_0px_rgba(26,26,26,0.3)]">
-            等待下注
+          <div v-else class="w-20 h-28 sm:w-[88px] sm:h-[124px] rounded-lg border-2 border-dashed border-[#1a1a1a] flex flex-col items-center justify-center text-[#1a1a1a]/60 text-xs font-mono font-bold bg-[#fffef0]/80 shadow-[2px_2px_0px_0px_rgba(26,26,26,0.3)]">
+            <CreditCard class="w-5 h-5 mb-1 opacity-50" />
+            <span>等待下注</span>
           </div>
         </div>
 
@@ -450,10 +452,7 @@ const chatStore = useChatStore()
 const gameScheduleStore = useGameScheduleStore()
 
 const isInRoom = computed(() => {
-  return (
-    route.query.mode === 'multiplayer' ||
-    roomStore.currentRoom?.game_type === 'blackjack'
-  )
+  return route.query.mode === 'multiplayer'
 })
 
 const isChatOpen = ref<boolean>(true)
@@ -492,7 +491,7 @@ onMounted(async () => {
   window.addEventListener('beforeunload', onWindowBeforeUnload)
 
   if (isInRoom.value) {
-    if (!roomStore.currentRoom && route.query.mode === 'multiplayer') {
+    if (!roomStore.currentRoom) {
       await roomStore.createRoom(
         'blackjack',
         `${authStore.profile?.nickname || '玩家'}的21点房间`,
@@ -510,6 +509,11 @@ onMounted(async () => {
       roomChannel.value,
       `【${authStore.profile?.nickname || '玩家'}】进入了21点房间。`
     )
+  } else {
+    // 单人模式：确保退出残留房间
+    if (roomStore.currentRoom) {
+      await roomStore.leaveRoom()
+    }
   }
 })
 

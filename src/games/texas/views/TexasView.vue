@@ -1,7 +1,8 @@
 <template>
   <div class="max-w-6xl mx-auto px-4 py-6">
-    <!-- Header Controls (Mobile-first 2-row clean layout) -->
-    <div class="mb-4 pb-3 border-b-4 border-[#1a1a1a] flex flex-col gap-2.5">
+    <!-- Header Controls -->
+    <!-- 1. Multiplayer Room Mode Header -->
+    <div v-if="isInRoom" class="mb-4 pb-3 border-b-4 border-[#1a1a1a] flex flex-col gap-2.5">
       <!-- Row 1: Back to Lobby + Quick Action Buttons -->
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <router-link
@@ -38,17 +39,6 @@
           </button>
 
           <button
-            v-if="isAiMode && roomStore.currentRoom?.status === 'waiting' && roomStore.roomPlayers.length < (roomStore.currentRoom?.max_players || 6)"
-            v-prevent-reclick
-            @click="handleAddTestPlayer"
-            class="comic-btn-blue px-2.5 sm:px-3 py-1.5 text-xs font-bold flex items-center gap-1"
-            title="添加更多电脑AI对手"
-          >
-            <UserPlus class="w-3.5 h-3.5" />
-            <span class="hidden sm:inline">+ 添加AI</span>
-          </button>
-
-          <button
             v-prevent-reclick
             :disabled="isLeaving"
             @click="handleLeaveRoom"
@@ -60,18 +50,18 @@
         </div>
       </div>
 
-      <!-- Row 2: Room Info Card (Avoid text overlaps) -->
+      <!-- Row 2: Room Info Card -->
       <div class="flex flex-wrap items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-[#fffef0] border-3 border-[#1a1a1a] shadow-[2px_2px_0px_0px_#1a1a1a]">
         <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <h1 class="text-sm sm:text-lg font-black text-[#1a1a1a] flex items-center gap-1.5 tracking-tight font-mono">
             <Crown class="w-4 h-4 sm:w-5 sm:h-5 text-[#1a1a1a] flex-shrink-0" />
-            <span class="truncate max-w-[140px] sm:max-w-xs">{{ isAiMode ? '单机人机对战桌' : (roomStore.currentRoom?.name || '德州扑克对战桌') }}</span>
+            <span class="truncate max-w-[140px] sm:max-w-xs">{{ roomStore.currentRoom?.name || '德州扑克真人联机桌' }}</span>
           </h1>
           <span
             class="comic-badge font-black text-[10px] sm:text-xs py-0.5 px-2"
-            :class="isAiMode ? 'bg-[#facc15] text-[#1a1a1a]' : (roomStore.currentRoom?.status === 'playing' ? 'bg-[#ef4444] text-white' : 'bg-[#22c55e] text-[#1a1a1a]')"
+            :class="roomStore.currentRoom?.status === 'playing' ? 'bg-[#ef4444] text-white' : 'bg-[#22c55e] text-[#1a1a1a]'"
           >
-            {{ isAiMode ? '🤖 单机人机模式' : (roomStore.currentRoom?.status === 'playing' ? '对局中' : '等待准备中') }}
+            {{ roomStore.currentRoom?.status === 'playing' ? '对局中' : '等待准备中' }}
           </span>
           <span v-if="roomStore.isHost" class="comic-badge bg-[#facc15] text-[#1a1a1a] text-[10px] sm:text-xs py-0.5 px-2">
             您是房主
@@ -84,6 +74,39 @@
             <CoinIcon customClass="w-3 h-3" />
           </span>
           <span class="bg-white px-2 py-0.5 rounded border border-[#1a1a1a] flex items-center gap-1 shadow-[1px_1px_0px_0px_#1a1a1a]">
+            小盲: {{ smallBlind }}
+            <CoinIcon customClass="w-3 h-3" />
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Single Player Mode Header (Outside) -->
+    <div v-else class="mb-4 pb-3 border-b-4 border-[#1a1a1a]">
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <router-link to="/" class="comic-btn-white px-2.5 sm:px-3 py-1.5 text-xs inline-flex items-center gap-1.5 flex-shrink-0">
+          <ArrowLeft class="w-4 h-4" />
+          <span>返回大厅</span>
+        </router-link>
+
+        <span class="text-[10px] sm:text-xs px-2.5 py-1 rounded-md bg-[#1a1a1a] text-[#facc15] border-2 border-[#1a1a1a] font-black uppercase shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] flex-shrink-0 flex items-center gap-1">
+          <span>🤖 单人人机对战</span>
+          <span>·</span>
+          <span>即点即玩</span>
+        </span>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+        <h1 class="text-lg sm:text-2xl font-black text-[#1a1a1a] uppercase flex items-center gap-2">
+          <Crown class="w-5 h-5 sm:w-6 sm:h-6 text-[#1a1a1a] flex-shrink-0" />
+          <span>德州扑克 (Texas Hold'em)</span>
+        </h1>
+        <div class="text-[11px] sm:text-xs font-mono font-bold text-[#1a1a1a]/80 flex items-center gap-2">
+          <span class="bg-[#fffef0] px-2 py-0.5 rounded border border-[#1a1a1a] flex items-center gap-1 shadow-[1px_1px_0px_0px_#1a1a1a]">
+            大盲: {{ bigBlind }}
+            <CoinIcon customClass="w-3 h-3" />
+          </span>
+          <span class="bg-[#fffef0] px-2 py-0.5 rounded border border-[#1a1a1a] flex items-center gap-1 shadow-[1px_1px_0px_0px_#1a1a1a]">
             小盲: {{ smallBlind }}
             <CoinIcon customClass="w-3 h-3" />
           </span>
@@ -110,14 +133,14 @@
     </div>
 
     <!-- Main Content Grid (Table + In-Room Chat) -->
-    <div v-else class="grid grid-cols-1 gap-6 items-start" :class="isChatOpen ? 'xl:grid-cols-12' : ''">
+    <div v-else class="grid grid-cols-1 gap-6 items-start" :class="isInRoom && isChatOpen ? 'xl:grid-cols-12' : ''">
       <!-- Left: Felt Poker Table -->
-      <div :class="isChatOpen ? 'xl:col-span-8' : 'w-full'">
+      <div :class="isInRoom && isChatOpen ? 'xl:col-span-8' : 'w-full'">
         <div class="relative rounded-none bg-white border-4 border-black p-3 sm:p-6 min-h-[520px] sm:min-h-[580px] flex flex-col justify-between shadow-brutal-xl overflow-hidden">
           <!-- Halftone Dots Texture -->
           <div class="absolute inset-0 bg-[radial-gradient(#1a1a1a_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
-      <!-- Top Opponents Area (Real players, zero auto-bots) -->
+      <!-- Top Opponents Area -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 justify-items-center relative z-20 pt-2 min-h-[140px]">
         <!-- Seated Opponents -->
         <div
@@ -141,24 +164,15 @@
             :isCurrentTurn="currentTurnIdx === idx + 1 && gameActive"
             :showCardsFaceDown="currentRound !== 'showdown'"
             :isHost="opp.isHost"
-            :readyStatus="roomStore.currentRoom?.status === 'waiting' ? opp.readyStatus : undefined"
+            :readyStatus="isInRoom && !gameActive ? opp.readyStatus : undefined"
           />
 
-          <!-- Controls for opponents: Simulated toggle ready for test players, and Kick Player for Host -->
+          <!-- Kick Player Button for Host (Only in multiplayer room) -->
           <div
-            v-if="roomStore.currentRoom?.status === 'waiting' || roomStore.isHost"
+            v-if="isInRoom && roomStore.isHost"
             class="mt-3 flex items-center gap-1 z-30"
           >
             <button
-              v-if="opp.id.startsWith('test_player_') && roomStore.currentRoom?.status === 'waiting'"
-              v-prevent-reclick
-              @click="handleToggleOpponentReady(opp.id)"
-              class="px-2 py-0.5 text-[10px] font-black border-2 border-[#1a1a1a] rounded-md bg-[#fffef0] hover:bg-[#facc15]"
-            >
-              {{ opp.readyStatus === 'ready' ? '设为未准备' : '模拟准备' }}
-            </button>
-            <button
-              v-if="roomStore.isHost"
               v-prevent-reclick
               @click="handleKickPlayer(opp.id, opp.nickname)"
               :disabled="kickingUserId === opp.id"
@@ -171,18 +185,20 @@
           </div>
         </div>
 
-        <!-- Empty Seats (Responsive width for 2-column mobile) -->
-        <div
-          v-for="idx in emptySeatsCount"
-          :key="'empty_' + idx"
-          class="w-28 xs:w-32 sm:w-36 h-28 xs:h-32 rounded-lg border-2 border-dashed border-[#1a1a1a]/40 flex flex-col items-center justify-center p-2 sm:p-3 text-center bg-[#fffef0]/60"
-        >
-          <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-md border border-[#1a1a1a]/30 bg-[#1a1a1a]/5 flex items-center justify-center mb-1 text-[#1a1a1a]/40">
-            <Users class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        <!-- Empty Seats (Only in multiplayer room) -->
+        <template v-if="isInRoom">
+          <div
+            v-for="idx in emptySeatsCount"
+            :key="'empty_' + idx"
+            class="w-28 xs:w-32 sm:w-36 h-28 xs:h-32 rounded-lg border-2 border-dashed border-[#1a1a1a]/40 flex flex-col items-center justify-center p-2 sm:p-3 text-center bg-[#fffef0]/60"
+          >
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-md border border-[#1a1a1a]/30 bg-[#1a1a1a]/5 flex items-center justify-center mb-1 text-[#1a1a1a]/40">
+              <Users class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+            <span class="text-[11px] sm:text-xs font-mono font-bold text-[#1a1a1a]/50">等待真人加入</span>
+            <span class="text-[9px] sm:text-[10px] font-mono text-[#1a1a1a]/30 mt-0.5">空闲座位</span>
           </div>
-          <span class="text-[11px] sm:text-xs font-mono font-bold text-[#1a1a1a]/50">等待玩家入座</span>
-          <span class="text-[9px] sm:text-[10px] font-mono text-[#1a1a1a]/30 mt-0.5">空闲座位</span>
-        </div>
+        </template>
       </div>
 
       <!-- Center Community Cards & Pot / Waiting Banner -->
@@ -223,14 +239,15 @@
         <!-- Waiting Stage Center Banner -->
         <div v-else class="px-6 py-4 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] text-center max-w-md">
           <div class="text-xs font-mono font-black text-[#1a1a1a] uppercase tracking-wider mb-1 flex items-center justify-center gap-1.5">
-            <Clock class="w-4 h-4 text-[#1a1a1a]" />
-            <span>房间等待准备就绪</span>
+            <Sparkles v-if="!isInRoom" class="w-4 h-4 text-[#1a1a1a]" />
+            <Clock v-else class="w-4 h-4 text-[#1a1a1a]" />
+            <span>{{ !isInRoom ? '单人人机对战模式' : '真人联机等待就绪' }}</span>
           </div>
           <div class="text-sm font-black text-[#1a1a1a]">
-            {{ waitingStatusText }}
+            {{ !isInRoom ? '老赵、大飞、阿美已就座，点击下方发牌直接开局！' : waitingStatusText }}
           </div>
-          <div class="text-[11px] font-mono font-bold text-[#1a1a1a]/70 mt-1">
-            进入房间后须先准备；所有玩家准备完毕后，房主即可开启对局
+          <div v-if="isInRoom" class="text-[11px] font-mono font-bold text-[#1a1a1a]/70 mt-1">
+            至少需要 2 名真人玩家入座并准备就绪，房主即可开启对局
           </div>
         </div>
       </div>
@@ -249,7 +266,7 @@
               />
             </template>
             <div v-else class="w-20 h-28 rounded-lg border-2 border-dashed border-[#1a1a1a] bg-[#fffef0] flex items-center justify-center text-[#1a1a1a]/50 text-xs font-mono font-bold text-center px-2">
-              {{ roomStore.currentRoom?.status === 'waiting' ? (roomStore.isCurrentUserReady ? '已准备就绪' : '等待准备') : '等待发底牌' }}
+              {{ isInRoom && !gameActive ? (roomStore.isCurrentUserReady ? '已准备就绪' : '等待准备') : '等待发底牌' }}
             </div>
           </div>
 
@@ -269,7 +286,7 @@
               <span>{{ formattedHeroChips }}</span>
             </div>
             <span
-              v-if="roomStore.currentRoom?.status === 'waiting'"
+              v-if="isInRoom && !gameActive"
               class="ml-2 px-2 py-0.5 text-[10px] font-black border-2 border-[#1a1a1a] rounded-md uppercase"
               :class="roomStore.isCurrentUserReady ? 'bg-[#22c55e] text-[#1a1a1a]' : 'bg-[#ef4444] text-white'"
             >
@@ -283,41 +300,56 @@
           </div>
         </div>
 
-        <!-- A. Waiting Stage Action Controls (Ready & Host Start) -->
-        <div v-if="roomStore.currentRoom?.status === 'waiting'" class="flex items-center space-x-3 flex-wrap justify-center gap-y-2">
-          <!-- 准备 / 取消准备 Button for current user -->
-          <button
-            v-prevent-reclick
-            :disabled="isTogglingReady"
-            @click="handleToggleReady"
-            class="comic-btn px-6 py-2.5 text-sm font-black flex items-center gap-2 disabled:opacity-50"
-            :class="roomStore.isCurrentUserReady ? 'comic-btn-white' : 'comic-btn-green'"
-          >
-            <CheckCircle v-if="!roomStore.isCurrentUserReady" class="w-4 h-4" />
-            <XCircle v-else class="w-4 h-4" />
-            <span>{{ isTogglingReady ? '更新中...' : (roomStore.isCurrentUserReady ? '取消准备' : '准备就绪') }}</span>
-          </button>
+        <!-- A. Waiting Stage Action Controls -->
+        <div v-if="!gameActive" class="flex items-center space-x-3 flex-wrap justify-center gap-y-2">
+          <!-- 1. Single Player AI Mode: 直接发牌开局，无需准备 -->
+          <template v-if="!isInRoom">
+            <button
+              v-prevent-reclick
+              @click="startNewRound"
+              class="comic-btn-green px-8 py-3 text-sm font-black flex items-center gap-2 shadow-[4px_4px_0px_0px_#1a1a1a]"
+            >
+              <Play class="w-4 h-4 fill-[#1a1a1a]" />
+              <span>开始发牌 (Deal)</span>
+            </button>
+          </template>
 
-          <!-- 房主开始游戏 Button (Only host can see/click, enabled when all ready) -->
-          <button
-            v-if="roomStore.isHost"
-            v-prevent-reclick
-            @click="handleStartGame"
-            :disabled="!roomStore.canStartGame || isStarting"
-            class="comic-btn px-7 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-2"
-            :class="roomStore.canStartGame && !isStarting ? 'comic-btn-green shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]' : 'comic-btn-white cursor-not-allowed'"
-          >
-            <Play class="w-4 h-4 fill-[#1a1a1a]" />
-            <span>{{ isStarting ? '正在开局...' : hostStartButtonText }}</span>
-          </button>
+          <!-- 2. Multiplayer Room Mode: 准备与房主开始 -->
+          <template v-else>
+            <!-- 准备 / 取消准备 Button for current user -->
+            <button
+              v-prevent-reclick
+              :disabled="isTogglingReady"
+              @click="handleToggleReady"
+              class="comic-btn px-6 py-2.5 text-sm font-black flex items-center gap-2 disabled:opacity-50"
+              :class="roomStore.isCurrentUserReady ? 'comic-btn-white' : 'comic-btn-green'"
+            >
+              <CheckCircle v-if="!roomStore.isCurrentUserReady" class="w-4 h-4" />
+              <XCircle v-else class="w-4 h-4" />
+              <span>{{ isTogglingReady ? '更新中...' : (roomStore.isCurrentUserReady ? '取消准备' : '准备就绪') }}</span>
+            </button>
 
-          <!-- Non-host Waiting status -->
-          <div
-            v-else
-            class="px-4 py-2 bg-[#fffef0] border-2 border-[#1a1a1a] rounded-md font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] text-[#1a1a1a]"
-          >
-            {{ roomStore.isCurrentUserReady ? '已准备完毕，请等待房主开启对局...' : '请先点击【准备就绪】' }}
-          </div>
+            <!-- 房主开始游戏 Button (Only host can see/click, enabled when >= 2 real players all ready) -->
+            <button
+              v-if="roomStore.isHost"
+              v-prevent-reclick
+              @click="handleStartGame"
+              :disabled="!roomStore.canStartGame || isStarting"
+              class="comic-btn px-7 py-2.5 text-sm font-black disabled:opacity-40 flex items-center gap-2"
+              :class="roomStore.canStartGame && !isStarting ? 'comic-btn-green shadow-[3px_3px_0px_0px_rgba(26,26,26,1)]' : 'comic-btn-white cursor-not-allowed'"
+            >
+              <Play class="w-4 h-4 fill-[#1a1a1a]" />
+              <span>{{ isStarting ? '正在开局...' : hostStartButtonText }}</span>
+            </button>
+
+            <!-- Non-host Waiting status -->
+            <div
+              v-else
+              class="px-4 py-2 bg-[#fffef0] border-2 border-[#1a1a1a] rounded-md font-mono text-xs font-bold shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] text-[#1a1a1a]"
+            >
+              {{ roomStore.isCurrentUserReady ? '已准备完毕，请等待房主开启对局...' : '请先点击【准备就绪】' }}
+            </div>
+          </template>
         </div>
 
         <!-- B. In-Game Hero Actions -->
@@ -387,7 +419,7 @@
   </div>
 
   <!-- Right: In-Room Chat Channel -->
-  <div v-if="isChatOpen" class="xl:col-span-4 h-[580px] sticky top-20">
+  <div v-if="isInRoom && isChatOpen" class="xl:col-span-4 h-[580px] sticky top-20">
     <ChatPanel
       :channel="roomChannel"
       :title="`${roomStore.currentRoom?.name || '德州'} · 房间聊天`"
@@ -438,7 +470,7 @@
     </Modal>
 
     <!-- Room Members Management Modal -->
-    <Modal v-model="showMembersModal" title="在桌成员与管理">
+    <Modal v-if="isInRoom" v-model="showMembersModal" title="在桌成员与管理">
       <div class="space-y-4 py-2 font-mono">
         <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-[#fffef0] border-2 border-[#1a1a1a] text-xs">
           <div class="flex items-center gap-1.5 font-black">
@@ -536,10 +568,10 @@ import {
   XCircle,
   Clock,
   Users,
-  UserPlus,
   UserX,
   LogOut,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { useWalletStore } from '@/stores/wallet'
@@ -565,20 +597,16 @@ const roomStore = useRoomStore()
 const chatStore = useChatStore()
 const gameScheduleStore = useGameScheduleStore()
 
-const isAiMode = computed(() => {
-  return (
-    route.query.mode === 'ai' ||
-    roomStore.currentRoom?.round_state?.isAiMode === true ||
-    (!roomStore.currentRoom && route.query.mode !== 'multiplayer')
-  )
+const isInRoom = computed(() => {
+  return route.query.mode === 'multiplayer'
 })
 const scheduleState = computed(() => gameScheduleStore.checkGameOpen('texas'))
 
 const isChatOpen = ref<boolean>(true)
 const roomChannel = computed(() => 'room_' + (roomStore.currentRoom?.id || 'default'))
 
-const smallBlind = computed(() => Math.floor((roomStore.currentRoom?.min_bet || 50) / 2) || 25)
-const bigBlind = computed(() => roomStore.currentRoom?.min_bet || 50)
+const smallBlind = computed(() => Math.floor(((isInRoom.value ? roomStore.currentRoom?.min_bet : 50) || 50) / 2) || 25)
+const bigBlind = computed(() => (isInRoom.value ? roomStore.currentRoom?.min_bet : 50) || 50)
 const pot = ref(0)
 const currentRound = ref<TexasBetRound>('preflop')
 const gameActive = ref(false)
@@ -610,33 +638,95 @@ interface InGameTexasOpponent extends TexasPlayer {
 }
 const opponents = ref<InGameTexasOpponent[]>([])
 
-// Synchronize opponents with roomPlayers
-const opponentPlayers = computed<InGameTexasOpponent[]>(() => {
-  if (!roomStore.currentRoom) return []
-  const otherRoomPlayers = roomStore.roomPlayers.filter(
-    p => p.user_id !== authStore.profile?.id
-  )
+// 本地预设单机人机对手（在外面对战时使用，零等待、无需开房）
+const localAiOpponents = ref<InGameTexasOpponent[]>([
+  {
+    id: 'test_player_1_zhao',
+    nickname: '老赵 (AI)',
+    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=ai_zhao',
+    chips: 10000,
+    holeCards: [],
+    folded: false,
+    isAllIn: false,
+    currentBet: 0,
+    isAI: true,
+    isHost: false,
+    readyStatus: 'ready'
+  },
+  {
+    id: 'test_player_2_fei',
+    nickname: '大飞 (AI)',
+    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=ai_fei',
+    chips: 15000,
+    holeCards: [],
+    folded: false,
+    isAllIn: false,
+    currentBet: 0,
+    isAI: true,
+    isHost: false,
+    readyStatus: 'ready'
+  },
+  {
+    id: 'test_player_3_mei',
+    nickname: '阿美 (AI)',
+    avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=ai_mei',
+    chips: 12000,
+    holeCards: [],
+    folded: false,
+    isAllIn: false,
+    currentBet: 0,
+    isAI: true,
+    isHost: false,
+    readyStatus: 'ready'
+  }
+])
 
-  return otherRoomPlayers.map(p => {
-    const existing = opponents.value.find(op => op.id === p.user_id)
-    return {
-      id: p.user_id,
-      nickname: p.profile?.nickname || `玩家_${p.seat + 1}`,
-      avatarUrl: p.profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.user_id}`,
-      chips: existing ? existing.chips : p.chips,
-      holeCards: existing ? existing.holeCards : [],
-      folded: existing ? existing.folded : false,
-      isAllIn: existing ? existing.isAllIn : false,
-      currentBet: existing ? existing.currentBet : 0,
-      isAI: p.user_id.startsWith('test_player_'),
-      isHost: p.user_id === roomStore.currentRoom?.host_id,
-      readyStatus: p.status === 'ready' ? 'ready' : 'waiting'
-    }
-  })
+// Synchronize opponents with roomPlayers (Multiplayer) or localAiOpponents (Single-player AI)
+const opponentPlayers = computed<InGameTexasOpponent[]>(() => {
+  if (isInRoom.value) {
+    if (!roomStore.currentRoom) return []
+    // 纯真人联机桌：严格只包含真实入房玩家，过滤机器人
+    const otherRoomPlayers = roomStore.roomPlayers.filter(
+      p => p.user_id !== authStore.profile?.id && !p.user_id.startsWith('test_player_')
+    )
+
+    return otherRoomPlayers.map(p => {
+      const existing = opponents.value.find(op => op.id === p.user_id)
+      return {
+        id: p.user_id,
+        nickname: p.profile?.nickname || `玩家_${p.seat + 1}`,
+        avatarUrl: p.profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${p.user_id}`,
+        chips: existing ? existing.chips : p.chips,
+        holeCards: existing ? existing.holeCards : [],
+        folded: existing ? existing.folded : false,
+        isAllIn: existing ? existing.isAllIn : false,
+        currentBet: existing ? existing.currentBet : 0,
+        isAI: false,
+        isHost: p.user_id === roomStore.currentRoom?.host_id,
+        readyStatus: (p.status === 'ready' ? 'ready' : 'waiting') as 'ready' | 'waiting'
+      }
+    })
+  } else {
+    // 单人人机对战模式：直接使用本地预设 AI 对手
+    return localAiOpponents.value.map(ai => {
+      const existing = opponents.value.find(op => op.id === ai.id)
+      return {
+        ...ai,
+        chips: existing ? existing.chips : ai.chips,
+        holeCards: existing ? existing.holeCards : [],
+        folded: existing ? existing.folded : false,
+        isAllIn: existing ? existing.isAllIn : false,
+        currentBet: existing ? existing.currentBet : 0,
+        readyStatus: 'ready' as const,
+        isHost: false
+      }
+    })
+  }
 })
 
-const maxSeats = computed(() => roomStore.currentRoom?.max_players || 6)
+const maxSeats = computed(() => (isInRoom.value ? roomStore.currentRoom?.max_players : 4) || 6)
 const emptySeatsCount = computed(() => {
+  if (!isInRoom.value) return 0
   return Math.max(0, maxSeats.value - roomStore.roomPlayers.length)
 })
 
@@ -670,22 +760,25 @@ const heroEvaluation = computed<TexasEvaluation | null>(() => {
 })
 
 const waitingStatusText = computed(() => {
+  if (!isInRoom.value) {
+    return '老赵、大飞、阿美已就座，点击下方直接发牌开战！'
+  }
   const total = roomStore.roomPlayers.length
   const ready = roomStore.readyCount
   if (total < 2) {
-    return `当前在桌 1 人，至少需 2 名玩家就绪后由房主开局`
+    return `当前仅您 1 人，需至少 2 名真人玩家就绪后才可开局`
   }
   if (ready < total) {
     return `全员准备中 (${ready}/${total} 已准备)`
   }
-  return `全员均已准备完毕，等待房主开启对局！`
+  return `全员均已准备完毕，房主可随时开启对局！`
 })
 
 const hostStartButtonText = computed(() => {
   const total = roomStore.roomPlayers.length
   const ready = roomStore.readyCount
   if (total < 2) {
-    return '等待其他玩家加入 (至少2人)'
+    return '等待真人玩家加入 (至少2人)'
   }
   if (ready < total) {
     return `等待全员准备 (${ready}/${total})`
@@ -703,6 +796,7 @@ const kickingUserId = ref<string | null>(null)
 watch(
   () => roomStore.currentRoom?.status,
   (newStatus) => {
+    if (!isInRoom.value) return
     if (newStatus === 'playing' && !gameActive.value) {
       startNewRound()
     } else if (newStatus === 'waiting' && gameActive.value) {
@@ -713,7 +807,9 @@ watch(
 )
 
 function onWindowBeforeUnload() {
-  roomStore.leaveRoom()
+  if (isInRoom.value) {
+    roomStore.leaveRoom()
+  }
 }
 
 onMounted(async () => {
@@ -726,37 +822,36 @@ onMounted(async () => {
     hero.value.chips = authStore.profile.chips
   }
 
-  // 直接点击默认进入单人人机模式，自动生成 3 名已准备就绪的 AI 陪玩
-  if (isAiMode.value) {
-    await roomStore.createAiRoom(
-      'texas',
-      `${authStore.profile?.nickname || '玩家'}的单机人机桌`,
-      50,
-      3
-    )
-  } else if (!roomStore.currentRoom) {
+  if (isInRoom.value) {
     // 真人联机模式
-    await roomStore.createRoom(
-      'texas',
-      `${authStore.profile?.nickname || '玩家'}的德州扑克桌`,
-      50,
-      6
-    )
-  }
+    if (!roomStore.currentRoom) {
+      await roomStore.createRoom(
+        'texas',
+        `${authStore.profile?.nickname || '玩家'}的德州扑克桌`,
+        50,
+        6
+      )
+    }
 
-  // 初始化本房间专属聊天频道
-  chatStore.initChannel(roomChannel.value)
-  chatStore.sendSystemAnnouncement(
-    roomChannel.value,
-    isAiMode.value
-      ? `【${authStore.profile?.nickname || '玩家'}】进入了单机人机对局。电脑对手已就绪！`
-      : `【${authStore.profile?.nickname || '玩家'}】进入了房间。`
-  )
+    // 初始化本房间专属聊天频道
+    chatStore.initChannel(roomChannel.value)
+    chatStore.sendSystemAnnouncement(
+      roomChannel.value,
+      `【${authStore.profile?.nickname || '玩家'}】进入了房间。`
+    )
+  } else {
+    // 单机人机对战模式：确保退出残留房间
+    if (roomStore.currentRoom) {
+      await roomStore.leaveRoom()
+    }
+  }
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', onWindowBeforeUnload)
-  roomStore.leaveRoom()
+  if (isInRoom.value) {
+    roomStore.leaveRoom()
+  }
 })
 
 // Toggle player ready status
@@ -773,16 +868,6 @@ async function handleToggleReady() {
   } finally {
     isTogglingReady.value = false
   }
-}
-
-// 辅助本地测试：添加测试玩家
-function handleAddTestPlayer() {
-  roomStore.addTestPlayer()
-  const lastPlayer = roomStore.roomPlayers[roomStore.roomPlayers.length - 1]
-  chatStore.sendSystemAnnouncement(
-    roomChannel.value,
-    `【${lastPlayer?.profile?.nickname || '新玩家'}】加入入座。`
-  )
 }
 
 // 房主踢出指定玩家
@@ -809,28 +894,18 @@ async function handleKickPlayer(userId: string, nickname: string) {
   }
 }
 
-// Toggle simulated test opponent ready
-function handleToggleOpponentReady(userId: string) {
-  roomStore.toggleReady(userId)
-  const opp = roomStore.roomPlayers.find(p => p.user_id === userId)
-  if (opp) {
-    chatStore.sendSystemAnnouncement(
-      roomChannel.value,
-      `【${opp.profile?.nickname || '玩家'}】${opp.status === 'ready' ? '已准备就绪！' : '取消了准备。'}`
-    )
-  }
-}
-
 // Leave room
 async function handleLeaveRoom() {
   if (isLeaving.value) return
   isLeaving.value = true
   try {
-    chatStore.sendSystemAnnouncement(
-      roomChannel.value,
-      `【${authStore.profile?.nickname || '玩家'}】离开了房间。`
-    )
-    await roomStore.leaveRoom()
+    if (isInRoom.value) {
+      chatStore.sendSystemAnnouncement(
+        roomChannel.value,
+        `【${authStore.profile?.nickname || '玩家'}】离开了房间。`
+      )
+      await roomStore.leaveRoom()
+    }
     router.push('/')
   } finally {
     isLeaving.value = false
@@ -1108,10 +1183,12 @@ async function showdownAndSettle(singleWinner?: TexasPlayer) {
   }
   showResultModal.value = true
 
-  chatStore.sendSystemAnnouncement(
-    roomChannel.value,
-    `牌局结算完毕！最终胜者为【${winner?.nickname || '无人'}】，赢得彩金 ${pot.value} 筹码！`
-  )
+  if (isInRoom.value) {
+    chatStore.sendSystemAnnouncement(
+      roomChannel.value,
+      `牌局结算完毕！最终胜者为【${winner?.nickname || '无人'}】，赢得彩金 ${pot.value} 筹码！`
+    )
+  }
 
   await walletStore.recordGameSettlement(
     'texas',
