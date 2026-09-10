@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-center space-x-2 sm:space-x-3 select-none flex-wrap gap-y-2">
+  <div class="flex items-center justify-center gap-1.5 sm:gap-2.5 select-none flex-wrap">
     <button
       v-for="chip in chips"
       :key="chip"
@@ -7,22 +7,22 @@
       @click="selectChip(chip)"
       class="relative group rounded-full transition-all duration-150 transform focus:outline-none"
       :class="[
-        modelValue === chip ? '-translate-y-2 scale-120 z-10' : 'hover:-translate-y-0.5',
+        modelValue === chip ? '-translate-y-1.5 sm:-translate-y-2 scale-110 sm:scale-120 z-10' : 'hover:-translate-y-0.5',
         disabled ? 'cursor-not-allowed opacity-40 hover:translate-y-0' : 'cursor-pointer'
       ]"
       :disabled="disabled"
     >
       <!-- Circular Chip Design with Solid Comic Ink Outline & Hard Shadow -->
       <div
-        class="w-11 h-11 sm:w-12 sm:h-12 aspect-square rounded-full flex items-center justify-center font-mono font-black text-xs sm:text-sm transition-all"
+        class="w-10 h-10 sm:w-12 sm:h-12 aspect-square rounded-full flex items-center justify-center font-mono font-black text-[11px] sm:text-sm transition-all"
         :class="[
           chipStyles[chip] || 'bg-white text-[#1a1a1a]',
           modelValue === chip
-            ? 'border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] ring-2 ring-[#facc15]'
-            : 'border-3 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'
+            ? 'border-3 sm:border-4 border-[#1a1a1a] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] sm:shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] ring-2 ring-[#facc15]'
+            : 'border-2 sm:border-3 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]'
         ]"
       >
-        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 flex items-center justify-center border border-[#1a1a1a]/40 font-black">
+        <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/20 flex items-center justify-center border border-[#1a1a1a]/40 font-black">
           {{ chip }}
         </div>
       </div>

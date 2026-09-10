@@ -1,34 +1,40 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 py-6 font-mono">
-    <!-- Top Header -->
-    <div class="flex items-center justify-between mb-4 border-b-4 border-[#1a1a1a] pb-3">
-      <div class="flex items-center space-x-3">
-        <router-link to="/" class="comic-btn-white px-3 py-1.5 text-xs">
-          <ArrowLeft class="w-4 h-4 mr-1" />
+  <div class="max-w-5xl mx-auto px-2.5 sm:px-4 py-2.5 sm:py-6 font-mono">
+    <!-- Top Header (Clean Mobile-First Responsive Layout) -->
+    <div class="mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b-4 border-[#1a1a1a]">
+      <!-- Row 1: Back to Lobby + Rule / Multiplier Badge -->
+      <div class="flex items-center justify-between gap-2 mb-2 sm:mb-2.5">
+        <router-link to="/" class="comic-btn-white px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs inline-flex items-center gap-1 flex-shrink-0">
+          <ArrowLeft class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           <span>返回大厅</span>
         </router-link>
-        <div>
-          <h1 class="text-xl sm:text-2xl font-black text-[#1a1a1a] uppercase flex items-center gap-2">
-            <CreditCard class="w-6 h-6 text-[#1a1a1a]" />
-            <span>21点 (Blackjack)</span>
-            <span class="text-xs px-2.5 py-0.5 rounded-md bg-[#1a1a1a] text-[#facc15] border-2 border-[#1a1a1a] font-black uppercase shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
-              单人对决 · 3:2 天王赔率
-            </span>
-          </h1>
-          <p class="text-xs text-[#1a1a1a] font-bold mt-0.5">庄家必须在 16 点及以下补牌，17 点及以上停牌</p>
-        </div>
+
+        <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-md bg-[#1a1a1a] text-[#facc15] border-2 border-[#1a1a1a] font-black uppercase shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] flex-shrink-0">
+          单人对决 · 3:2 天王赔率
+        </span>
+      </div>
+
+      <!-- Row 2: Title and Dealer Rule -->
+      <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-0.5 sm:gap-2">
+        <h1 class="text-lg sm:text-2xl font-black text-[#1a1a1a] uppercase flex items-center gap-1.5 sm:gap-2">
+          <CreditCard class="w-5 h-5 sm:w-6 sm:h-6 text-[#1a1a1a] flex-shrink-0" />
+          <span>21点 (Blackjack)</span>
+        </h1>
+        <p class="text-[11px] sm:text-xs text-[#1a1a1a]/80 font-bold">
+          庄家必须在 16 点及以下补牌，17 点及以上停牌
+        </p>
       </div>
     </div>
 
     <!-- Game Closed / Outside Open Time Notice -->
     <div
       v-if="!scheduleState.isOpen"
-      class="mb-6 p-8 rounded-lg bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[6px_6px_0px_0px_#1a1a1a] text-center space-y-4 font-mono text-[#1a1a1a]"
+      class="mb-6 p-6 sm:p-8 rounded-lg bg-[#fffef0] border-3 sm:border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_#1a1a1a] sm:shadow-[6px_6px_0px_0px_#1a1a1a] text-center space-y-4 font-mono text-[#1a1a1a]"
     >
-      <div class="w-16 h-16 rounded-xl bg-[#ef4444] text-white border-3 border-[#1a1a1a] flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_#1a1a1a]">
-        <Clock class="w-8 h-8" />
+      <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[#ef4444] text-white border-3 border-[#1a1a1a] flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_#1a1a1a]">
+        <Clock class="w-7 h-7 sm:w-8 sm:h-8" />
       </div>
-      <h2 class="text-2xl font-black uppercase">21点 (Blackjack) 暂停开放</h2>
+      <h2 class="text-xl sm:text-2xl font-black uppercase">21点 (Blackjack) 暂停开放</h2>
       <p class="text-xs sm:text-sm text-[#4a4a4a] font-bold max-w-md mx-auto">
         {{ scheduleState.reason }}<br />
         开放时间：{{ scheduleState.timeDesc }}
@@ -39,52 +45,66 @@
     </div>
 
     <!-- Felt Table -->
-    <div v-else class="relative rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] p-6 min-h-[540px] flex flex-col justify-between shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-hidden">
+    <div v-else class="relative rounded-xl bg-[#fffef0] border-3 sm:border-4 border-[#1a1a1a] p-3.5 sm:p-6 min-h-[440px] sm:min-h-[540px] flex flex-col justify-between shadow-[4px_4px_0px_0px_rgba(26,26,26,1)] sm:shadow-[8px_8px_0px_0px_rgba(26,26,26,1)] overflow-hidden">
       <!-- Halftone Dots Texture -->
       <div class="absolute inset-0 bg-[radial-gradient(#1a1a1a_1.5px,transparent_1.5px)] [background-size:20px_20px] opacity-10 pointer-events-none"></div>
 
       <!-- Dealer Area (Top) -->
       <div class="flex flex-col items-center relative z-10">
-        <div class="flex items-center space-x-2 mb-2">
+        <div class="flex items-center space-x-2 mb-1.5 sm:mb-2">
           <span class="text-xs font-black text-[#1a1a1a] uppercase tracking-wider">庄家 (DEALER)</span>
           <span
             v-if="dealerScore.total > 0 && phase !== 'betting'"
-            class="px-2.5 py-0.5 rounded-md text-xs font-mono font-black border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]"
+            class="px-2 sm:px-2.5 py-0.5 rounded-md text-xs font-mono font-black border-2 border-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] transition-all"
             :class="dealerScore.isBust ? 'bg-[#ef4444] text-white' : 'bg-[#facc15] text-[#1a1a1a]'"
           >
             {{ phase === 'player_turn' ? '?' : dealerScore.total + ' 点' }}
           </span>
         </div>
 
-        <!-- Dealer Cards (Spaced cleanly) -->
-        <div class="flex items-center space-x-3 min-h-[116px]">
+        <!-- Dealer Cards (Spaced cleanly with responsive cascade overlap) -->
+        <div class="flex items-center justify-center min-h-[92px] sm:min-h-[116px] py-1">
           <template v-if="dealerCards.length > 0">
-            <PlayingCard
-              v-for="(c, idx) in dealerCards"
-              :key="idx"
-              :card="c"
-              :faceDown="idx === 1 && phase === 'player_turn'"
-              size="md"
-            />
+            <div class="flex items-center justify-center">
+              <PlayingCard
+                v-for="(c, idx) in dealerCards"
+                :key="idx"
+                :card="c"
+                :faceDown="idx === 1 && phase === 'player_turn'"
+                size="responsive"
+                :class="[
+                  idx > 0
+                    ? dealerCards.length >= 4
+                      ? '-ml-8 sm:-ml-5'
+                      : dealerCards.length === 3
+                      ? '-ml-5 sm:-ml-2'
+                      : 'ml-2 sm:ml-3'
+                    : ''
+                ]"
+                :style="{ zIndex: 10 + idx }"
+              />
+            </div>
           </template>
-          <div v-else class="w-20 h-28 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]">
+          <div v-else class="w-16 h-22 sm:w-20 sm:h-28 md:w-22 md:h-31 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]/80">
             等待发牌
           </div>
         </div>
       </div>
 
       <!-- Center Status & Round Info -->
-      <div class="flex flex-col items-center justify-center my-4 relative z-10">
-        <div v-if="phase === 'betting'" class="text-center space-y-2">
-          <span class="text-sm font-black text-[#1a1a1a]">请选择下注筹码，点击「发牌」开始</span>
-          <div class="text-xs text-[#1a1a1a] font-black flex items-center justify-center gap-1 bg-[#facc15] px-3 py-1 border-2 border-[#1a1a1a] rounded-md shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] inline-block">
-            <span>当前已下注: {{ currentBet }}</span>
-            <CoinIcon customClass="w-3.5 h-3.5" />
+      <div class="flex flex-col items-center justify-center my-2 sm:my-4 relative z-10">
+        <div v-if="phase === 'betting'" class="text-center space-y-1.5 sm:space-y-2">
+          <span class="text-xs sm:text-sm font-black text-[#1a1a1a]">请选择下注筹码，点击「发牌」开始</span>
+          <div>
+            <div class="text-xs text-[#1a1a1a] font-black inline-flex items-center justify-center gap-1 bg-[#facc15] px-2.5 sm:px-3 py-1 border-2 border-[#1a1a1a] rounded-md shadow-[2px_2px_0px_0px_rgba(26,26,26,1)]">
+              <span>当前已下注: {{ currentBet }}</span>
+              <CoinIcon customClass="w-3.5 h-3.5" />
+            </div>
           </div>
         </div>
 
-        <div v-else-if="roundResult" class="text-center space-y-1 py-3 px-6 rounded-xl bg-[#fffef0] border-4 border-[#1a1a1a] shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">
-          <div class="text-lg font-black uppercase" :class="roundResult.netProfit > 0 ? 'text-[#22c55e]' : roundResult.netProfit < 0 ? 'text-[#ef4444]' : 'text-[#1a1a1a]'">
+        <div v-else-if="roundResult" class="text-center space-y-1 py-2 sm:py-3 px-4 sm:px-6 rounded-xl bg-[#fffef0] border-3 sm:border-4 border-[#1a1a1a] shadow-[3px_3px_0px_0px_rgba(26,26,26,1)] sm:shadow-[4px_4px_0px_0px_rgba(26,26,26,1)]">
+          <div class="text-base sm:text-lg font-black uppercase" :class="roundResult.netProfit > 0 ? 'text-[#22c55e]' : roundResult.netProfit < 0 ? 'text-[#ef4444]' : 'text-[#1a1a1a]'">
             {{ roundResult.description }}
           </div>
           <div class="text-xs font-mono font-black flex items-center justify-center gap-1" :class="roundResult.netProfit >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'">
@@ -95,26 +115,38 @@
       </div>
 
       <!-- Player Area (Bottom) -->
-      <div class="flex flex-col items-center relative z-10">
-        <!-- Player Cards (Spaced cleanly) -->
-        <div class="flex items-center space-x-3 mb-2 min-h-[116px]">
+      <div class="flex flex-col items-center relative z-10 w-full">
+        <!-- Player Cards (Spaced cleanly with responsive cascade overlap) -->
+        <div class="flex items-center justify-center min-h-[92px] sm:min-h-[116px] mb-2 py-1">
           <template v-if="playerCards.length > 0">
-            <PlayingCard
-              v-for="(c, idx) in playerCards"
-              :key="idx"
-              :card="c"
-              size="md"
-              :highlight="playerScore.isBlackjack"
-            />
+            <div class="flex items-center justify-center">
+              <PlayingCard
+                v-for="(c, idx) in playerCards"
+                :key="idx"
+                :card="c"
+                size="responsive"
+                :highlight="playerScore.isBlackjack"
+                :class="[
+                  idx > 0
+                    ? playerCards.length >= 4
+                      ? '-ml-8 sm:-ml-5'
+                      : playerCards.length === 3
+                      ? '-ml-5 sm:-ml-2'
+                      : 'ml-2 sm:ml-3'
+                    : ''
+                ]"
+                :style="{ zIndex: 10 + idx }"
+              />
+            </div>
           </template>
-          <div v-else class="w-20 h-28 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]">
+          <div v-else class="w-16 h-22 sm:w-20 sm:h-28 md:w-22 md:h-31 rounded-lg border-2 border-dashed border-[#1a1a1a] flex items-center justify-center text-[#1a1a1a] text-xs font-mono font-bold bg-[#fffef0]/80">
             等待下注
           </div>
         </div>
 
         <!-- Player Points Pill -->
-        <div class="flex items-center space-x-2 mb-4">
-          <div class="px-3.5 py-1 rounded-md bg-[#fffef0] border-2 border-[#1a1a1a] text-xs font-mono font-black text-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] flex items-center space-x-2">
+        <div class="flex items-center justify-center flex-wrap gap-2 mb-3 sm:mb-4">
+          <div class="px-2.5 sm:px-3.5 py-1 rounded-md bg-[#fffef0] border-2 border-[#1a1a1a] text-xs font-mono font-black text-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] flex items-center gap-1.5">
             <span>闲家点数:</span>
             <span :class="playerScore.isBust ? 'text-[#ef4444]' : playerScore.isBlackjack ? 'text-[#ef4444] font-black' : 'text-[#22c55e]'">
               {{ playerScore.total }} 点
@@ -130,7 +162,7 @@
             </span>
           </div>
 
-          <div v-if="currentBet > 0" class="px-3.5 py-1 rounded-md bg-[#facc15] border-2 border-[#1a1a1a] text-xs font-mono font-black text-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] flex items-center gap-1">
+          <div v-if="currentBet > 0" class="px-2.5 sm:px-3.5 py-1 rounded-md bg-[#facc15] border-2 border-[#1a1a1a] text-xs font-mono font-black text-[#1a1a1a] shadow-[2px_2px_0px_0px_rgba(26,26,26,1)] flex items-center gap-1">
             <span>下注: {{ currentBet }}</span>
             <CoinIcon customClass="w-3.5 h-3.5" />
           </div>
@@ -138,14 +170,14 @@
 
         <!-- Controls Area -->
         <!-- 1. Betting Stage -->
-        <div v-if="phase === 'betting'" class="w-full flex flex-col items-center space-y-4">
+        <div v-if="phase === 'betting'" class="w-full flex flex-col items-center space-y-3 sm:space-y-4">
           <ChipSelector v-model="selectedChip" @change="addBet" />
 
-          <div class="flex items-center space-x-3">
+          <div class="flex items-center justify-center gap-2 sm:gap-3 w-full max-w-xs">
             <button
               @click="clearBet"
               :disabled="currentBet === 0"
-              class="comic-btn-white px-4 py-2.5 text-xs"
+              class="comic-btn-white flex-1 py-2 sm:py-2.5 text-xs font-black disabled:opacity-40 shadow-[3px_3px_0px_0px_#1a1a1a] sm:shadow-[4px_4px_0px_0px_#1a1a1a]"
             >
               清空下注
             </button>
@@ -153,25 +185,26 @@
               v-prevent-reclick
               @click="dealHands"
               :disabled="currentBet === 0 || authStore.userChips < currentBet || isDealing"
-              class="comic-btn-green px-8 py-2.5 text-sm disabled:opacity-50"
+              class="comic-btn-green flex-[1.4] py-2 sm:py-2.5 text-xs sm:text-sm font-black disabled:opacity-50 flex items-center justify-center gap-1 shadow-[3px_3px_0px_0px_#1a1a1a] sm:shadow-[4px_4px_0px_0px_#1a1a1a]"
             >
-              <Play class="w-4 h-4 mr-1" />
+              <Play class="w-4 h-4 mr-0.5 flex-shrink-0" />
               <span>{{ isDealing ? '正在发牌...' : '确认发牌' }}</span>
             </button>
           </div>
         </div>
 
         <!-- 2. Playing Stage -->
-        <div v-else-if="phase === 'player_turn'" class="flex items-center space-x-4">
+        <div v-else-if="phase === 'player_turn'" class="w-full max-w-sm sm:max-w-md flex items-center justify-center gap-2 sm:gap-3 px-1">
           <!-- 要牌 (Hit) -->
           <button
             v-prevent-reclick
             :disabled="isActionBusy"
             @click="handleHit"
-            class="comic-btn-yellow px-6 py-2.5 text-sm disabled:opacity-50"
+            class="comic-btn-yellow flex-1 py-2 sm:py-2.5 px-2 sm:px-4 text-xs sm:text-sm disabled:opacity-50 flex items-center justify-center gap-1 shadow-[3px_3px_0px_0px_#1a1a1a] sm:shadow-[4px_4px_0px_0px_#1a1a1a]"
           >
-            <Plus class="w-4 h-4 mr-1" />
-            <span>要牌 (Hit)</span>
+            <Plus class="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span class="font-black whitespace-nowrap">要牌</span>
+            <span class="hidden sm:inline text-[11px] sm:text-xs font-bold opacity-80">(Hit)</span>
           </button>
 
           <!-- 停牌 (Stand) -->
@@ -179,10 +212,11 @@
             v-prevent-reclick
             :disabled="isActionBusy"
             @click="handleStand"
-            class="comic-btn-red px-6 py-2.5 text-sm disabled:opacity-50"
+            class="comic-btn-red flex-1 py-2 sm:py-2.5 px-2 sm:px-4 text-xs sm:text-sm disabled:opacity-50 flex items-center justify-center gap-1 shadow-[3px_3px_0px_0px_#1a1a1a] sm:shadow-[4px_4px_0px_0px_#1a1a1a]"
           >
-            <Hand class="w-4 h-4 mr-1" />
-            <span>停牌 (Stand)</span>
+            <Hand class="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span class="font-black whitespace-nowrap">停牌</span>
+            <span class="hidden sm:inline text-[11px] sm:text-xs font-bold opacity-80">(Stand)</span>
           </button>
 
           <!-- 加倍 (Double) -->
@@ -191,21 +225,22 @@
             v-prevent-reclick
             :disabled="isActionBusy"
             @click="handleDouble"
-            class="comic-btn-blue px-6 py-2.5 text-sm disabled:opacity-50"
+            class="comic-btn-blue flex-1 py-2 sm:py-2.5 px-2 sm:px-4 text-xs sm:text-sm disabled:opacity-50 flex items-center justify-center gap-1 shadow-[3px_3px_0px_0px_#1a1a1a] sm:shadow-[4px_4px_0px_0px_#1a1a1a]"
           >
-            <Zap class="w-4 h-4 mr-1" />
-            <span>加倍 (Double)</span>
+            <Zap class="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span class="font-black whitespace-nowrap">加倍</span>
+            <span class="hidden sm:inline text-[11px] sm:text-xs font-bold opacity-80">(Double)</span>
           </button>
         </div>
 
         <!-- 3. Settled Stage -->
-        <div v-else-if="phase === 'settled'" class="flex items-center space-x-4">
+        <div v-else-if="phase === 'settled'" class="w-full flex items-center justify-center">
           <button
             v-prevent-reclick
             @click="resetToBetting"
-            class="comic-btn-green px-8 py-2.5 text-sm"
+            class="comic-btn-green w-full max-w-xs py-2.5 sm:py-3 text-sm font-black flex items-center justify-center gap-1.5 shadow-[3px_3px_0px_0px_#1a1a1a] sm:shadow-[4px_4px_0px_0px_#1a1a1a]"
           >
-            <RotateCw class="w-4 h-4 mr-1" />
+            <RotateCw class="w-4 h-4 flex-shrink-0" />
             <span>再来一局</span>
           </button>
         </div>
